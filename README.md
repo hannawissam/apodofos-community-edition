@@ -66,9 +66,6 @@ non-affiliation notices.
 - **Text ASH and 12c+ Statspack layouts are inferred.** They are implemented from the documented report structure and
   from synthetic fixtures written for this project, not validated against a broad set of real customer reports. Expect
   sections to be missed on layouts we have not seen; missing sections produce warnings, never crashes.
-- The project does not redistribute third-party Oracle reports. The test suite includes optional regression tests over a
-  git-ignored local corpus (`EXAMPLES-local/`); on a clean checkout those tests skip and the suite stays green, so
-  real-world coverage depends on what the maintainer has locally.
 - Thresholds are general guidance, not a substitute for knowing your workload. Findings carry a confidence level for a
   reason; treat low-confidence items as questions to check.
 - Reports are static snapshots: the tool cannot see anything the report does not contain.
