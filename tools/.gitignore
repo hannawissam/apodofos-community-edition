@@ -1,0 +1,6 @@
+# Licensing secrets - NEVER commit
+keys/
+*.pem
+*.key
+*.lic
+seats.json

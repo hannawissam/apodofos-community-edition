@@ -1,0 +1,29 @@
+# Build output
+bin/
+obj/
+artifacts/
+*.user
+*.suo
+.vs/
+TestResults/
+
+# IDE / OS
+.idea/
+*.swp
+Thumbs.db
+.DS_Store
+
+# Local tool state
+.claude/settings.local.json
+
+# Generated analyzer output
+*.analysis.json
+
+# Local third-party sample reports (copyrighted by their owners; never commit)
+EXAMPLES-local/
+
+# Third-party sample reports (copyrighted by their owners; replace with synthetic ones before public release)
+EXAMPLES/
+
+# Pro edition / licensing drafts live in the private Pro repository, never here
+_parked/

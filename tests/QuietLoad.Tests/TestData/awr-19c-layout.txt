@@ -1,0 +1,137 @@
+WORKLOAD REPOSITORY report for
+
+DB Name         DB Id    Instance     Inst Num Startup Time    Release     RAC
+------------ ----------- ------------ -------- --------------- ----------- ---
+TESTDB19      1234567890 testdb19            1 05-Jun-19 05:06 19.0.0.0.0  NO
+
+Host Name        Platform                         CPUs Cores Sockets Memory(GB)
+---------------- -------------------------------- ---- ----- ------- ----------
+testhost01       Linux x86 64-bit                   32    16       1     235.91
+
+              Snap Id      Snap Time      Sessions Curs/Sess
+            --------- ------------------- -------- ---------
+Begin Snap:       659 05-Jun-19 22:58:39       787       5.2
+  End Snap:       667 06-Jun-19 01:00:12       782       5.4
+   Elapsed:              121.57 (mins)
+   DB Time:            1,942.31 (mins)
+
+Report Summary
+~~~~~~~~~~~~~~
+
+Cache Sizes                       Begin        End
+~~~~~~~~~~~                  ---------- ----------
+               Buffer Cache:   104,704M   104,704M  Std Block Size:           8K
+           Shared Pool Size:    13,056M    13,056M      Log Buffer:     254,660K
+
+Load Profile                    Per Second   Per Transaction  Per Exec   Per Call
+~~~~~~~~~~~~~~~            ---------------   --------------- --------- ---------
+             DB Time(s):              16.0               0.1      0.00      0.19
+              DB CPU(s):              12.4               0.1      0.00      0.14
+      Redo size (bytes):       6,004,534.4          25,131.5
+  Logical read (blocks):         587,289.3           2,458.1
+          Block changes:          39,445.9             165.1
+ Physical read (blocks):               8.6               0.0
+Physical write (blocks):             523.4               2.2
+             User calls:              86.2               0.4
+         Parses (SQL):             2,594.5              10.9
+   Hard parses (SQL):                  0.1               0.0
+           Logons:                     0.6               0.0
+          Executes (SQL):         14,687.1              61.5
+              Rollbacks:               1.0               0.0
+           Transactions:             238.9
+
+Instance Efficiency Percentages (Target 100%)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            Buffer Nowait %:   99.79       Redo NoWait %:  100.00
+            Buffer  Hit   %:  100.00    In-memory Sort %:  100.00
+            Library Hit   %:  100.07            Soft Parse %:   99.99
+         Execute to Parse %:   82.33             Latch Hit %:   99.48
+Parse CPU to Parse Elapsd %:   76.54         % Non-Parse CPU:   99.71
+
+Shared Pool Statistics        Begin    End
+                              ------  ------
+             Memory Usage %:   37.86   37.97
+    % SQL with executions>1:   99.21   99.28
+  % Memory for SQL w/exec>1:   98.68   98.91
+
+Top 10 Foreground Events by Total Wait Time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                                           Tota        Wait   % DB
+Event                                 Waits Time (sec)    Avg(ms)   time Wait Class
+------------------------------ ------------ ---------- ------- ------ ------------
+DB CPU                                           90.1K           77.3
+buffer busy waits                 6,633,272      13.4K    2.01   11.5 Concurrency
+enq: TX - row lock contention       125,207       2196   17.54    1.9 Application
+enq: TX - index contention          147,065     1819.7   12.37    1.6 Concurrency
+resmgr:cpu quantum                  180,662     1786.3    9.89    1.5 Scheduler
+enq: TX - allocate ITL entry         11,643      873.6   75.04     .7 Configuration
+latch: cache buffers chains         864,505      689.6    0.80     .6 Concurrency
+
+Wait Classes by Total Wait Time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                        Total Wait       Avg             Avg
+                                  Waits  Time (sec)  Wait (ms)  % DB time Active Sessions
+------------------ -------------------- ----------- --------- --------- ---------------
+DB CPU                                       90,086                77.3            12.4
+Concurrency                   8,190,598      16,370      2.00      14.0             2.2
+Application                     127,442       2,196     17.23       1.9             0.3
+Scheduler                       180,880       1,787      9.88       1.5             0.2
+System I/O                      962,698       1,637      1.70       1.4             0.2
+
+Host CPU
+~~~~~~~~
+                     Load Average
+ CPUs Cores Sockets     Begin       End     %User   %System    %WIO   %Idle
+----- ----- ------- --------- --------- --------- --------- ------- -------
+   32    16       1      1.23      0.77      40.4       2.2     0.0    57.3
+
+Time Model Statistics                   DB/Inst: TESTDB19/testdb19  Snaps: 659-667
+-> Total time in seconds
+-> Statistics including the word "background" measure background process
+   time, and so do not contribute to the DB time statistic
+
+Statistic Name                                       Time (s) % of DB Time
+------------------------------------------ ------------------ ------------
+sql execute elapsed time                           116,307.01         99.8
+DB CPU                                              90,086.40         77.3
+PL/SQL execution elapsed time                       15,579.22         13.4
+parse time elapsed                                       2.50          0.0
+DB time                                            116,538.60
+
+SQL ordered by Elapsed Time              DB/Inst: TESTDB19/testdb19  Snaps: 659-667
+-> Resources reported for PL/SQL code includes the resources used by all SQL
+   statements called by the code.
+-> %Total - Elapsed Time  as a percentage of Total DB time
+-> %CPU   - CPU Time      as a percentage of Elapsed Time
+-> %IO    - User I/O Time as a percentage of Elapsed Time
+-> Captured SQL account for   65.7% of Total DB Time (s):         116,539
+-> Captured PL/SQL account for   39.6% of Total DB Time (s):         116,539
+
+        Elapsed                  Elapsed Time
+        Time (s)    Executions  per Exec (s)  %Total   %CPU    %IO    SQL Id
+---------------- -------------- ------------- ------ ------ ------ -------------
+        30,870.8             64        482.36   26.5   95.9    0.0 abcd1234efgh5
+Module: e:ONT:cp:wsh/WSHPSGL_SUB
+BEGIN WSH_PICK_LIST.RELEASE_BATCH_SUB(:errbuf, :rc, :A0, :A1); END;
+
+        16,512.4            200         82.56   14.2   99.2    0.0 wxyz5678ijkl9
+Module: e:AR:cp:ar/RAXTRX
+UPDATE RA_INTERFACE_LINES_GT SET ROW_ID = :B1 WHERE ID = :B2
+
+Tablespace IO Stats                      DB/Inst: TESTDB19/testdb19  Snaps: 659-667
+-> ordered by IOs (Reads + Writes) desc
+
+Tablespace
+------------------------------
+                 Av      Av     Av                       Av     Buffer Av Buf
+         Reads Reads/s Rd(ms) Blks/Rd       Writes Writes/s      Waits Wt(ms)
+-------------- ------- ------- ------- ------------ -------- ---------- ------
+UNDOTBS1
+              12       0    7.50     1.0      219,754       30  4,792,081    0.4
+APPS_TS_TX_DATA
+     120,000       16    0.90     1.1       60,000        8     12,000    1.2
+
+          -------------------------------------------------------------
+
+End of Report

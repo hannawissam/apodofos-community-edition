@@ -1,0 +1,22 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <!-- Builds artifacts/release/QuietLoad-Setup-<version>-win-x64.msi. Run via release.ps1 (it stages the
+       published files and generates the licence RTF first). Not part of QuietLoad.slnx on purpose. -->
+  <PropertyGroup>
+    <OutputName>QuietLoad-Setup-$(Version)-win-x64</OutputName>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <Platform>x64</Platform>
+    <!-- ICE61: same-version upgrades are allowed on purpose; ICE105: the optional machine-wide PATH component is only installed in per-machine mode. -->
+    <SuppressIces>ICE61;ICE105</SuppressIces>
+    <!-- Staging folder filled by release.ps1 -->
+    <StageDir Condition="'$(StageDir)' == ''">$(MSBuildThisFileDirectory)..\artifacts\stage\</StageDir>
+    <DefineConstants>$(DefineConstants);StageDir=$(StageDir);AppVersion=$(Version)</DefineConstants>
+    <OutputPath>$(MSBuildThisFileDirectory)..\artifacts\installer-build\</OutputPath>
+    <IntermediateOutputPath>$(MSBuildThisFileDirectory)..\artifacts\installer-obj\</IntermediateOutputPath>
+    <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+  </ItemGroup>
+</Project>
+
+

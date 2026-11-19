@@ -1,0 +1,29 @@
+WORKLOAD REPOSITORY report for
+
+DB Name         DB Id    Instance     Inst Num Startup Time    Release     RAC
+------------ ----------- ------------ -------- --------------- ----------- ---
+TESTDB         123456789 testdb1             1 01-Jan-24 00:00 19.0.0.0.0  NO
+
+Host Name        Platform                         CPUs Cores Sockets Memory(GB)
+---------------- -------------------------------- ---- ----- ------- ----------
+testhost         Linux x86 64-bit                    8     4       1       32.00
+
+              Snap Id      Snap Time      Sessions Curs/Sess
+            --------- ------------------- -------- ---------
+Begin Snap:       100 02-Jan-24 10:00:00        40       1.5
+  End Snap:       101 02-Jan-24 11:00:00        42       1.6
+   Elapsed:               60.00 (mins)
+   DB Time:              120.50 (mins)
+
+Top 10 Foreground Events by Total Wait Time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                                                           Avg
+                                           Total Wait     wait    % DB
+Event                                 Waits Time (sec)     (ms)    time Wait Class
+------------------------------ ------------ ----------- ------- ------- ----------
+DB CPU                                            4,500            62.2
+db file sequential read             100,000       1,200   12.00    16.6 User I/O
+log file sync                        50,000         600   12.00     8.3 Commit
+
+End of Report

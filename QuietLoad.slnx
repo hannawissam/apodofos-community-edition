@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/QuietLoad.Core/QuietLoad.Core.csproj" />
+    <Project Path="src/QuietLoad.Desktop/QuietLoad.Desktop.csproj" />
+    <Project Path="src/QuietLoad.Cli/QuietLoad.Cli.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/QuietLoad.Tests/QuietLoad.Tests.csproj" />
+  </Folder>
+</Solution>
+
