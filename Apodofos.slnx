@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Apodofos.Core/Apodofos.Core.csproj" />
+    <Project Path="src/Apodofos.Desktop/Apodofos.Desktop.csproj" />
+    <Project Path="src/Apodofos.Cli/Apodofos.Cli.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Apodofos.Tests/Apodofos.Tests.csproj" />
+  </Folder>
+</Solution>
+

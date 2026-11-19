@@ -3,7 +3,7 @@
 
 <#
 .SYNOPSIS
-  Re-checks every URL in src/QuietLoad.Core/Knowledge/doc-catalog.json against docs.oracle.com.
+  Re-checks every URL in src/Apodofos.Core/Knowledge/doc-catalog.json against docs.oracle.com.
 .DESCRIPTION
   NETWORK TOOL - not part of the test suite (the product itself never goes online).
   For each distinct page URL: expects HTTP 200. For entries with an anchor: also checks that the
@@ -15,7 +15,7 @@
 .PARAMETER Stamp     Rewrite verifiedOn with today's date for all entries whose page passed.
 #>
 param(
-    [string]$Catalog = (Join-Path $PSScriptRoot '..\src\QuietLoad.Core\Knowledge\doc-catalog.json'),
+    [string]$Catalog = (Join-Path $PSScriptRoot '..\src\Apodofos.Core\Knowledge\doc-catalog.json'),
     [int]$Parallel = 8,
     [switch]$Stamp
 )

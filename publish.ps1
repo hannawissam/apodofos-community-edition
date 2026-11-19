@@ -14,9 +14,9 @@ foreach ($d in 'desktop', 'cli') {
 }
 New-Item -ItemType Directory -Force $out | Out-Null
 
-dotnet publish src/QuietLoad.Desktop -c Release -r $Runtime --self-contained true -p:PublishSingleFile=true -p:DebugType=none -p:DebugSymbols=false -o (Join-Path $out 'desktop')
+dotnet publish src/Apodofos.Desktop -c Release -r $Runtime --self-contained true -p:PublishSingleFile=true -p:DebugType=none -p:DebugSymbols=false -o (Join-Path $out 'desktop')
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-dotnet publish src/QuietLoad.Cli -c Release -r $Runtime --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -p:DebugSymbols=false -o (Join-Path $out 'cli')
+dotnet publish src/Apodofos.Cli -c Release -r $Runtime --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -p:DebugSymbols=false -o (Join-Path $out 'cli')
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Get-ChildItem (Join-Path $out 'desktop') -Filter *.xml -File | Remove-Item -Force   # WebView2 API doc files, not needed at runtime

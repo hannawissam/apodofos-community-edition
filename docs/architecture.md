@@ -9,7 +9,7 @@
         │
   Export (DashboardBuilder) → one self-contained HTML (UI + JSON + report)
         │
-  Hosts:  Desktop (WinForms + WebView2)   CLI (quietload)   Any browser (exported file)
+  Hosts:  Desktop (WinForms + WebView2)   CLI (apodofos)   Any browser (exported file)
 ```
 
 Key decisions

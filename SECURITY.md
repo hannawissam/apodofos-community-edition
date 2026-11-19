@@ -7,11 +7,11 @@
 | Older 1.x releases | upgrade to the latest 1.x |
 | Pre-release / development builds | no |
 
-QuietLoad Professional Edition is a separate product with its own support terms.
+Apodofos Professional Edition is a separate product with its own support terms.
 
 ## Reporting a vulnerability
 Please **do not open a public issue or pull request** for a security problem.
-* Use GitHub's **Private vulnerability reporting**: https://github.com/hannawissam/quietload-community-edition/security/advisories/new (Security tab, "Report a
+* Use GitHub's **Private vulnerability reporting**: https://github.com/hannawissam/apodofos-community-edition/security/advisories/new (Security tab, "Report a
   vulnerability").
 * Include: affected version, steps to reproduce, impact, and a proof of concept. **Do not send real AWR/ASH/Statspack
   reports or customer data**; use a synthetic sample. No PGP key is published at this time.

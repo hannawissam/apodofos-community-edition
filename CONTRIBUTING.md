@@ -1,6 +1,6 @@
-# Contributing to QuietLoad Report Analyzer (Community Edition)
+# Contributing to Apodofos Report Analyzer (Community Edition)
 
-Thank you for your interest. QuietLoad Community Edition is licensed **AGPL-3.0-only**. Because the maintainer may also license the
+Thank you for your interest. Apodofos Community Edition is licensed **AGPL-3.0-only**. Because the maintainer may also license the
 code under other terms (see `CLA.md`), any accepted contribution requires the CLA.
 
 ## Contribution policy
@@ -11,7 +11,7 @@ Welcome through issues: bug reports, feature requests and documentation suggesti
 
 The steps below apply only to a contribution the maintainer has invited.
 
-The public repository is <https://github.com/hannawissam/quietload-community-edition>; open issues there.
+The public repository is <https://github.com/hannawissam/apodofos-community-edition>; open issues there.
 
 ## Before you start
 1. **Accept the CLA** (`CLA.md`): tick the CLA checkbox in the pull request template, or write this exact sentence in the pull
@@ -36,7 +36,7 @@ The public repository is <https://github.com/hannawissam/quietload-community-edi
 * Never use "Oracle", "AWR", "ASH" or "Statspack" in product names, logos, domains or branding.
 
 ## Code style and checks
-`dotnet build QuietLoad.slnx` and `dotnet test` must pass. Source files carry the header
+`dotnet build Apodofos.slnx` and `dotnet test` must pass. Source files carry the header
 `SPDX-License-Identifier: AGPL-3.0-only` and `Copyright (c) 2026 Wissam HANNA` (see `tools/spdx-headers.ps1`).
 
 ## Security issues
@@ -46,4 +46,4 @@ Do not open a public issue: see `SECURITY.md`.
 See `CODE_OF_CONDUCT.md`. Do not paste unredacted reports in issues: remove host names, schema names and SQL text.
 
 ## Forks and the name
-You may fork under the AGPL, but must rename the project and not use the QuietLoad name or logo (`TRADEMARK.md`).
+You may fork under the AGPL, but must rename the project and not use the Apodofos name or logo (`TRADEMARK.md`).

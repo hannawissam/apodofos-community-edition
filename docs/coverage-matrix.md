@@ -1,9 +1,9 @@
 # Coverage matrix
 
 Which part of the analysis consumes each table/section the parsers produce. Source of truth:
-`src/QuietLoad.Core/Analysis/CoverageMap.cs`. `CoverageTests` fails when
+`src/Apodofos.Core/Analysis/CoverageMap.cs`. `CoverageTests` fails when
 
-- a section produced by a parser (checked on every fixture in `EXAMPLES/`, `tests/QuietLoad.Tests/TestData/` and, when present, the git-ignored `EXAMPLES-local/`) has no entry in the map,
+- a section produced by a parser (checked on every fixture in `EXAMPLES/`, `tests/Apodofos.Tests/TestData/` and, when present, the git-ignored `EXAMPLES-local/`) has no entry in the map,
 - a **core** section has no real consumer (only the generic table explorer),
 - a rule class, chart id or KPI named in the map no longer exists in the source.
 

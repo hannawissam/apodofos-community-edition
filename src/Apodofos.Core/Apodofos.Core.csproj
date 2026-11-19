@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <RootNamespace>Apodofos.Core</RootNamespace>
+    <Description>Offline Oracle AWR report parser, rules-based analysis engine and HTML dashboard builder.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack" Version="1.13.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The offline web UI (HTML/CSS/JS, no CDN) is embedded so every front-end renders the same dashboard. -->
+    <EmbeddedResource Include="Web\**\*" LogicalName="Apodofos.Web.%(Filename)%(Extension)" />
+    <!-- Offline Oracle documentation catalog (links, keywords and own-word summaries only; no Oracle text). -->
+    <EmbeddedResource Include="Knowledge\doc-catalog.json" LogicalName="Apodofos.Docs.doc-catalog.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Apodofos.Tests" />
+  </ItemGroup>
+</Project>

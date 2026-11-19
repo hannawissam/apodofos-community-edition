@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Apodofos Report Analyzer</title>
+<script>
+/* apply the saved theme before first paint to avoid a flash */
+(function () { try { var t = localStorage.getItem('awr.theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
+</script>
+<!--AWR:CSS-->
+</head>
+<body>
+<a class="skip" href="#analysis">Skip to analysis</a>
+
+<header class="topbar" role="banner">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"><!--AWR:ICON--></span>
+    <div class="brand-text">
+      <div class="titlerow">
+        <h1 id="appTitle">Apodofos Report Analyzer</h1>
+        <span id="typeBadge" class="tbadge" hidden></span>
+        <span id="notRight" class="notright" hidden>
+          <button type="button" class="quietlink" id="btnNotRight" aria-haspopup="menu" aria-expanded="false" aria-controls="typeMenu">Not right?</button>
+          <div id="typeMenu" class="typemenu" role="menu" aria-label="Treat this file as" hidden>
+            <div class="tm-head" aria-hidden="true">Treat this file as:</div>
+            <button type="button" role="menuitemradio" aria-checked="false" data-provider="oracle-awr">AWR</button>
+            <button type="button" role="menuitemradio" aria-checked="false" data-provider="oracle-ash">ASH</button>
+            <button type="button" role="menuitemradio" aria-checked="false" data-provider="oracle-statspack">Statspack</button>
+          </div>
+        </span>
+      </div>
+      <p id="appSub" class="sub">Offline performance report analysis</p>
+    </div>
+  </div>
+  <div class="top-actions" role="toolbar" aria-label="Application actions">
+    <button type="button" class="btn primary" id="btnOpen" data-host="desktop" title="Open an Oracle AWR, ASH or Statspack report (Ctrl+O)" aria-keyshortcuts="Control+O">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span id="lblOpen">Open report</span></button>
+    <button type="button" class="btn" id="btnSave" data-host="desktop" title="Save this dashboard as a standalone HTML file">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 19h14"/></svg><span>Save HTML</span></button>
+    <button type="button" class="btn" id="btnPrint" title="Print the summary and findings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg><span>Print</span></button>
+    <span class="vsep" aria-hidden="true"></span>
+    <button type="button" class="iconbtn" id="btnLayoutReport" aria-pressed="false" title="Hide the original report (focus on analysis)" aria-label="Toggle original report pane">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16"/><path d="M5.5 8h4M5.5 11h4M5.5 14h3" /></svg></button>
+    <button type="button" class="iconbtn" id="btnLayoutAnalysis" aria-pressed="false" title="Hide the analysis (focus on the report)" aria-label="Toggle analysis pane">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16"/><path d="M14.5 16v-3M17 16v-6M19.5 16v-4"/></svg></button>
+    <button type="button" class="iconbtn" id="btnAbout" title="About Apodofos Report Analyzer" aria-label="About" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
+    <button type="button" class="iconbtn" id="btnTheme" title="Switch light / dark theme" aria-label="Switch light or dark theme">
+      <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/></svg>
+      <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg></button>
+  </div>
+</header>
+
+<div id="notice" class="notice" role="alert" hidden>
+  <span class="notice-ico" aria-hidden="true"></span>
+  <span id="noticeText" class="notice-text"></span>
+  <button type="button" class="notice-x" id="noticeClose" aria-label="Dismiss message" title="Dismiss">&times;</button>
+</div>
+
+<main id="split" class="split">
+  <section id="paneReport" class="pane pane-report" aria-label="Original report">
+    <div class="pane-bar">
+      <label class="jump"><span class="sr">Jump to a report table</span>
+        <select id="jump" aria-label="Jump to a report section or table"><option value="">Jump to section or table&hellip;</option></select></label>
+      <span id="learn" class="learn" hidden></span>
+      <button type="button" class="chipbtn" id="btnInvert" aria-pressed="false" title="Invert report colours for dark mode">Dark report</button>
+    </div>
+    <div class="frame-wrap">
+      <iframe id="reportFrame" title="Original report" sandbox="allow-same-origin" referrerpolicy="no-referrer"></iframe>
+      <div id="frameEmpty" class="frame-empty">The original report appears here.</div>
+    </div>
+  </section>
+
+  <div id="splitter" class="splitter" role="separator" aria-orientation="vertical" tabindex="0"
+       aria-label="Resize panes. Use left and right arrow keys, Home to reset." aria-valuemin="15" aria-valuemax="85" aria-valuenow="50" title="Drag to resize, double-click to reset"><span class="grip"></span></div>
+
+  <section id="paneAnalysis" class="pane pane-analysis" aria-label="Analysis">
+    <div class="tabs" role="tablist" aria-label="Analysis sections" id="tablist">
+      <button role="tab" id="tab-summary" aria-controls="panel-summary" aria-selected="true" data-tab="summary">Summary</button>
+      <button role="tab" id="tab-findings" aria-controls="panel-findings" aria-selected="false" tabindex="-1" data-tab="findings">Findings <span class="count" id="cntFindings"></span></button>
+      <button role="tab" id="tab-charts" aria-controls="panel-charts" aria-selected="false" tabindex="-1" data-tab="charts">Charts</button>
+      <button role="tab" id="tab-sql" aria-controls="panel-sql" aria-selected="false" tabindex="-1" data-tab="sql">SQL <span class="count" id="cntSql"></span></button>
+      <button role="tab" id="tab-script" aria-controls="panel-script" aria-selected="false" tabindex="-1" data-tab="script">Script</button>
+      <button role="tab" id="tab-docs" aria-controls="panel-docs" aria-selected="false" tabindex="-1" data-tab="docs">Documentation</button>
+    </div>
+    <div id="analysis" class="panels" tabindex="-1">
+      <div role="tabpanel" id="panel-summary" aria-labelledby="tab-summary" class="panel" data-print="1"></div>
+      <div role="tabpanel" id="panel-findings" aria-labelledby="tab-findings" class="panel" hidden data-print="1"></div>
+      <div role="tabpanel" id="panel-charts" aria-labelledby="tab-charts" class="panel" hidden></div>
+      <div role="tabpanel" id="panel-sql" aria-labelledby="tab-sql" class="panel" hidden></div>
+      <div role="tabpanel" id="panel-script" aria-labelledby="tab-script" class="panel" hidden></div>
+      <div role="tabpanel" id="panel-docs" aria-labelledby="tab-docs" class="panel" hidden></div>
+    </div>
+  </section>
+</main>
+
+<div id="empty" class="empty" hidden>
+  <div class="dropzone" id="dropzone" tabindex="-1">
+    <div class="drop-logo" aria-hidden="true"></div>
+    <h2 id="emptyTitle">Analyze an Oracle performance report</h2>
+    <p id="emptyText">Drop an AWR, ASH or Statspack report here. HTML and text files both work. The file is read on this computer only and is never uploaded.</p>
+    <button type="button" class="btn primary big" id="btnOpenBig" data-host="desktop" title="Open an Oracle AWR, ASH or Statspack report (Ctrl+O)" aria-keyshortcuts="Control+O">Open report&hellip;</button>
+    <p class="hint" id="emptyHint"></p>
+    <div class="recent" id="recent" hidden data-host="desktop">
+      <div class="recent-head"><h3 id="recentTitle">Recent reports</h3><button type="button" class="quietlink" id="btnClearRecent">Clear list</button></div>
+      <ul id="recentList" aria-labelledby="recentTitle"></ul>
+    </div>
+  </div>
+</div>
+
+<div id="dropOverlay" class="drop-overlay" aria-hidden="true" hidden><div class="drop-msg">Drop to analyze this report</div></div>
+
+<dialog id="aboutDlg" class="about" aria-labelledby="aboutTitle">
+  <h2 id="aboutTitle">About Apodofos Report Analyzer</h2>
+  <p>Apodofos Report Analyzer, Community Edition. Copyright &copy; 2026 Wissam HANNA.</p>
+  <p>This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License, version 3 only (AGPL-3.0-only). It comes with <b>ABSOLUTELY NO WARRANTY</b>; without even the implied warranty of merchantability or fitness for a particular purpose.</p>
+  <p>The full licence text is in the <code>LICENSE</code> file shipped with this application.</p>
+  <p>Source code: <span class="srcurl" id="srcUrl">https://github.com/hannawissam/apodofos-community-edition</span> <button type="button" class="linkbtn" id="btnCopySrc">Copy link</button></p>
+  <p>If you run a modified version of this program for users over a network you must offer them the corresponding source code.</p>
+  <p>Apodofos Report Analyzer is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.</p>
+  <p>The application works fully offline: it never connects to a database or to the internet.</p>
+  <p>Privacy: the application collects and sends no data. See the file <code>docs/privacy.md</code> in the source repository.</p>
+  <div class="about-actions"><button type="button" class="btn primary" id="aboutClose">Close</button></div>
+</dialog>
+
+<footer class="appfoot" role="contentinfo">
+  <span>&copy; 2026 Wissam HANNA. Apodofos Report Analyzer, Community Edition, is copyrighted to Wissam HANNA and is free software licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only), with ABSOLUTELY NO WARRANTY. Source code and license: <span class="srcurl">https://github.com/hannawissam/apodofos-community-edition</span> (see also the LICENSE file shipped with this application). <button type="button" class="linkbtn" id="btnAboutFoot">About</button></span>
+  <span>Apodofos Report Analyzer is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.</span>
+</footer>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!--AWR:DATA-->
+<!--AWR:SCRIPTS-->
+</body>
+</html>

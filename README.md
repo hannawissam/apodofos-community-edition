@@ -1,9 +1,13 @@
-# QuietLoad Report Analyzer (Community Edition)
+# Apodofos Report Analyzer (Community Edition)
 
-<img src="assets/quietload-256.png" width="96" align="right" alt="QuietLoad Report Analyzer icon"/>
+<img src="assets/apodofos-256.png" width="96" align="right" alt="Apodofos Report Analyzer icon"/>
 
 An **offline** Windows tool that analyzes Oracle **AWR**, **ASH** and **Statspack** reports (HTML or text). It never
 connects to a database and never uses the internet: you give it a report file, it gives you a diagnosis.
+
+## About the name
+*Apodofos* (pronounced a-PO-do-fos) combines two Greek words: *apodosi* (Απόδοση, "performance") and *fos* (Φως,
+"light"): the light of performance (φως απόδοσης). The tool throws light on the performance of your database.
 
 ## What you see
 Open a report and get, side by side:
@@ -35,21 +39,21 @@ Open a report and get, side by side:
 
 ## Build, run, test, publish
 ```
-git clone https://github.com/hannawissam/quietload-community-edition.git
-cd quietload
-dotnet build QuietLoad.slnx
+git clone https://github.com/hannawissam/apodofos-community-edition.git
+cd apodofos
+dotnet build Apodofos.slnx
 dotnet test
-dotnet run --project src/QuietLoad.Desktop
-dotnet run --project src/QuietLoad.Cli -- report.html --text
+dotnet run --project src/Apodofos.Desktop
+dotnet run --project src/Apodofos.Cli -- report.html --text
 ./publish.ps1        # self-contained single-file desktop and CLI executables in artifacts/ (git-ignored)
 ```
 
 ## Command line
 ```
-quietload <report> [--html out.html] [--json out.json] [--script out.sql] [--text]
-quietload --version
-quietload --license
-quietload --help
+apodofos <report> [--html out.html] [--json out.json] [--script out.sql] [--text]
+apodofos --version
+apodofos --license
+apodofos --help
 ```
 With no output option, `--text` is assumed. Exit codes: 0 ok, 1 usage error, 2 file unreadable, 3 not a valid
 AWR/ASH/Statspack report, 4 other error. `--license` prints the copyright, licence, no-warranty and Oracle
@@ -66,6 +70,9 @@ non-affiliation notices.
 - **Text ASH and 12c+ Statspack layouts are inferred.** They are implemented from the documented report structure and
   from synthetic fixtures written for this project, not validated against a broad set of real customer reports. Expect
   sections to be missed on layouts we have not seen; missing sections produce warnings, never crashes.
+- The project does not redistribute third-party Oracle reports. The test suite includes optional regression tests over a
+  git-ignored local corpus (`EXAMPLES-local/`); on a clean checkout those tests skip and the suite stays green, so
+  real-world coverage depends on what the maintainer has locally.
 - Thresholds are general guidance, not a substitute for knowing your workload. Findings carry a confidence level for a
   reason; treat low-confidence items as questions to check.
 - Reports are static snapshots: the tool cannot see anything the report does not contain.
@@ -82,7 +89,7 @@ non-affiliation notices.
   [docs/privacy.md](docs/privacy.md).
 
 ## Release
-Download the installer or the portable zip from the [Releases page](https://github.com/hannawissam/quietload-community-edition/releases) of the public repository. Each release
+Download the installer or the portable zip from the [Releases page](https://github.com/hannawissam/apodofos-community-edition/releases) of the public repository. Each release
 lists SHA-256 checksums. Verify your download before running it, in PowerShell:
 
 ```
@@ -98,19 +105,19 @@ browser.
 
 ## License
 
-**QuietLoad Report Analyzer, Community Edition** is free software, Copyright (c) 2026 Wissam HANNA, licensed under the
+**Apodofos Report Analyzer, Community Edition** is free software, Copyright (c) 2026 Wissam HANNA, licensed under the
 **GNU Affero General Public License, version 3 only** (SPDX: `AGPL-3.0-only`). See [LICENSE](LICENSE). It comes with
 ABSOLUTELY NO WARRANTY. If you distribute it, or offer a modified version to users over a network, you must make the
 corresponding source code available under the same licence (AGPL section 13). Source code:
-https://github.com/hannawissam/quietload-community-edition
+https://github.com/hannawissam/apodofos-community-edition
 
-* The name and logo "QuietLoad" are not licensed under the AGPL: see [TRADEMARK.md](TRADEMARK.md). Forks must rename.
+* The name and logo "Apodofos" are not licensed under the AGPL: see [TRADEMARK.md](TRADEMARK.md). Forks must rename.
 * For now the project does **not** accept external code contributions by pull request unless the maintainer agreed beforehand in an issue. Bug reports, feature requests and documentation suggestions through issues are welcome. Any invited contribution requires the [CLA](CLA.md); see [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 * Third-party components stay under their own licences: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md), [NOTICE](NOTICE).
-* **QuietLoad Professional Edition** is a separate, private, proprietary product under its own licence; it is not part of this repository.
+* **Apodofos Professional Edition** is a separate, private, proprietary product under its own licence; it is not part of this repository.
 * Details and rationale: [docs/licensing.md](docs/licensing.md).
 
-QuietLoad is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle
+Apodofos is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle
 product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates. The tool works
 offline and does not transmit your reports. Reports may contain sensitive data (SQL text, host and schema names): review
 before sharing. Recommendations are provided "as is"; test every change outside production. Some diagnostics (AWR, ASH,
@@ -119,6 +126,6 @@ ADDM, SQL Tuning Advisor) require Oracle Diagnostics/Tuning Pack licences.
 ## Disclaimer
 
 * Recommendations and generated SQL are provided "as is". Review and test them outside production before any use in production.
-* QuietLoad is not professional advice and not Oracle advice.
+* Apodofos is not professional advice and not Oracle advice.
 * Some features and views referenced by the suggestions require Oracle Diagnostics Pack or Tuning Pack licences; check your own licence entitlement.
-* QuietLoad is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle.
+* Apodofos is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle.

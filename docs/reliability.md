@@ -1,6 +1,6 @@
 # Reliability: how much can you trust a result
 
-QuietLoad analyzes a report offline and cannot check it against the database. Everything below is about being honest when the input is
+Apodofos analyzes a report offline and cannot check it against the database. Everything below is about being honest when the input is
 short, damaged, oddly formatted or simply too quiet to say anything.
 
 ## The data-quality model

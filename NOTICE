@@ -1,4 +1,4 @@
-QuietLoad Report Analyzer, Community Edition
+Apodofos Report Analyzer, Community Edition
 Copyright (c) 2026 Wissam HANNA
 
 This program is free software: you can redistribute it and/or modify it under the
@@ -6,19 +6,19 @@ terms of the GNU Affero General Public License, version 3 only (SPDX:
 AGPL-3.0-only), as published by the Free Software Foundation. It is distributed
 in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even the
 implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-LICENSE file for the full text. Source code: https://github.com/hannawissam/quietload-community-edition.
+LICENSE file for the full text. Source code: https://github.com/hannawissam/apodofos-community-edition.
 
 Editions
 --------
-This repository is QuietLoad Community Edition (Oracle AWR, ASH and Statspack reports).
-QuietLoad Professional Edition is a separate, proprietary product under its own licence. The copyright holder offers the
+This repository is Apodofos Community Edition (Oracle AWR, ASH and Statspack reports).
+Apodofos Professional Edition is a separate, proprietary product under its own licence. The copyright holder offers the
 Community code under other terms only to the extent he owns all of the copyright
 (contributions are accepted under CLA.md). The AGPL licence of this repository
 applies to what you receive here.
 
 Name and branding
 -----------------
-"QuietLoad" and "QuietLoad Report Analyzer", the logo and the icon are NOT licensed
+"Apodofos" and "Apodofos Report Analyzer", the logo and the icon are NOT licensed
 under the AGPL. See TRADEMARK.md.
 
 Third-party components
@@ -29,13 +29,13 @@ every binary distribution.
 
 Independence from Oracle (required statement)
 ---------------------------------------------
-QuietLoad is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.
+Apodofos is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.
 
-QuietLoad does not contain or distribute any Oracle software or documentation and
+Apodofos does not contain or distribute any Oracle software or documentation and
 never connects to a database. Oracle names (for example "Oracle Database",
 "Automatic Workload Repository (AWR)", "ASH", "ADDM", "Statspack", "Diagnostics
 Pack", "Tuning Pack") are used only to describe the report formats and features
-that QuietLoad reads or refers to (descriptive, nominative use). Oracle, Java,
+that Apodofos reads or refers to (descriptive, nominative use). Oracle, Java,
 MySQL and NetSuite are registered trademarks of Oracle and/or its affiliates.
 Other names may be trademarks of their respective owners.
 
@@ -48,14 +48,14 @@ TEMPLATES FOR OTHER ENGINES (Pro edition or future products; use only when that
 engine is actually supported, and verify each owner's current trademark policy)
 -------------------------------------------------------------------------------
 Microsoft SQL Server:
-  "QuietLoad is not a Microsoft product and is not affiliated with, sponsored by
+  "Apodofos is not a Microsoft product and is not affiliated with, sponsored by
    or endorsed by Microsoft. Microsoft, SQL Server and Windows are trademarks of
    the Microsoft group of companies."
 PostgreSQL:
-  "QuietLoad is not affiliated with, sponsored by or endorsed by the PostgreSQL
+  "Apodofos is not affiliated with, sponsored by or endorsed by the PostgreSQL
    Community Association of Canada or the PostgreSQL Global Development Group.
    PostgreSQL and the Slonik logo are trademarks of the PostgreSQL Community
    Association of Canada."
 Generic:
-  "<Product name> is a trademark of <owner>. QuietLoad is independent and is not
+  "<Product name> is a trademark of <owner>. Apodofos is independent and is not
    affiliated with, sponsored by or endorsed by <owner>."

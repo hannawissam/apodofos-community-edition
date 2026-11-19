@@ -3,7 +3,7 @@ This repository is the open-source COMMUNITY edition, licensed AGPL-3.0-only.
 Supersedes the earlier Apache-2.0 proposal and the proprietary draft (parked in _parked/legal/).
 -->
 
-# Licensing: decision record (QuietLoad Report Analyzer, Community Edition)
+# Licensing: decision record (Apodofos Report Analyzer, Community Edition)
 
 > **Not legal advice.** See "Status of these documents" below.
 
@@ -17,7 +17,7 @@ Related: `LICENSE` (AGPL-3.0 text), `NOTICE`, `THIRD-PARTY-NOTICES.md`, `CONTRIB
 |---|---|
 | Edition in this repo | Community (Oracle only: AWR, ASH, Statspack reports) |
 | Code licence | **AGPL-3.0-only** (SPDX `AGPL-3.0-only`), Copyright (c) 2026 Wissam HANNA |
-| Community Edition | Public repository `hannawissam/quietload-community-edition`, AGPL-3.0-only (published as a snapshot, no history from the private repo) |
+| Community Edition | Public repository `hannawissam/apodofos-community-edition`, AGPL-3.0-only (published as a snapshot, no history from the private repo) |
 | Professional Edition | Separate private repository, proprietary, separate licence |
 | Contributions | External code contributions are not accepted by pull request unless the maintainer agreed beforehand in an issue; any invited contribution requires the CLA (`CLA.md`) so the owner can relicense it under other licence terms |
 | Name and logo | Not covered by the AGPL; `TRADEMARK.md` |
@@ -34,7 +34,7 @@ Related: `LICENSE` (AGPL-3.0 text), `NOTICE`, `THIRD-PARTY-NOTICES.md`, `CONTRIB
 | Source-available (PolyForm NC, BUSL) | limited | Blocked by terms | Strong, but not open source; discourages contributors | Not what the owner asked |
 
 Rationale for AGPL: a desktop/CLI analyser is not itself a network service, so the "network" clause (section 13) matters
-mainly if someone modifies QuietLoad and offers it as a web or hosted service; that is exactly the competitor scenario
+mainly if someone modifies Apodofos and offers it as a web or hosted service; that is exactly the competitor scenario
 the owner wants to stop. Strong copyleft also makes the code unattractive for proprietary competitors, who must either
 publish their changes or buy a licence.
 
@@ -89,50 +89,50 @@ copyright, no-warranty, that it is licensed under the AGPL, and how to view the 
 1. `LICENSE` (AGPL-3.0), `NOTICE`, `THIRD-PARTY-NOTICES.md`, the .NET runtime's `THIRD-PARTY-NOTICES.TXT`.
 2. A `SOURCE.txt` (or section in the README) with: the exact version/commit/tag, the source URL
    (`https://github.com/<owner>/<repo>/tree/<tag>` plus a release source archive), the offer: "The complete corresponding
-   source code of this program is available at https://github.com/hannawissam/quietload-community-edition. If the link is unavailable, open an issue at https://github.com/hannawissam/quietload-community-edition/issues and we will send it
+   source code of this program is available at https://github.com/hannawissam/apodofos-community-edition. If the link is unavailable, open an issue at https://github.com/hannawissam/apodofos-community-edition/issues and we will send it
    on request for the cost of the medium for at least three years" and the build instructions (`dotnet build`,
    `publish.ps1`, SDK version, any required tools).
 3. A reproducible build note (SDK version, RID) and checksums.
 4. Attach the matching source archive to each GitHub Release (best practice; also keeps the source tied to the binary).
 5. Keep copyright headers; modified files in forks must carry prominent change notices (AGPL section 5(a)).
 
-**Final UI strings (to be applied by the UI/CLI owner).** `{SOURCE_URL}` = the public repository URL, https://github.com/hannawissam/quietload-community-edition. `{version}`.
+**Final UI strings (to be applied by the UI/CLI owner).** `{SOURCE_URL}` = the public repository URL, https://github.com/hannawissam/apodofos-community-edition. `{version}`.
 
 Footer (all views and HTML export) EN:
-`© 2026 Wissam HANNA. QuietLoad Report Analyzer, Community Edition, is free software licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only), with ABSOLUTELY NO WARRANTY. Source code and license: https://github.com/hannawissam/quietload-community-edition`
-`QuietLoad is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.`
+`© 2026 Wissam HANNA. Apodofos Report Analyzer, Community Edition, is free software licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only), with ABSOLUTELY NO WARRANTY. Source code and license: https://github.com/hannawissam/apodofos-community-edition`
+`Apodofos is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.`
 
 Footer FR :
-`© 2026 Wissam HANNA. QuietLoad Report Analyzer, édition Community, est un logiciel libre distribué sous licence GNU Affero General Public License v3.0 uniquement (AGPL-3.0-only), SANS AUCUNE GARANTIE. Code source et licence : https://github.com/hannawissam/quietload-community-edition`
-`QuietLoad n'est pas un produit Oracle et n'est ni affilié à Oracle, ni sponsorisé ou approuvé par Oracle. Oracle et tous les noms de produits Oracle sont des marques ou des marques déposées d'Oracle Corporation et/ou de ses sociétés affiliées.`
+`© 2026 Wissam HANNA. Apodofos Report Analyzer, édition Community, est un logiciel libre distribué sous licence GNU Affero General Public License v3.0 uniquement (AGPL-3.0-only), SANS AUCUNE GARANTIE. Code source et licence : https://github.com/hannawissam/apodofos-community-edition`
+`Apodofos n'est pas un produit Oracle et n'est ni affilié à Oracle, ni sponsorisé ou approuvé par Oracle. Oracle et tous les noms de produits Oracle sont des marques ou des marques déposées d'Oracle Corporation et/ou de ses sociétés affiliées.`
 
-About box EN (title `QuietLoad Report Analyzer {version} - Community Edition`):
-`Copyright (c) 2026 Wissam HANNA.` / `This program comes with ABSOLUTELY NO WARRANTY. It is free software, and you are welcome to redistribute it under the terms of the GNU Affero General Public License v3.0 only (AGPL-3.0-only).` / `Source code and license: https://github.com/hannawissam/quietload-community-edition` / `If you run a modified version of this program for users over a network you must offer them the corresponding source code.` / buttons `View license`, `Third-party notices`, `Source code` / then the Oracle sentence. Also: `A Pro edition exists under a separate commercial licence.` / `"QuietLoad" and its logo are trademarks of their owner and are not licensed under the AGPL.`
+About box EN (title `Apodofos Report Analyzer {version} - Community Edition`):
+`Copyright (c) 2026 Wissam HANNA.` / `This program comes with ABSOLUTELY NO WARRANTY. It is free software, and you are welcome to redistribute it under the terms of the GNU Affero General Public License v3.0 only (AGPL-3.0-only).` / `Source code and license: https://github.com/hannawissam/apodofos-community-edition` / `If you run a modified version of this program for users over a network you must offer them the corresponding source code.` / buttons `View license`, `Third-party notices`, `Source code` / then the Oracle sentence. Also: `A Pro edition exists under a separate commercial licence.` / `"Apodofos" and its logo are trademarks of their owner and are not licensed under the AGPL.`
 About FR :
-`Copyright (c) 2026 Wissam HANNA.` / `Ce programme est fourni SANS AUCUNE GARANTIE. C'est un logiciel libre ; vous pouvez le redistribuer selon les termes de la GNU Affero General Public License v3.0 uniquement (AGPL-3.0-only).` / `Code source et licence : https://github.com/hannawissam/quietload-community-edition` / `Si vous exploitez une version modifiée de ce programme pour des utilisateurs via un réseau, vous devez leur proposer le code source correspondant.` / boutons `Voir la licence`, `Notices tierces`, `Code source` / puis la phrase Oracle. Aussi : `Une édition Pro existe sous une licence commerciale distincte.` / `« QuietLoad » et son logo sont des marques de leur titulaire et ne sont pas concédés sous l'AGPL.`
+`Copyright (c) 2026 Wissam HANNA.` / `Ce programme est fourni SANS AUCUNE GARANTIE. C'est un logiciel libre ; vous pouvez le redistribuer selon les termes de la GNU Affero General Public License v3.0 uniquement (AGPL-3.0-only).` / `Code source et licence : https://github.com/hannawissam/apodofos-community-edition` / `Si vous exploitez une version modifiée de ce programme pour des utilisateurs via un réseau, vous devez leur proposer le code source correspondant.` / boutons `Voir la licence`, `Notices tierces`, `Code source` / puis la phrase Oracle. Aussi : `Une édition Pro existe sous une licence commerciale distincte.` / `« Apodofos » et son logo sont des marques de leur titulaire et ne sont pas concédés sous l'AGPL.`
 
 CLI `--license` (and `--version` first line) EN:
 ```
-QuietLoad Report Analyzer {version} (Community Edition)
+Apodofos Report Analyzer {version} (Community Edition)
 Copyright (c) 2026 Wissam HANNA
 License: GNU AGPL v3.0 only (AGPL-3.0-only). This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
-Source code and license: https://github.com/hannawissam/quietload-community-edition
+Source code and license: https://github.com/hannawissam/apodofos-community-edition
 Third-party notices: see THIRD-PARTY-NOTICES.md
-QuietLoad is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.
+Apodofos is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.
 ```
 CLI FR :
 ```
-QuietLoad Report Analyzer {version} (édition Community)
+Apodofos Report Analyzer {version} (édition Community)
 Copyright (c) 2026 Wissam HANNA
 Licence : GNU AGPL v3.0 uniquement (AGPL-3.0-only). Logiciel libre : vous pouvez le modifier et le redistribuer.
 AUCUNE GARANTIE, dans les limites permises par la loi.
-Code source et licence : https://github.com/hannawissam/quietload-community-edition
+Code source et licence : https://github.com/hannawissam/apodofos-community-edition
 Notices tierces : voir THIRD-PARTY-NOTICES.md
-QuietLoad n'est pas un produit Oracle et n'est ni affilié à Oracle, ni sponsorisé ou approuvé par Oracle. Oracle et tous les noms de produits Oracle sont des marques ou des marques déposées d'Oracle Corporation et/ou de ses sociétés affiliées.
+Apodofos n'est pas un produit Oracle et n'est ni affilié à Oracle, ni sponsorisé ou approuvé par Oracle. Oracle et tous les noms de produits Oracle sont des marques ou des marques déposées d'Oracle Corporation et/ou de ses sociétés affiliées.
 ```
-Exports (HTML/JSON/SQL header) EN: `Generated by QuietLoad Report Analyzer {version} (Community Edition), AGPL-3.0-only. Review and test every statement outside production before use; no warranty. Some statements use Oracle Diagnostics Pack / Tuning Pack features: confirm your licence entitlement. This file may contain sensitive names (hosts, schemas, SQL).`
-FR : `Généré par QuietLoad Report Analyzer {version} (édition Community), AGPL-3.0-only. Vérifiez et testez chaque instruction hors production ; aucune garantie. Certaines instructions utilisent des fonctions Oracle Diagnostics Pack / Tuning Pack : vérifiez vos droits de licence. Ce fichier peut contenir des noms sensibles (hôtes, schémas, SQL).`
+Exports (HTML/JSON/SQL header) EN: `Generated by Apodofos Report Analyzer {version} (Community Edition), AGPL-3.0-only. Review and test every statement outside production before use; no warranty. Some statements use Oracle Diagnostics Pack / Tuning Pack features: confirm your licence entitlement. This file may contain sensitive names (hosts, schemas, SQL).`
+FR : `Généré par Apodofos Report Analyzer {version} (édition Community), AGPL-3.0-only. Vérifiez et testez chaque instruction hors production ; aucune garantie. Certaines instructions utilisent des fonctions Oracle Diagnostics Pack / Tuning Pack : vérifiez vos droits de licence. Ce fichier peut contenir des noms sensibles (hôtes, schémas, SQL).`
 Note: generated reports/outputs are the user's own data and are NOT covered by the AGPL; the embedded UI template text in an
 HTML export is AGPL code, so keep the notice in the exported page.
 
@@ -165,7 +165,7 @@ files. Run it only when no one else is editing sources: `pwsh tools/spdx-headers
 Points that depend on the law and have not been checked by a lawyer:
 1. Enforceability of the warranty disclaimer and of the dual-licensing model for a French author.
 2. The CLA (moral rights, scope of the licence, formalities of the Code de la propriété intellectuelle).
-3. The QuietLoad trademark: registration status and any conflict with Oracle names (see `TRADEMARK.md`).
+3. The Apodofos trademark: registration status and any conflict with Oracle names (see `TRADEMARK.md`).
 4. The WebView2 loader / Evergreen runtime question and the ownership of AI-assisted code.
 5. Who owns code written under an employment or contractor relationship.
 

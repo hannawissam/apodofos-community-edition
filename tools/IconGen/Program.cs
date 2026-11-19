@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Wissam HANNA
 
-// Renders the QuietLoad Report Analyzer icon at all Windows icon sizes and packs them into a PNG-based .ico.
+// Renders the Apodofos Report Analyzer icon at all Windows icon sizes and packs them into a PNG-based .ico.
 // Usage: dotnet run --project tools/IconGen -- <outputDir>
-// Design (256-unit grid, mirrors assets/quietload.svg):
+// Design (256-unit grid, mirrors assets/apodofos.svg):
 //   deep-teal rounded tile  -> "database / Oracle performance" context
 //   white report sheet with folded corner -> "AWR report"
 //   bar chart green->amber->red -> "metrics, severity"
@@ -24,9 +24,9 @@ foreach (var s in sizes)
     bmp.Save(ms, ImageFormat.Png);
     frames.Add((s, ms.ToArray()));
 }
-WriteIco(Path.Combine(outDir, "quietload.ico"), frames);
-using (var big = Render(512)) big.Save(Path.Combine(outDir, "quietload-512.png"), ImageFormat.Png);
-using (var mid = Render(256)) mid.Save(Path.Combine(outDir, "quietload-256.png"), ImageFormat.Png);
+WriteIco(Path.Combine(outDir, "apodofos.ico"), frames);
+using (var big = Render(512)) big.Save(Path.Combine(outDir, "apodofos-512.png"), ImageFormat.Png);
+using (var mid = Render(256)) mid.Save(Path.Combine(outDir, "apodofos-256.png"), ImageFormat.Png);
 Console.WriteLine($"Icon written to {Path.GetFullPath(outDir)}");
 
 static Bitmap Render(int size)

@@ -1,6 +1,6 @@
-# QuietLoad Contributor License Agreement (CLA)
+# Apodofos Contributor License Agreement (CLA)
 
-Project: QuietLoad Report Analyzer, Community Edition (AGPL-3.0-only), maintained by Wissam HANNA (the "Maintainer").
+Project: Apodofos Report Analyzer, Community Edition (AGPL-3.0-only), maintained by Wissam HANNA (the "Maintainer").
 Version 1.0, effective 2026-11-19. Language: English (this version prevails over any translation).
 
 ## Summary (not part of the legal text)
@@ -50,7 +50,7 @@ The Contribution is provided "as is", without warranty. The Maintainer has no ob
 a Contribution beyond section 5, and may modify or remove it at any time. Nothing in this CLA obliges the Maintainer to pay You.
 
 ## 8. Trademarks
-This CLA gives You no rights in the QuietLoad name or logo and gives the Maintainer no ownership of Your own names or marks.
+This CLA gives You no rights in the Apodofos name or logo and gives the Maintainer no ownership of Your own names or marks.
 See `TRADEMARK.md`.
 
 ## 9. How to accept this CLA
