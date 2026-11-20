@@ -3,7 +3,8 @@
 ## 1. What is and is not licensed
 The source code is licensed under **AGPL-3.0-only** (`LICENSE`). The AGPL does **not** license the names, logos or
 branding. "Apodofos", "Apodofos Report Analyzer", the Apodofos logo and icon (`assets/`) and any related names are
-trademarks or brand identifiers of Wissam HANNA (registered or unregistered; registration is being considered).
+trademarks or brand identifiers of Wissam HANNA (registered or unregistered; registration of the word mark "Apodofos",
+the umbrella brand of the product suite, is being pursued).
 Section 7 of the AGPL permits the author to refuse trademark rights, and the author does so here.
 
 ## 2. Not affiliated with Oracle
