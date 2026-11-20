@@ -31,7 +31,7 @@ in memory only while the application is open.
 
 To remove this data: click **Clear list** on the start screen to empty the recent-reports list (the "x" next to an entry
 removes one entry), or close the application and delete the folder `%LOCALAPPDATA%\Apodofos`. Uninstalling the
-application does not delete this folder automatically.
+application with the Windows installer (MSI) deletes this folder too; a portable copy leaves it until you delete it yourself.
 
 ## 3. Your reports and what you export
 AWR, ASH and Statspack reports can contain sensitive information, for example SQL text, host names, schema names and user
