@@ -105,6 +105,13 @@ Consumer codes: **R** rule class (file under `Analysis/Rules/`), **C** chart id 
 | Shared Servers | AWR |  | X | Shared server (MTS) statistics; rare in modern installations |
 | init.ora Parameters | AWR, Statspack | yes | R:ConfigurationRules, S:InitParameters |  |
 | init.ora Multi-Valued Parameters | AWR |  | X | Multi-valued parameter list (exclusion lists, event settings) |
+| Modified Parameters | AWR |  | X | Some 19c reports list only the changed parameters here instead of the full init.ora Parameters table |
+| Modified Multi-Valued Parameters | AWR |  | X | Same layout: only the changed multi-valued parameters |
+| Database Resource Limits | AWR |  | X | Resource limit table of newer report layouts (see also Resource Limit Stats) |
+| Top 10 Channel Waits | AWR |  | X | Channel (interconnect / storage network) waits; shown in the explorer |
+| Top Process Types by CPU Used | AWR |  | X | CPU by background / foreground process type |
+| Top Process Types by Wait Class | AWR |  | X | Wait class by process type |
+| WORKLOAD REPOSITORY report for (2) | AWR |  | X | Repeated report header table of a multi-part report |
 | Parameters modified by | AWR |  | X | PDB parameter overrides; supplement of init.ora Parameters |
 | Multi-Valued Parameters modified by | AWR |  | X | PDB parameter overrides; supplement of init.ora Parameters |
 | WORKLOAD REPOSITORY PDB report | AWR |  | R:IRule | PDB reports are detected to avoid false findings |

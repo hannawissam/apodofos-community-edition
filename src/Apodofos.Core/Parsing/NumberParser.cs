@@ -21,6 +21,7 @@ public static partial class NumberParser
     private static partial Regex NumberRegex();
 
     private static readonly AsyncLocal<NumberConvention?> Ambient = new();
+    private static readonly AsyncLocal<bool> MixedAmbient = new();
 
     /// <summary>The convention in force for the report being parsed / analyzed (dot decimal when none was set).</summary>
     public static NumberConvention Current => Ambient.Value ?? NumberConvention.Invariant;
@@ -29,16 +30,23 @@ public static partial class NumberParser
     internal static bool HasScope => Ambient.Value is not null;
 
     /// <summary>Makes <paramref name="convention"/> the convention used by <see cref="Parse(string?)"/> until disposed.</summary>
-    public static IDisposable Use(NumberConvention convention)
+    /// <param name="convention">The report's decimal convention.</param>
+    /// <param name="mixedDecimals">True when the report itself uses both decimal characters (some databases print some columns with
+    /// a decimal point and others with a decimal comma): a cell that is not valid under the convention but is valid as a decimal in
+    /// the other style ("89,3" in a dot report, "823.63" in a comma report) is then read as that decimal. Never set for a report
+    /// that uses one style only, so malformed numbers stay rejected there.</param>
+    public static IDisposable Use(NumberConvention convention, bool mixedDecimals = false)
     {
         var previous = Ambient.Value;
+        var previousMixed = MixedAmbient.Value;
         Ambient.Value = convention;
-        return new Scope(previous);
+        MixedAmbient.Value = mixedDecimals;
+        return new Scope(previous, previousMixed);
     }
 
-    private sealed class Scope(NumberConvention? previous) : IDisposable
+    private sealed class Scope(NumberConvention? previous, bool previousMixed) : IDisposable
     {
-        public void Dispose() => Ambient.Value = previous;
+        public void Dispose() { Ambient.Value = previous; MixedAmbient.Value = previousMixed; }
     }
 
     public static double? Parse(string? text) => Parse(text, Current);
@@ -53,7 +61,8 @@ public static partial class NumberParser
         if (s.Length == 0 || s.StartsWith('#')) return null;
         var m = NumberRegex().Match(s);
         if (!m.Success) return null;
-        var canon = Canonical(m.Groups["num"].Value, convention == NumberConvention.European ? ',' : '.');
+        var canon = Canonical(m.Groups["num"].Value, convention == NumberConvention.European ? ',' : '.')
+                    ?? (MixedAmbient.Value ? OtherDecimal(m.Groups["num"].Value, convention) : null);
         if (canon is null) return null;
         if (!double.TryParse(canon + m.Groups["exp"].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var v)) return null;
         unit = m.Groups["unit"].Value.Trim().ToLowerInvariant();
@@ -69,6 +78,25 @@ public static partial class NumberParser
             "s" or "sec" or "secs" => v * 1e3,
             _ => v
         };
+    }
+
+    /// <summary>
+    /// Mixed-decimals reports only. A single separator followed by one or two digits cannot be a thousands group (those have
+    /// exactly three digits), so under a dot convention "89,3" is 89.3 and under a comma convention "823.63" is 823.63.
+    /// Anything else stays "not a number".
+    /// </summary>
+    private static string? OtherDecimal(string num, NumberConvention convention)
+    {
+        var other = convention == NumberConvention.European ? '.' : ',';
+        var body = num.Trim();
+        var sign = "";
+        if (body.Length > 0 && (body[0] == '-' || body[0] == '+')) { sign = body[0] == '-' ? "-" : ""; body = body[1..]; }
+        var at = body.IndexOf(other);
+        if (at < 1 || body.IndexOf(other, at + 1) >= 0) return null;
+        var intPart = body[..at];
+        var frac = body[(at + 1)..];
+        if (frac.Length is < 1 or > 2 || !frac.All(char.IsAsciiDigit) || !intPart.All(char.IsAsciiDigit)) return null;
+        return sign + intPart + "." + frac;
     }
 
     /// <summary>

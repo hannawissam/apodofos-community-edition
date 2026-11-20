@@ -250,6 +250,51 @@ public class LocaleTests
     [InlineData("1,234x", NumberConvention.Invariant)]
     public void RejectsMalformedNumbersInsteadOfGuessing(string text, NumberConvention c) => Assert.Null(NumberParser.Parse(text, c));
 
+    [Theory]
+    [InlineData("89,3", NumberConvention.Invariant, 89.3)]
+    [InlineData("7678,4", NumberConvention.Invariant, 7678.4)]
+    [InlineData("39,9", NumberConvention.Invariant, 39.9)]
+    [InlineData("1,23", NumberConvention.Invariant, 1.23)]
+    [InlineData("823.63", NumberConvention.European, 823.63)]
+    [InlineData("7.5", NumberConvention.European, 7.5)]
+    public void MixedDecimalReportsReadTheOtherDecimalCharacter(string text, NumberConvention c, double expected)
+    {
+        Assert.Null(NumberParser.Parse(text, c)); // a one-style report still rejects it
+        using (NumberParser.Use(c, mixedDecimals: true))
+            Assert.Equal(expected, NumberParser.Parse(text)!.Value, 6);
+    }
+
+    [Theory]
+    [InlineData("1,2,3", NumberConvention.Invariant)]
+    [InlineData("1,234,56", NumberConvention.Invariant)]
+    [InlineData("1.2.3", NumberConvention.European)]
+    [InlineData("12 3456", NumberConvention.European)]
+    [InlineData("n/a", NumberConvention.Invariant)]
+    public void MixedDecimalReportsStillRejectGarbage(string text, NumberConvention c)
+    {
+        using (NumberParser.Use(c, mixedDecimals: true))
+            Assert.Null(NumberParser.Parse(text));
+    }
+
+    [Fact]
+    public void MixedDecimalReportsKeepThousandsGroupsAndTheirOwnStyle()
+    {
+        using (NumberParser.Use(NumberConvention.Invariant, mixedDecimals: true))
+        {
+            Assert.Equal(7678d, NumberParser.Parse("7,678")!.Value);
+            Assert.Equal(823.63, NumberParser.Parse("823.63")!.Value, 6);
+            Assert.Equal(89.3, NumberParser.Parse("89,3")!.Value, 6);
+        }
+    }
+
+    [Fact]
+    public void AReportPrintingBothDecimalCharactersIsDetectedAsMixed()
+    {
+        var cells = string.Concat(Enumerable.Range(1, 8).Select(i => $"<td>{i * 11},{i}</td><td>{i * 7}.{i}5</td><td>0.{i}</td>"));
+        var d = NumberConventions.Detect(cells);
+        Assert.True(d.EuropeanVotes >= 5 && d.InvariantVotes >= 5, $"{d.EuropeanVotes}/{d.InvariantVotes}");
+    }
+
     [Fact]
     public void NumbersRoundTripThroughEveryFormat()
     {

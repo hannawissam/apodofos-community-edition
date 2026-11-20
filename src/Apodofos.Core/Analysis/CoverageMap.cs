@@ -120,6 +120,13 @@ public static class CoverageMap
         init.ora Multi-Valued Parameters|A|0|X|Multi-valued parameter list (exclusion lists, event settings)
         Parameters modified by|A|0|X|PDB parameter overrides; supplement of init.ora Parameters
         Multi-Valued Parameters modified by|A|0|X|PDB parameter overrides; supplement of init.ora Parameters
+        Modified Parameters|A|0|X|Some 19c reports list only the changed parameters here instead of the full init.ora Parameters table
+        Modified Multi-Valued Parameters|A|0|X|Same layout: only the changed multi-valued parameters
+        Database Resource Limits|A|0|X|Resource limit table of newer report layouts (see also Resource Limit Stats)
+        Top 10 Channel Waits|A|0|X|Channel (interconnect / storage network) waits; shown in the explorer
+        Top Process Types by CPU Used|A|0|X|CPU by background / foreground process type
+        Top Process Types by Wait Class|A|0|X|Wait class by process type
+        WORKLOAD REPOSITORY report for (2)|A|0|X|Repeated report header table of a multi-part report
         WORKLOAD REPOSITORY PDB report|A|0|R:IRule|PDB reports are detected to avoid false findings
         Top SQL with Top Events|AH|1|R:AshSqlRules,R:AshAndHotspotRules,C:ash-top-sql|
         Top SQL with Top Row Sources|AH|0|R:AshSqlRules|

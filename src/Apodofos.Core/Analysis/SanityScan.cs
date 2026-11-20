@@ -28,6 +28,17 @@ internal static class SanityScan
 
     private const double Tolerance = 100.5;
 
+    // Oracle measures DB CPU and DB time separately, so on real systems DB CPU can legitimately print slightly above 100% of
+    // DB time (a real report showed DB CPU 101.13% and "Captured Time accounts for 103.6%"). That row gets a wider margin;
+    // anything beyond it, and every other row, is still an impossible value.
+    internal const double CpuRowTolerance = 150.0;
+
+    internal static bool IsCpuRow(string? label)
+    {
+        var l = (label ?? "").Trim();
+        return l.Equals("DB CPU", StringComparison.OrdinalIgnoreCase) || l.Equals("CPU time", StringComparison.OrdinalIgnoreCase);
+    }
+
     public static List<DataQualityAnalyzer.Check> Run(AwrReport report)
     {
         var checks = new List<DataQualityAnalyzer.Check>();
@@ -50,7 +61,8 @@ internal static class SanityScan
                     {
                         if (c >= row.Length) continue;
                         var v = NumberParser.Parse(row[c]);
-                        if (v is not > Tolerance) continue;
+                        var limit = row.Length > 0 && IsCpuRow(row[0]) ? CpuRowTolerance : Tolerance;
+                        if (v is null || v.Value <= limit) continue;
                         if (!t.InvalidCells.TryGetValue(row, out var set)) t.InvalidCells[row] = set = [];
                         set.Add(c);
                         bad++;

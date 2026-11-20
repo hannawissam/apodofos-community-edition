@@ -440,7 +440,7 @@ public sealed class WaitEventRules : IRule
         {
             Severity = sev,
             Category = "CPU",
-            Impact = pct,
+            Impact = Math.Min(pct, 100), // DB CPU can print a little above 100% of DB time; an impact is a share of DB time and never exceeds 100
             Title = cpuBound
                 ? $"CPU is the main consumer of database time ({P(pct)}) and the server's CPUs are nearly full"
                 : spareCpu ? $"Most database time ({P(pct)}) is spent working on the CPU; the server still has spare CPU"
