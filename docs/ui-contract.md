@@ -56,7 +56,7 @@ Non-DBA audience: default to plain English; technical details one click away. Em
 
 ## Host messaging (desktop mode only)
 UI → host: `window.chrome.webview.postMessage({ type, ... })` with `type` in `open` | `exportHtml` | `exportScript` (`{text}`) | `copy` (`{text}`) | `print`.
-Host → UI: `window.AwrApp.load({ analysis, reportHtml, mode })`.
+Host → UI: `window.AwrApp.load({ analysis, reportHtml, mode })`; `window.AwrApp.setAppVersion("1.0.4")` once the page is ready (shown in the About box; the host also puts the version in the window title).
 In export mode use `navigator.clipboard` with a `document.execCommand('copy')` fallback, and `Blob` downloads.
 
 ## Quality bar
