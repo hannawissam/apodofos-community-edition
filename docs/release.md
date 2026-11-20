@@ -10,6 +10,10 @@
 
 The version is read from `Directory.Build.props` (`<Version>`). The CLI sits in `cli\` because `Apodofos.exe` and `apodofos.exe` differ only by letter case, which Windows treats as the same file name.
 
+## Release notes (update them for every release)
+
+`RELEASE-NOTES.md` at the repository root lists every feature of the application and the changes of each release. Before building a release: bump `<Version>` in `Directory.Build.props`, add the new section (version, date, user-visible changes) at the top of "Release history", update "All features" if a capability changed, then use that section as the body of the GitHub release (plus downloads, SmartScreen and licence notes). Use only synthetic samples in the notes, never names from real reports.
+
 ## Build
 
 ```
@@ -47,7 +51,7 @@ A silent per-user install defaults to `%LOCALAPPDATA%\Programs\Apodofos`.
 Unsigned executables and installers trigger Microsoft Defender SmartScreen ("Windows protected your PC") and an "Unknown publisher" prompt. Options:
 
 * **OV code-signing certificate**: removes "Unknown publisher"; SmartScreen reputation builds up over downloads.
-* **EV code-signing certificate**: immediate SmartScreen reputation; the key lives on a hardware token or cloud HSM.
+* **EV code-signing certificate**: stronger identity validation; the key lives on a hardware token or cloud HSM. Since 2024 Microsoft no longer gives EV certificates instant SmartScreen reputation: every signed file still builds reputation through downloads.
 * **Azure Trusted Signing** (Artifact Signing): Microsoft-managed short-lived certificates, no key to protect, works from CI; use the `Azure.CodeSigning.Dll` signtool dlib or the `trusted-signing-cli`.
 
 `release.ps1` has a signing step that runs only when `APODOFOS_SIGN_CERT_PATH` is set (PFX path); optional `APODOFOS_SIGN_CERT_PASSWORD` and `APODOFOS_SIGN_TIMESTAMP_URL` (default DigiCert). It signs `Apodofos.exe` and `apodofos.exe` before they are packaged, then the MSI, using `signtool.exe` (Windows SDK) with SHA-256 and an RFC 3161 timestamp. For a token/HSM or Azure Trusted Signing, adapt `Invoke-CodeSign` in `release.ps1`. Never commit certificates (`*.pfx` is not to be staged). Checksums are computed after signing.

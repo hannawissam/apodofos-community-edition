@@ -1,0 +1,73 @@
+# Apodofos Report Analyzer: release notes
+
+This file is the single place for what the application does and what changed in each release. It is updated with **every** release (see "How this file is maintained" at the end), and each GitHub release body is taken from the matching section.
+
+Apodofos™ is a trademark of Wissam HANNA (French trade mark application no. 5322937, filed 20 November 2026, not yet registered). Apodofos is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.
+
+## All features (current version)
+
+### Reports it reads
+- **Oracle AWR** (HTML and text), **ASH** (HTML and text) and **Statspack** (text). The report type is detected from the content, and a "Not right?" menu lets you force another type.
+- AWR layouts from 11g to 19c and later are parsed; the rules are calibrated for 19c. PDB reports are recognised so they do not produce false findings.
+- **Number formats of any locale**: dot or comma decimals, thousands separators of every common style (comma, dot, space, apostrophe, Indian grouping), unit suffixes (K, M, G, ms, us ...), and reports that mix a decimal point and a decimal comma. The format that was detected is stated on the report.
+- **Character sets**: UTF-8, UTF-16, a declared charset, or Windows-1252, so accents from French, German or Spanish databases are shown correctly.
+- Missing sections never crash the analysis: they produce warnings, and checks that need them are skipped.
+- Limitation: text ASH and 12c+ Statspack layouts are inferred from the documented structure and from synthetic fixtures, not validated against a broad set of real reports.
+
+### What the analysis gives you
+- **Plain-English findings** for non-DBAs (what is wrong, why it matters, what to do) with a **Technical** view for DBAs, evidence from the report, and a search box, severity filters, expand/collapse all and a root-cause filter.
+- A **confidence level** and data-quality note on every finding, and related findings grouped by **root cause**.
+- A **Fix first** plan: actions ranked by expected payoff, with impact, effort, risk and confidence.
+- A **health score** (0 to 100), KPI tiles and a severity summary. The score is shown as "not reliable" instead of a grade when the data cannot support it (a very short window, a truncated file, misread numbers).
+- A **rules engine** based on the Oracle performance method: DB time, wait events, CPU, parsing and cursor sharing, SQL, I/O, memory advisories, redo and undo, resource limits, parameters, ASH hot spots and the Statspack equivalents. Each rule has an evidence-based threshold, an official documentation reference and ready-to-run Oracle 19c SQL with cautions.
+- **Data-quality checks**: impossible values (for example a share above 100%) are ignored and reported, DB CPU is accepted up to 150% of DB time because Oracle measures it separately, cross-checks between sections are made, and findings that rest on doubtful numbers are lowered in confidence.
+- A **recommendations and SQL** tab: the top SQL statements with a filter, sorting, the full SQL text on click and copy buttons, paged 25 rows at a time.
+- A combined **Script** tab: every suggested statement grouped by finding, with Copy script and Download .sql (the full script, whatever page is shown).
+- **Charts** for wait events, load profile, time model, top SQL, I/O, memory, segments, contention and ASH activity, plus an "All metrics" explorer that charts any table of the report, with log scale and data tables.
+- An **offline documentation catalog** (over 500 entries): findings link to the relevant Oracle Database 19c documentation. Opening a link is your choice; the application makes no request.
+
+### The application
+- **Desktop app** for Windows 10/11 (WinForms and WebView2): the original report with jump-to-section links beside the analysis, light and dark themes, a recent-files list, drag and drop, remembered window position, Save HTML, Print, an About box and the version in the title bar and the About box.
+- **Command line** `apodofos <report> [--text] [--html out.html] [--json out.json] [--script out.sql]`, `--version`, `--license`, `--help`, with documented exit codes, for automation.
+- **Exports**: a self-contained interactive HTML dashboard, JSON, a SQL script and print/PDF.
+- **Installer and portable zip**: an MSI (per-user without admin, or all users, in-place upgrades) and a portable zip with the CLI in the `cli` folder, both self-contained (no .NET install). SHA-256 checksums are published with every release. The files are not code-signed yet, so Windows SmartScreen may warn.
+
+### Privacy and security
+- **No network access of any kind**: no database connection, no telemetry, no update check, no CDN, fonts or external scripts. Your reports and outputs stay on your computer.
+- Reports are treated as untrusted input: scripts are removed, the report is shown in a sandboxed frame under a strict Content Security Policy, navigation is blocked and all report-derived text is escaped.
+- Exported files can contain sensitive names (hosts, schemas, SQL text): review them before sharing.
+
+### Licence
+Free software under **AGPL-3.0-only**, no warranty. The name and logo are not covered by the licence (see TRADEMARK.md). A separate Professional Edition is planned (more Oracle analyses and more database engines); it is not available yet and nothing about its date, price or terms has been announced.
+
+## Release history
+
+### 1.0.5 (2026-11-20)
+- **SQL and Script tabs are paged.** The SQL grid shows 25 rows at a time (10, 25, 50 or 100) with first/previous/next/last buttons, and the Script tab shows a few findings at a time (1, 3, 5 or 10). Their scrollbars and pagers now stay inside the visible window instead of far down the page. Copy script and Download .sql still give the whole script.
+- **Layout and accessibility review of every tab** (11 defects fixed): the SQL ID column stays visible when scrolling the wide SQL table; duplicate element ids removed; severity badges, tab counters, SQL IDs and links meet AA contrast in the light theme; long unbroken words (SQL IDs, object names) no longer overflow the summary, findings or action plan; tooltips on shortened header titles; larger click targets; the findings toolbar no longer fills a short window; a transparent scrollbar corner in dark theme.
+- **Accents are read correctly**: report files in Windows-1252 or another declared character set (common for French, German and Spanish databases), and UTF-16 files, no longer show "?" in place of accented letters.
+- 14 new layout and contrast tests, 6 encoding tests and a browser regression script (`tools/ui-qa`) for the source repository.
+
+### 1.0.4 (2026-11-20)
+- The **version number** is now shown in the window title bar and in the About box.
+- Includes everything in 1.0.3.
+
+### 1.0.3 (2026-11-20)
+- **DB CPU slightly above 100% of DB time** (for example 101.13% in real 19c reports, where DB CPU and DB time are measured separately) is no longer treated as an impossible value, so such a report no longer loses its health score. DB CPU is accepted up to 150% of DB time; every other share above 100%, and larger DB CPU values, are still flagged.
+- **Reports that mix decimal styles** (some columns with a decimal point, others with a decimal comma) are read correctly. Reports in one style still reject malformed numbers.
+- Sections of newer 19c AWR layouts are recognised and shown in the explorer (Modified Parameters, Database Resource Limits, Top 10 Channel Waits, Top Process Types).
+
+### 1.0.2 (2026-11-20)
+- The **trademark notice** (Apodofos™, French trade mark application no. 5322937, not yet registered) was added to the application footer, the About box and `--license`.
+
+### 1.0.1 (2026-11-19)
+- The product was renamed from QuietLoad to **Apodofos** ("light of performance"). The command line tool is `apodofos`, the desktop executable `Apodofos.exe`.
+
+### 1.0.0
+- First version, published under the name QuietLoad: AWR, ASH and Statspack analysis, findings, Fix first plan, charts, SQL, script and exports, offline documentation catalog.
+
+## How this file is maintained
+- Every release adds a new section at the top of "Release history" **before** the release is built: the version, the date, and what changed for users (new features, fixes, behaviour changes, known limits). Keep entries short and factual, and do not mention anything that is not in the release.
+- When a release adds or changes a capability, also update "All features (current version)" so that section always describes the current product.
+- The GitHub release body is the matching section of this file, plus the downloads, SmartScreen and licence notes.
+- Never put customer or employer report names, database names, host names or SQL from real reports in this file. Use synthetic samples only.

@@ -300,8 +300,9 @@
     });
     var m = A.meta;
     var name = [m.dbName, m.instance && m.instance !== m.dbName ? m.instance : ''].filter(Boolean).join(' / ') || m.sourceFile || ((m.reportType || 'AWR') + ' report');
-    $('appTitle').textContent = name;
+    $('appTitle').textContent = name; $('appTitle').title = name;
     $('appSub').textContent = [m.release ? 'Oracle ' + m.release : '', m.host, m.beginTime && m.endTime ? m.beginTime + ' \u2192 ' + m.endTime : ''].filter(Boolean).join('  \u00b7  ') || ((m.reportType || 'AWR') + ' report analysis');
+    $('appSub').title = $('appSub').textContent;
     document.title = name + ' \u2014 Apodofos Report Analyzer';
     var fr = $('reportFrame');
     $('frameEmpty').hidden = !!REPORT; frameReady = !REPORT;
@@ -695,26 +696,55 @@
     });
     return out;
   }
-  /* cols: [{label, num, fmt(v,row), idx}]; rows: arrays. opts: {limit, onRow(tr,row), cls} */
+  /* Pager: first / previous / next / last plus a "per page" choice. onChange(page, size) is called after a user action.
+     set(total, page, size) refreshes the status text and the disabled state and returns {start, end, pages, page}. */
+  function makePager(sizes, size, noun, onChange) {
+    var status = h('span', { class: 'pgstatus', 'aria-live': 'polite' }), state = { page: 0, size: size };
+    function btn(label, title, go) { return h('button', { type: 'button', class: 'pgbtn', title: title, 'aria-label': title, text: label, onclick: function () { state.page = go(); onChange(state.page, state.size); } }); }
+    var b = { first: btn('\u00ab', 'First page', function () { return 0; }), prev: btn('\u2039', 'Previous page', function () { return state.page - 1; }),
+              next: btn('\u203a', 'Next page', function () { return state.page + 1; }), last: btn('\u00bb', 'Last page', function () { return 1e9; }) };
+    var sel = h('select', { 'aria-label': noun + ' per page', onchange: function () { state.size = parseInt(sel.value, 10) || size; state.page = 0; onChange(state.page, state.size); } });
+    sizes.forEach(function (n) { sel.appendChild(h('option', { value: String(n), text: n + ' ' + (n === 1 ? noun.replace(/s$/, '') : noun), selected: n === size })); });
+    var el = h('div', { class: 'pager', role: 'navigation', 'aria-label': 'Pages' }, status, h('span', { class: 'pgctl' }, b.first, b.prev, b.next, b.last, sel));
+    return {
+      el: el, state: state,
+      set: function (total, page, sz) {
+        state.size = sz; var pages = Math.max(1, Math.ceil(total / sz));
+        state.page = Math.min(Math.max(page, 0), pages - 1);
+        var start = state.page * sz, end = Math.min(total, start + sz);
+        status.textContent = total ? noun.charAt(0).toUpperCase() + noun.slice(1) + ' ' + (start + 1) + '\u2013' + end + ' of ' + total + '  \u00b7  page ' + (state.page + 1) + ' of ' + pages : 'Nothing to show';
+        b.first.disabled = b.prev.disabled = state.page <= 0; b.next.disabled = b.last.disabled = state.page >= pages - 1;
+        el.hidden = total <= sizes[0];
+        return { start: start, end: end, pages: pages, page: state.page };
+      }
+    };
+  }
+  /* cols: [{label, num, fmt(v,row), idx}]; rows: arrays. opts: {limit, pageSize, onPageSize(n), onRow(tr,row), cls}.
+     With pageSize the grid shows that many rows at a time with a pager underneath (first/previous/next/last and a rows-per-page choice). */
   function makeGrid(cols, rows, opts) {
     opts = opts || {};
-    var state = { idx: opts.sortIdx === undefined ? -1 : opts.sortIdx, dir: opts.sortDir || -1 };
+    var state = { idx: opts.sortIdx === undefined ? -1 : opts.sortIdx, dir: opts.sortDir || -1, page: 0, size: opts.pageSize || 0 };
     var wrap = h('div', { class: 'gridwrap' + (opts.cls ? ' ' + opts.cls : '') });
     var tbl = h('table', { class: 'grid' }), thead = h('thead'), tbody = h('tbody'), trh = h('tr');
     var ths = cols.map(function (c, ci) {
       var th = h('th', { scope: 'col', class: c.num ? 'num' : '', 'aria-sort': 'none' }, h('button', { type: 'button', title: 'Sort by ' + c.label, text: c.label }));
       th.querySelector('button').addEventListener('click', function () {
         if (state.idx === ci) state.dir = -state.dir; else { state.idx = ci; state.dir = c.num ? -1 : 1; }
-        paint();
+        state.page = 0; paint();
       });
       trh.appendChild(th); return th;
     });
     thead.appendChild(trh); tbl.appendChild(thead); tbl.appendChild(tbody); wrap.appendChild(tbl);
     var note = h('div', { class: 'muted', style: 'font-size:12px;padding:6px 10px', hidden: true });
+    var pager = null;
+    if (state.size) pager = makePager([10, 25, 50, 100], state.size, 'rows', function (pg, sz) { state.page = pg; state.size = sz; if (opts.onPageSize) opts.onPageSize(sz); paint(); });
     function paint() {
       ths.forEach(function (th, ci) { th.setAttribute('aria-sort', state.idx === ci ? (state.dir > 0 ? 'ascending' : 'descending') : 'none'); });
       var data = state.idx >= 0 ? sortRows(rows, cols[state.idx].idx === undefined ? state.idx : cols[state.idx].idx, state.dir, !!cols[state.idx].num) : rows;
-      var lim = opts.limit || 400, show = data.slice(0, lim);
+      var lim = state.size || opts.limit || 400, pages = state.size ? Math.max(1, Math.ceil(data.length / state.size)) : 1;
+      if (state.page > pages - 1) state.page = pages - 1;
+      if (state.page < 0) state.page = 0;
+      var start = state.size ? state.page * state.size : 0, show = data.slice(start, start + lim);
       clear(tbody);
       show.forEach(function (r) {
         var tr = h('tr');
@@ -728,18 +758,23 @@
         if (opts.onRow) opts.onRow(tr, r, tbody, cols.length);
         tbody.appendChild(tr);
       });
-      note.hidden = data.length <= lim; note.textContent = 'Showing the first ' + lim + ' of ' + data.length + ' rows.';
+      if (pager) {
+        pager.set(data.length, state.page, state.size);
+        wrap.scrollTop = 0;
+        note.hidden = true;
+      } else { note.hidden = data.length <= lim; note.textContent = 'Showing the first ' + lim + ' of ' + data.length + ' rows.'; }
     }
     paint();
-    return h('div', null, wrap, note);
+    return h('div', { class: opts.fit ? 'gridbox' : null }, wrap, pager ? pager.el : null, note);
   }
 
   /* ================= SQL tab ================= */
   function buildSqlTab() {
     var p = clear($('panel-sql'));
+    p.classList.toggle('fit', A.topSql.length > 0);
     if (!A.topSql.length) { p.appendChild(h('div', { class: 'empty-note', text: 'No SQL statements were found in this report.' })); return; }
     var q = h('input', { type: 'search', placeholder: 'Filter by SQL ID, module or text\u2026', 'aria-label': 'Filter SQL' });
-    var wrapHost = h('div');
+    var wrapHost = h('div', { class: 'fitbody' }), sqlPageSize = 25;
     p.appendChild(h('div', { class: 'toolrow', style: 'margin-bottom:10px' }, h('label', { class: 'search' }, ico('search'), q),
       h('span', { class: 'muted', style: 'font-size:12px', text: 'Click a row to see the full SQL text. Click a column header to sort.' })));
     var maxPct = Math.max.apply(null, A.topSql.map(function (s) { return s.pctDbTime || 0; }).concat([1]));
@@ -769,7 +804,7 @@
       var rows = all.filter(function (r) { return !f || (r[0] + ' ' + r[1] + ' ' + r[15]).toLowerCase().indexOf(f) >= 0; });
       clear(wrapHost);
       var g = makeGrid(cols, rows, {
-        sortIdx: 2, sortDir: -1, cls: 'sqlgrid tall', limit: 500,
+        sortIdx: 2, sortDir: -1, cls: 'sqlgrid', fit: true, pageSize: sqlPageSize, onPageSize: function (n) { sqlPageSize = n; },
         onRow: function (tr, r, tbody, ncols) {
           tr.className = 'sqlrow'; tr.tabIndex = 0; tr.setAttribute('aria-expanded', 'false'); tr.setAttribute('role', 'button');
           var detail = null;
@@ -792,16 +827,18 @@
 
   /* ================= script tab ================= */
   function buildScript() {
-    var p = clear($('panel-script')), m = A.meta, lines = [], n = 0, fcount = 0;
+    var p = clear($('panel-script')), m = A.meta, lines = [], n = 0, fcount = 0, groups = [], head = [];
     lines.push('-- Apodofos Report Analyzer: suggested diagnostic and tuning statements');
     lines.push('-- Database: ' + (m.dbName || '?') + '   Instance: ' + (m.instance || '?') + '   Report window: ' + (m.beginTime || '?') + ' to ' + (m.endTime || '?'));
     lines.push('-- Generated: ' + (m.analyzedAt || ''));
     lines.push('-- IMPORTANT: nothing here has been run. Review every statement, test outside production first,');
     lines.push('-- and check the CAUTION notes. Some statements need extra licences (Diagnostics / Tuning Pack).');
     lines.push('');
+    head = lines.slice();
     A.findings.forEach(function (f) {
       if (!f.sql || !f.sql.length) return;
       fcount++;
+      var g0 = lines.length;
       lines.push('-- ' + new Array(70).join('='));
       lines.push('-- [' + f.id + '] ' + (SEV_LABEL[f.severity] || f.severity) + ': ' + f.title);
       lines.push('-- ' + new Array(70).join('='));
@@ -812,21 +849,34 @@
         lines.push(s.code.replace(/\s+$/, ''));
         lines.push('');
       });
+      groups.push(lines.slice(g0));
     });
     var text = lines.join('\n'); st.scriptText = text;
+    p.classList.toggle('fit', n > 0);
     if (!n) { p.appendChild(h('div', { class: 'empty-note', text: 'No findings include SQL statements for this report.' })); return; }
     var fname = (m.dbName || 'awr') + '-recommended.sql';
     p.appendChild(h('div', { class: 'scriptbar' },
       copyBtn(function () { return st.scriptText; }, 'Copy script', 'btn primary'),
       h('button', { type: 'button', class: 'btn', onclick: function () { if (!host({ type: 'exportScript', text: st.scriptText })) { download(fname, st.scriptText); toast('Script downloaded'); } } }, ico('download'), h('span', { text: MODE === 'desktop' ? 'Save script\u2026' : 'Download .sql' })),
       h('span', { class: 'muted', text: n + ' statement(s) from ' + fcount + ' finding(s), grouped by finding.' })));
-    var code = h('code');
-    lines.forEach(function (l, i) {
-      var cls = /^-- =+$/.test(l) ? 'cm' : /^-- \[/.test(l) ? 'hd' : /^--/.test(l) ? 'cm' : '';
-      code.appendChild(cls ? h('span', { class: cls, text: l }) : document.createTextNode(l));
-      code.appendChild(document.createTextNode('\n'));
-    });
-    p.appendChild(h('pre', { class: 'code', tabindex: '0', 'aria-label': 'Combined SQL script' }, code));
+    /* the on-screen script is shown a few findings at a time (copy and download always use the whole script) */
+    var code = h('code'), pre = h('pre', { class: 'code scriptpre', tabindex: '0', 'aria-label': 'Combined SQL script' }, code);
+    var pg = makePager([1, 3, 5, 10], 3, 'findings', function (page, size) { showPage(page, size); });
+    function addLines(arr) {
+      arr.forEach(function (l) {
+        var cls = /^-- =+$/.test(l) ? 'cm' : /^-- \[/.test(l) ? 'hd' : /^--/.test(l) ? 'cm' : '';
+        code.appendChild(cls ? h('span', { class: cls, text: l }) : document.createTextNode(l));
+        code.appendChild(document.createTextNode('\n'));
+      });
+    }
+    function showPage(page, size) {
+      var r = pg.set(groups.length, page, size);
+      clear(code);
+      if (r.page === 0) addLines(head);
+      groups.slice(r.start, r.end).forEach(addLines);
+      pre.scrollTop = 0;
+    }
+    p.appendChild(pg.el); p.appendChild(pre); showPage(0, 3);
   }
 
   /* ================= charts tab ================= */
@@ -1125,11 +1175,28 @@
     }
   }
 
+  /* a cloned inline SVG must not repeat the ids of the original (gradients, title) */
+  function uniqueIds(svg) {
+    var els = svg.querySelectorAll('[id]'), all = svg.querySelectorAll('*');
+    if (svg.id) svg.removeAttribute('id');
+    for (var i = 0; i < els.length; i++) {
+      var o = els[i].id, n = o + '-2';
+      els[i].id = n;
+      for (var j = 0; j < all.length; j++) {
+        ['fill', 'stroke', 'filter', 'aria-labelledby', 'href'].forEach(function (a) {
+          var v = all[j].getAttribute(a);
+          if (v && (v === o || v.indexOf('#' + o + ')') >= 0 || v === '#' + o)) all[j].setAttribute(a, v === o ? n : v.replace('#' + o, '#' + n));
+        });
+      }
+    }
+    return svg;
+  }
+
   /* ================= boot ================= */
   window.AwrApp = { load: load, showTable: showTable, setSource: setSource, setAppVersion: setAppVersion, notify: notify, setRecent: setRecent, version: '1.1' };
   function boot() {
     var logo = document.querySelector('.logo svg');
-    if (logo) { var big = logo.cloneNode(true); big.removeAttribute('id'); var dl = document.querySelector('.drop-logo'); if (dl) dl.appendChild(big); }
+    if (logo) { var big = uniqueIds(logo.cloneNode(true)); var dl = document.querySelector('.drop-logo'); if (dl) dl.appendChild(big); }
     st = freshState();
     initTabs(); initLayout();
     var d = window.__AWR__ || {};
