@@ -61,6 +61,8 @@
   });
   // zero-size containers
   document.querySelectorAll('.panel:not([hidden]),.ccard,.fcard:not([hidden]),.kpi,.cbox').forEach(function (e) { for (var q = e.parentElement; q; q = q.parentElement) { if (q.hidden || getComputedStyle(q).display === 'none') return; } if (getComputedStyle(e).display === 'none') return; var r = e.getBoundingClientRect(); if (r.width < 4 || r.height < 4) add('empty-container', e); });
+  /* an icon is an svg with only a viewBox: without a CSS size it stretches to the width of its row (a huge arrow). Charts, rings and logos are sized on purpose. */
+  document.querySelectorAll('svg[viewBox="0 0 24 24"]').forEach(function (e) { if (e.closest('.ring,.logo,.drop-logo,.cbox,.ccard,.chart')) return; var r = e.getBoundingClientRect(); if (r.width > 48 || r.height > 48) add('oversized-icon', e, Math.round(r.width) + 'x' + Math.round(r.height)); });
   var seen = {}; document.querySelectorAll('[id]').forEach(function (e) { if (seen[e.id]) out.push('duplicate-id #' + e.id); seen[e.id] = 1; });
   // contrast
   function parse(c) {
