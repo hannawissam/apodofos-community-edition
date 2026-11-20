@@ -59,15 +59,12 @@ public static class ReportProviderRegistry
         return provider.Analyze(content, sourceName);
     }
 
-    /// <summary>Reads a file (UTF-8) and analyzes it with the matching, or the forced, provider.</summary>
+    /// <summary>Reads a file (any common report encoding) and analyzes it with the matching, or the forced, provider.</summary>
     public static ProviderResult AnalyzeFile(string path, string? forcedProviderId = null)
     {
         if (!File.Exists(path)) throw new FileNotFoundException("Report not found.", path);
-        string content;
-        // Share read/write so a report that is still open in another program can be read.
-        using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-        using (var sr = new StreamReader(fs, Encoding.UTF8))
-            content = sr.ReadToEnd();
+        // Shared read, and the character set is detected (UTF-8, a declared charset, else Windows-1252) so accents survive.
+        var content = Apodofos.Core.Parsing.ReportTextDecoder.ReadFile(path);
         return AnalyzeContent(content, path, forcedProviderId);
     }
 }

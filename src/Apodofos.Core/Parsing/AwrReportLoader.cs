@@ -14,7 +14,7 @@ public static class AwrReportLoader
     public static AwrReport LoadFile(string path)
     {
         if (!File.Exists(path)) throw new FileNotFoundException("AWR report not found.", path);
-        var content = File.ReadAllText(path, Encoding.UTF8);
+        var content = ReportTextDecoder.ReadFile(path);
         return LoadContent(content, path);
     }
 

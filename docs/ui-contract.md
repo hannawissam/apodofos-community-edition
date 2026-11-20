@@ -62,6 +62,8 @@ In export mode use `navigator.clipboard` with a `document.execCommand('copy')` f
 ## Quality bar
 Accessible (keyboard, aria, contrast AA), prints cleanly (print CSS shows summary + findings), works at 1100 px minimum width, no external requests, total inlined size < 1.5 MB excluding report.
 
+- Layout rules (pinned by `tests/Apodofos.Tests/UiLayoutTests.cs`, browser checks in `tools/ui-qa/`): the SQL and Script tabs are "fitted" (`.panel.fit`): the grid or script fills the space left in the panel and is paged, so its scrollbars and the pager are always on screen; the panel scrolls only on very short windows. Long unbroken words (SQL IDs, object names) wrap or ellipsise with a tooltip, never widen a panel. Text and tint colours keep WCAG AA contrast in both themes.
+
 ## Host-injected behaviour (desktop shell)
 - Drag and drop: the shell injects a capture-phase `drop` listener (`AddScriptToExecuteOnDocumentCreated`) that stops the page's own drop handling and posts `{ type: 'dropFile' }` with the dropped `File` via `chrome.webview.postMessageWithAdditionalObjects`; the host reads the native path and loads it. The page's own `drop` handler therefore never fires in the desktop app (it remains the fallback for export mode, where it only toasts).
 - The host owns the window title (`<file name> - Apodofos Report Analyzer`), F5 / Ctrl+O (open dialog), window size/position (`%LOCALAPPDATA%\Apodofos\window.json`, minimum 1100x700) and blocks all navigation except the in-memory page.

@@ -26,6 +26,17 @@ public class DashboardTests
     }
 
     [Fact]
+    public void SqlAndScriptTabsArePagedSoTheirScrollbarsStayInView()
+    {
+        var html = Build(DashboardMode.Desktop, false);
+        Assert.Contains("function makePager", html);
+        Assert.Contains("pageSize: sqlPageSize", html);   // SQL grid: 25 rows per page by default
+        Assert.Contains("makePager([1, 3, 5, 10]", html); // script: a few findings per page; copy/download use the whole script
+        Assert.Contains("pre.code.scriptpre", html);      // bounded height, scrollbars inside the visible area
+        Assert.Contains(".gridwrap.sqlgrid", html);
+    }
+
+    [Fact]
     public void JsonPayloadIsCamelCaseAndScriptSafe()
     {
         var r = Samples.Load(Samples.Syn11);
