@@ -5,7 +5,7 @@ distributed together with the third-party components below. **Third-party compon
 the AGPL licence of this project does not change them.** License identifiers are SPDX identifiers.
 Licenses were read from each package's own `.nuspec` / license file in the local NuGet cache
 (versions as pinned in the `*.csproj` files, checked 2026-11-19). This file is informational and is not
-legal advice; see `docs/licensing.md`.
+legal advice.
 
 **Distribution rule:** every binary distribution (the self-contained desktop and CLI executables
 produced by `publish.ps1`, zip files, installers) MUST include `LICENSE`, `NOTICE` and this file next to the
@@ -264,4 +264,4 @@ runtime version changes (`dotnet list package --include-transitive`), and update
 * **WebView2 Evergreen Runtime** is a Microsoft system component installed on the user's machine (Windows 11 / Microsoft
   Edge) and is not conveyed by this project, so it is outside the Corresponding Source. If a future installer ships Microsoft's
   Evergreen bootstrapper, get the redistribution terms checked against AGPL.
-* Each binary release must also carry the corresponding-source offer (see `docs/licensing.md` section 5).
+* Each binary release must also carry the corresponding-source offer.

@@ -116,7 +116,6 @@ https://github.com/hannawissam/apodofos-community-edition
 * For now the project does **not** accept external code contributions by pull request unless the maintainer agreed beforehand in an issue. Bug reports, feature requests and documentation suggestions through issues are welcome. Any invited contribution requires the [CLA](CLA.md); see [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 * Third-party components stay under their own licences: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md), [NOTICE](NOTICE).
 * **Apodofos Professional Edition** is a separate, private, proprietary product under its own licence; it is not part of this repository.
-* Details and rationale: [docs/licensing.md](docs/licensing.md).
 
 Apodofos is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle
 product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates. The tool works
