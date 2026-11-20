@@ -184,4 +184,18 @@ public class UiLayoutTests
         Assert.DoesNotMatch(@"\.innerHTML\s*=|\.outerHTML\s*=|insertAdjacentHTML|document\.write\(", Js);
         Assert.DoesNotMatch(@"\.innerHTML\s*=|\.outerHTML\s*=|insertAdjacentHTML|document\.write\(", DashboardBuilder.ReadAsset("charts.js"));
     }
+
+    [Theory]
+    [InlineData(".toplist svg")]
+    [InlineData(".plan svg")]
+    [InlineData(".linkbtn svg")]
+    [InlineData(".search svg")]
+    [InlineData(".btn svg, .iconbtn svg")]
+    public void EveryInlineIconContextHasAnExplicitSize(string selector)
+    {
+        // an icon is an <svg viewBox> with no width/height: without a CSS size it stretches to its row (a huge arrow)
+        var rule = Css.Split('\n').FirstOrDefault(l => l.StartsWith(selector + " {", StringComparison.Ordinal)
+                                                   && l.Contains("width:", StringComparison.Ordinal) && l.Contains("height:", StringComparison.Ordinal));
+        Assert.True(rule != null, $"'{selector}' has no rule with a width and a height");
+    }
 }

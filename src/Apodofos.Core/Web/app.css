@@ -200,6 +200,7 @@ body.dragging iframe { pointer-events: none; }
 .toplist button { width: 100%; text-align: left; display: flex; gap: 10px; align-items: center; padding: 9px 12px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--surface); cursor: pointer; transition: background .15s, transform .12s; }
 .toplist button:hover { background: var(--hover); transform: translateX(2px); }
 .toplist .t { flex: 1; min-width: 0; font-weight: 550; }
+.toplist svg { flex: none; width: 16px; height: 16px; color: var(--muted); } /* without a size the icon fills the row: it is an svg with only a viewBox */
 .warnbox { border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent); background: color-mix(in srgb, var(--warn) 9%, transparent); border-radius: var(--radius-sm); padding: 10px 14px; }
 .warnbox ul { margin: 6px 0 0; padding-left: 18px; }
 .warnbox summary { cursor: pointer; font-weight: 600; }

@@ -42,6 +42,10 @@ Free software under **AGPL-3.0-only**, no warranty. The name and logo are not co
 
 ## Release history
 
+### 1.0.6 (2026-11-20)
+- **Fixed a huge arrow icon on the Summary tab.** In "Top priorities" the small arrow at the end of each row stretched to the full width of the row, which squeezed the finding title into a column one letter wide. The arrow is back to its normal 16 px size and the titles read normally.
+- The browser regression script for the source repository (`tools/ui-qa`) now reports oversized icons, and a new test requires an explicit size for every icon.
+
 ### 1.0.5 (2026-11-20)
 - **SQL and Script tabs are paged.** The SQL grid shows 25 rows at a time (10, 25, 50 or 100) with first/previous/next/last buttons, and the Script tab shows a few findings at a time (1, 3, 5 or 10). Their scrollbars and pagers now stay inside the visible window instead of far down the page. Copy script and Download .sql still give the whole script.
 - **Layout and accessibility review of every tab** (11 defects fixed): the SQL ID column stays visible when scrolling the wide SQL table; duplicate element ids removed; severity badges, tab counters, SQL IDs and links meet AA contrast in the light theme; long unbroken words (SQL IDs, object names) no longer overflow the summary, findings or action plan; tooltips on shortened header titles; larger click targets; the findings toolbar no longer fills a short window; a transparent scrollbar corner in dark theme.
