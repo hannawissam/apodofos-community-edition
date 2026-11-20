@@ -153,10 +153,13 @@ public static partial class NumberConventions
     {
         if (NumberParser.HasScope) return new Parsed(null, null);
         var d = Detect(content);
-        return new Parsed(d, NumberParser.Use(d.Convention));
+        return new Parsed(d, NumberParser.Use(d.Convention, IsMixed(d)), IsMixed(d));
     }
 
-    internal sealed class Parsed(NumberConventionDetection? detection, IDisposable? scope) : IDisposable
+    /// <summary>Real evidence for BOTH decimal characters in one report (a few stray tokens do not count).</summary>
+    internal static bool IsMixed(NumberConventionDetection d) => d.EuropeanVotes >= 5 && d.InvariantVotes >= 5;
+
+    internal sealed class Parsed(NumberConventionDetection? detection, IDisposable? scope, bool mixed = false) : IDisposable
     {
         /// <summary>Records the decision (and the raw-content integrity facts) on the report.</summary>
         public void Apply(AwrReport report, string? content)
@@ -165,7 +168,7 @@ public static partial class NumberConventions
             report.NumberConvention = detection.Convention;
             report.NumberConventionAmbiguous = detection.Ambiguous;
             report.NumberVotes = (detection.EuropeanVotes, detection.InvariantVotes);
-            report.NumberFormatNote = detection.Note;
+            report.NumberFormatNote = detection.Note + (mixed ? " This report prints some columns with a decimal point and others with a decimal comma; both were read as decimals." : "");
             ReportIntegrity.InspectRaw(report, content);
         }
 

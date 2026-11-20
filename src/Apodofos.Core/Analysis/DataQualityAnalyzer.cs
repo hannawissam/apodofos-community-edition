@@ -85,10 +85,12 @@ internal static class DataQualityAnalyzer
         {
             var top = r.TableStartingWith("Top 10 Foreground Events", "Top 5 Timed");
             if (top == null) return;
-            var pcts = top.DataRows.Select(x => x.Num("% DB time", "%DB time", "% Total Call Time")).Where(x => x is not null).Select(x => x!.Value).ToList();
+            // DB CPU may print slightly above 100% of DB time in real reports (separate measurements): allow up to 150% for that row only
+            var pcts = top.DataRows.Where(x => !SanityScan.IsCpuRow(x.Label)).Select(x => x.Num("% DB time", "%DB time", "% Total Call Time")).Where(x => x is not null).Select(x => x!.Value).ToList();
+            var cpuMax = top.DataRows.Where(x => SanityScan.IsCpuRow(x.Label)).Select(x => x.Num("% DB time", "%DB time", "% Total Call Time")).Where(x => x is not null).Select(x => x!.Value).DefaultIfEmpty(0).Max();
             var waitSum = top.DataRows.Where(x => !x.Label.Trim().Equals("DB CPU", StringComparison.OrdinalIgnoreCase)).Sum(x => x.Num("% DB time", "%DB time", "% Total Call Time") ?? 0);
-            if (pcts.Count > 0 && (pcts.Max() > 100.5 || waitSum > 105))
-                checks.Add(new("topevents-sum", "Top events share", $"The top wait events add up to {P(waitSum, 1)} of DB time (largest single event {P(pcts.Max(), 1)}).", true));
+            if ((pcts.Count > 0 && pcts.Max() > 100.5) || cpuMax > SanityScan.CpuRowTolerance || waitSum > 105)
+                checks.Add(new("topevents-sum", "Top events share", $"The top wait events add up to {P(waitSum, 1)} of DB time (largest single event {P(Math.Max(pcts.Count > 0 ? pcts.Max() : 0, cpuMax), 1)}).", true));
         });
 
         // 6. SQL share of DB time cannot be above 100%

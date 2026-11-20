@@ -36,6 +36,34 @@ public class ReliabilityTests
     }
 
     [Fact]
+    public void DbCpuSlightlyAbove100PercentOfDbTimeIsARealReportValueNotAnImpossibleOne()
+    {
+        // A real AWR printed DB CPU = 101.13% of DB time ("Captured Time accounts for 103.6%"): DB CPU and DB time are measured separately.
+        var a = Awr(o => o.CpuShare = "101.13");
+        Assert.DoesNotContain(a.DataQuality.Alerts, x => x.Contains("cannot be true", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(a.DataQuality.Alerts, x => x.Contains("not reliable", StringComparison.OrdinalIgnoreCase) && x.Contains("impossible", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(a.DataQuality.Notes, n => n.Contains("Impossible share", StringComparison.OrdinalIgnoreCase));
+        Assert.True(a.Health.Reliable);
+        Assert.DoesNotContain(a.Findings, f => f.DataQuality.Contains("impossible value", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void DbCpuUpTo150PercentOfDbTimeIsAccepted()
+    {
+        var a = Awr(o => o.CpuShare = "149.0");
+        Assert.DoesNotContain(a.DataQuality.Alerts, x => x.Contains("cannot be true", StringComparison.OrdinalIgnoreCase));
+        Assert.True(a.Health.Reliable);
+    }
+
+    [Fact]
+    public void DbCpuFarAbove100PercentIsStillImpossible()
+    {
+        var a = Awr(o => o.CpuShare = "160.0");
+        Assert.Contains(a.DataQuality.Alerts, x => x.Contains("cannot be true", StringComparison.OrdinalIgnoreCase));
+        Assert.False(a.Health.Reliable);
+    }
+
+    [Fact]
     public void ImpossibleValuesDoNotEscalateSeverity()
     {
         var ok = Awr();
