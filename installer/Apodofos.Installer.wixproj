@@ -5,8 +5,8 @@
     <OutputName>Apodofos-Setup-$(Version)-win-x64</OutputName>
     <InstallerPlatform>x64</InstallerPlatform>
     <Platform>x64</Platform>
-    <!-- ICE61: same-version upgrades are allowed on purpose; ICE105: the optional machine-wide PATH component is only installed in per-machine mode. -->
-    <SuppressIces>ICE61;ICE105</SuppressIces>
+    <!-- ICE61: same-version upgrades are allowed on purpose; ICE105: the optional machine-wide PATH component is only installed in per-machine mode; ICE38/43/57: the shortcut components come in a per-user (HKCU key path) and an all-users (HKLM key path) variant selected by ALLUSERS, which the static check cannot see. -->
+    <SuppressIces>ICE38;ICE43;ICE57;ICE61;ICE105</SuppressIces>
     <!-- Staging folder filled by release.ps1 -->
     <StageDir Condition="'$(StageDir)' == ''">$(MSBuildThisFileDirectory)..\artifacts\stage\</StageDir>
     <DefineConstants>$(DefineConstants);StageDir=$(StageDir);AppVersion=$(Version)</DefineConstants>

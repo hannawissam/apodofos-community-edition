@@ -31,7 +31,7 @@ Installer behaviour (`installer/Package.wxs`):
 
 * Wizard (WixUI_Advanced): welcome, **licence page showing the AGPL-3.0 text**, "Install for me only / for all users" (per-user is the default and needs no admin), folder, optional features, install.
 * Optional features, off by default: **Desktop shortcut**, **Add apodofos (CLI) to PATH** (user PATH for per-user installs, system PATH for per-machine). A Start menu shortcut is always created.
-* Entry in Apps & features / Programs and Features; uninstall removes files, shortcuts and the PATH entry. Settings in `%LOCALAPPDATA%\Apodofos` are user data and are kept.
+* Entry in Apps & features / Programs and Features; uninstall removes everything the product put on the machine: the program folder (including any file left in it), shortcuts, the PATH entry, the installer registry key and the settings and WebView2 profile folder `%LOCALAPPDATA%\Apodofos`. An upgrade keeps that settings folder; only an uninstall deletes it. Settings of other Windows users on a shared PC are not touched.
 * `MajorUpgrade`: installing a newer (or the same) version replaces the old one in place; installing an older one is refused.
 * Microsoft Edge WebView2 Evergreen runtime check (registry `...\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}`, machine and user). If missing, the installer stops with a message explaining how to download it manually. The installer never downloads or bundles it. `SKIPWEBVIEW2CHECK=1` bypasses the check.
 

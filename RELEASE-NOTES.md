@@ -30,7 +30,7 @@ Apodofos™ is a trademark of Wissam HANNA (French trade mark application no. 53
 - **Desktop app** for Windows 10/11 (WinForms and WebView2): the original report with jump-to-section links beside the analysis, light and dark themes, a recent-files list, drag and drop, remembered window position, Save HTML, Print, an About box and the version in the title bar and the About box.
 - **Command line** `apodofos <report> [--text] [--html out.html] [--json out.json] [--script out.sql]`, `--version`, `--license`, `--help`, with documented exit codes, for automation.
 - **Exports**: a self-contained interactive HTML dashboard, JSON, a SQL script and print/PDF.
-- **Installer and portable zip**: an MSI (per-user without admin, or all users, in-place upgrades) and a portable zip with the CLI in the `cli` folder, both self-contained (no .NET install). SHA-256 checksums are published with every release. The files are not code-signed yet, so Windows SmartScreen may warn.
+- **Installer and portable zip**: an MSI (per-user without admin, or all users, in-place upgrades, and an uninstall that removes everything it put on the machine, settings included) and a portable zip with the CLI in the `cli` folder, both self-contained (no .NET install). SHA-256 checksums are published with every release. The files are not code-signed yet, so Windows SmartScreen may warn.
 
 ### Privacy and security
 - **No network access of any kind**: no database connection, no telemetry, no update check, no CDN, fonts or external scripts. Your reports and outputs stay on your computer.
@@ -41,6 +41,12 @@ Apodofos™ is a trademark of Wissam HANNA (French trade mark application no. 53
 Free software under **AGPL-3.0-only**, no warranty. The name and logo are not covered by the licence (see TRADEMARK.md). A separate Professional Edition is planned (more Oracle analyses and more database engines); it is not available yet and nothing about its date, price or terms has been announced.
 
 ## Release history
+
+### 1.0.7 (2026-11-20)
+- **Uninstalling now cleans everything.** Removing Apodofos from Settings, Apps (or with `msiexec /x`) deletes the program folder, including any file left in it, the Start menu and desktop shortcuts, the PATH entry, the installer's registry key and your settings and WebView2 profile folder `%LOCALAPPDATA%\Apodofos` (window position, recent files, cache). Updating to a newer version keeps your settings; only an uninstall deletes them. Settings of other Windows users on a shared PC are not touched, and a portable copy is not affected.
+- **More reliable installs and updates.** The Start menu and desktop shortcuts of an all-users install now use the right registry location for that install type. Before this fix they were registered under the current user's key, which left stale shortcuts behind after an uninstall and could confuse a later update. Updating a per-user install was tested end to end (an older version replaced by a newer one, then uninstalled) and leaves one registered copy.
+- If you installed an earlier version for all users and it is still listed in Settings, Apps, uninstall that entry once and install again.
+- The source repository has an installer test script (`tools/test-installer.ps1`) that installs, upgrades and uninstalls the MSI per-user and checks that nothing is left.
 
 ### 1.0.6 (2026-11-20)
 - **Fixed a huge arrow icon on the Summary tab.** In "Top priorities" the small arrow at the end of each row stretched to the full width of the row, which squeezed the finding title into a column one letter wide. The arrow is back to its normal 16 px size and the titles read normally.
