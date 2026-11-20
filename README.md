@@ -89,7 +89,7 @@ non-affiliation notices.
   [docs/privacy.md](docs/privacy.md).
 
 ## Release
-Download the installer or the portable zip from the [Releases page](https://github.com/hannawissam/apodofos-community-edition/releases) of the public repository. Each release
+The product website is https://apodofos.com (download links, documentation, privacy and legal notice). Download the installer or the portable zip from the [Releases page](https://github.com/hannawissam/apodofos-community-edition/releases) of the public repository. Each release
 lists SHA-256 checksums. Verify your download before running it, in PowerShell:
 
 ```
@@ -112,6 +112,7 @@ corresponding source code available under the same licence (AGPL section 13). So
 https://github.com/hannawissam/apodofos-community-edition
 
 * The name and logo "Apodofos" are not licensed under the AGPL: see [TRADEMARK.md](TRADEMARK.md). Forks must rename.
+* Apodofos&trade; is a trademark of Wissam HANNA (French trade mark application no. 5322937, filed 2026-11-20, not yet registered) and the umbrella brand of a suite of database software; Apodofos Report Analyzer is its first product.
 * For now the project does **not** accept external code contributions by pull request unless the maintainer agreed beforehand in an issue. Bug reports, feature requests and documentation suggestions through issues are welcome. Any invited contribution requires the [CLA](CLA.md); see [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 * Third-party components stay under their own licences: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md), [NOTICE](NOTICE).
 * **Apodofos Professional Edition** is a separate, private, proprietary product under its own licence; it is not part of this repository.

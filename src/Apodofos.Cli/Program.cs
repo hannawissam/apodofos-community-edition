@@ -128,6 +128,7 @@ internal static class Program
         "There is NO WARRANTY, to the extent permitted by law.",
         "Source code and license: https://github.com/hannawissam/apodofos-community-edition",
         "Third-party notices: see THIRD-PARTY-NOTICES.md",
+        "Apodofos is a trademark of Wissam HANNA (French trade mark application no. 5322937, not yet registered). The name and logo are not licensed under the AGPL: see TRADEMARK.md.",
         "Apodofos is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.");
 
     private static string Next(string[] args, ref int i, string opt)
