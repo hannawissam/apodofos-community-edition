@@ -17,6 +17,18 @@ namespace Apodofos.Desktop;
 public sealed class MainForm : Form
 {
     private const string AppTitle = "Apodofos Report Analyzer";
+    private static readonly string AppVersion = ReadAppVersion();
+    private static string TitleWithVersion => AppTitle + " " + AppVersion;
+
+    private static string ReadAppVersion()
+    {
+        var asm = typeof(MainForm).Assembly;
+        var v = asm.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+            .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().FirstOrDefault()?.InformationalVersion
+            ?? asm.GetName().Version?.ToString(3) ?? "";
+        var plus = v.IndexOf('+');
+        return plus > 0 ? v[..plus] : v;
+    }
     private const int MaxRecent = 5;
 
     // Host-injected (documented in docs/ui-contract.md): turns a file dropped on the page into a native
@@ -57,7 +69,7 @@ public sealed class MainForm : Form
         _initialFile = initialFile;
         _dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Apodofos");
         MigrateLegacyDataDir(_dataDir);
-        Text = AppTitle;
+        Text = TitleWithVersion;
         AutoScaleMode = AutoScaleMode.Dpi;
         StartPosition = FormStartPosition.CenterScreen;
         Size = new Size(1400, 900);
@@ -237,6 +249,7 @@ public sealed class MainForm : Form
             if (_ready) return;
             _ready = true;
             var file = _pendingFile ?? _initialFile;
+            await _web.CoreWebView2.ExecuteScriptAsync("window.AwrApp.setAppVersion(" + JsonSerializer.Serialize(AppVersion) + ")");
             await PushRecentAsync();
             if (!string.IsNullOrEmpty(file)) await LoadFileAsync(file);
         };
@@ -348,7 +361,7 @@ public sealed class MainForm : Form
             _lastAnalysis = outcome.Result.Analysis;
             _lastReportHtml = outcome.Result.ReportHtml;
             _lastReportName = Path.GetFileNameWithoutExtension(path);
-            Text = Path.GetFileName(path) + " — " + AppTitle;
+            Text = Path.GetFileName(path) + " — " + TitleWithVersion;
             AddRecent(path, outcome.Result.Analysis.Meta.ReportType);
             await PushRecentAsync();
             if (outcome.Status == ReportLoadStatus.Partial) await NotifyAsync("warning", outcome.Message);

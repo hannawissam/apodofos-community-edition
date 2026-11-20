@@ -17,6 +17,15 @@ public class DashboardTests
     }
 
     [Fact]
+    public void AboutBoxHasAVersionLineTheDesktopHostCanFill()
+    {
+        var html = Build(DashboardMode.Desktop, false);
+        Assert.Contains("id=\"aboutVersion\"", html);
+        Assert.Contains("id=\"aboutVersionNo\"", html);
+        Assert.Contains("setAppVersion", html); // window.AwrApp.setAppVersion(version) is called by the desktop host
+    }
+
+    [Fact]
     public void JsonPayloadIsCamelCaseAndScriptSafe()
     {
         var r = Samples.Load(Samples.Syn11);

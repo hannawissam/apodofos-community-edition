@@ -128,6 +128,13 @@
   }
   function setSource(s) { SRC = s || null; if (SRC && SRC.name) document.title = SRC.name + ' \u2014 Apodofos Report Analyzer'; updateBadge(); }
 
+  /* the desktop host tells the UI which version is running; shown in the About box (the window title is set by the host) */
+  function setAppVersion(v) {
+    var p = $('aboutVersion'), n = $('aboutVersionNo');
+    if (!p || !n || !v) return;
+    n.textContent = String(v); p.hidden = false;
+  }
+
   function notify(n) {
     var box = $('notice'); n = n || {};
     if (!n.message) { box.hidden = true; return; }
@@ -1119,7 +1126,7 @@
   }
 
   /* ================= boot ================= */
-  window.AwrApp = { load: load, showTable: showTable, setSource: setSource, notify: notify, setRecent: setRecent, version: '1.1' };
+  window.AwrApp = { load: load, showTable: showTable, setSource: setSource, setAppVersion: setAppVersion, notify: notify, setRecent: setRecent, version: '1.1' };
   function boot() {
     var logo = document.querySelector('.logo svg');
     if (logo) { var big = logo.cloneNode(true); big.removeAttribute('id'); var dl = document.querySelector('.drop-logo'); if (dl) dl.appendChild(big); }
