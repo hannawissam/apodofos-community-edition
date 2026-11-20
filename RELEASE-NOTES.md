@@ -42,38 +42,41 @@ Free software under **AGPL-3.0-only**, no warranty. The name and logo are not co
 
 ## Release history
 
-### 1.0.7 (2026-11-20)
+**Version 1.0.7 is the first official public release of Apodofos Report Analyzer.** Versions 1.0.0 to 1.0.6 were test builds, published on 2026-11-19 and 2026-11-20 while the product was being finalised. They are kept for the record, are marked as pre-releases on GitHub, and should not be used: install 1.0.7 or later.
+
+### 1.0.7 (2026-11-20), first official public release
+- **First official public release.** It includes everything from the test builds 1.0.1 to 1.0.6 listed below.
 - **Uninstalling now cleans everything.** Removing Apodofos from Settings, Apps (or with `msiexec /x`) deletes the program folder, including any file left in it, the Start menu and desktop shortcuts, the PATH entry, the installer's registry key and your settings and WebView2 profile folder `%LOCALAPPDATA%\Apodofos` (window position, recent files, cache). Updating to a newer version keeps your settings; only an uninstall deletes them. Settings of other Windows users on a shared PC are not touched, and a portable copy is not affected.
 - **More reliable installs and updates.** The Start menu and desktop shortcuts of an all-users install now use the right registry location for that install type. Before this fix they were registered under the current user's key, which left stale shortcuts behind after an uninstall and could confuse a later update. Updating a per-user install was tested end to end (an older version replaced by a newer one, then uninstalled) and leaves one registered copy.
 - If you installed an earlier version for all users and it is still listed in Settings, Apps, uninstall that entry once and install again.
 - The source repository has an installer test script (`tools/test-installer.ps1`) that installs, upgrades and uninstalls the MSI per-user and checks that nothing is left.
 
-### 1.0.6 (2026-11-20)
+### 1.0.6 (2026-11-20), test build
 - **Fixed a huge arrow icon on the Summary tab.** In "Top priorities" the small arrow at the end of each row stretched to the full width of the row, which squeezed the finding title into a column one letter wide. The arrow is back to its normal 16 px size and the titles read normally.
 - The browser regression script for the source repository (`tools/ui-qa`) now reports oversized icons, and a new test requires an explicit size for every icon.
 
-### 1.0.5 (2026-11-20)
+### 1.0.5 (2026-11-20), test build
 - **SQL and Script tabs are paged.** The SQL grid shows 25 rows at a time (10, 25, 50 or 100) with first/previous/next/last buttons, and the Script tab shows a few findings at a time (1, 3, 5 or 10). Their scrollbars and pagers now stay inside the visible window instead of far down the page. Copy script and Download .sql still give the whole script.
 - **Layout and accessibility review of every tab** (11 defects fixed): the SQL ID column stays visible when scrolling the wide SQL table; duplicate element ids removed; severity badges, tab counters, SQL IDs and links meet AA contrast in the light theme; long unbroken words (SQL IDs, object names) no longer overflow the summary, findings or action plan; tooltips on shortened header titles; larger click targets; the findings toolbar no longer fills a short window; a transparent scrollbar corner in dark theme.
 - **Accents are read correctly**: report files in Windows-1252 or another declared character set (common for French, German and Spanish databases), and UTF-16 files, no longer show "?" in place of accented letters.
 - 14 new layout and contrast tests, 6 encoding tests and a browser regression script (`tools/ui-qa`) for the source repository.
 
-### 1.0.4 (2026-11-20)
+### 1.0.4 (2026-11-20), test build
 - The **version number** is now shown in the window title bar and in the About box.
 - Includes everything in 1.0.3.
 
-### 1.0.3 (2026-11-20)
+### 1.0.3 (2026-11-20), test build
 - **DB CPU slightly above 100% of DB time** (for example 101.13% in real 19c reports, where DB CPU and DB time are measured separately) is no longer treated as an impossible value, so such a report no longer loses its health score. DB CPU is accepted up to 150% of DB time; every other share above 100%, and larger DB CPU values, are still flagged.
 - **Reports that mix decimal styles** (some columns with a decimal point, others with a decimal comma) are read correctly. Reports in one style still reject malformed numbers.
 - Sections of newer 19c AWR layouts are recognised and shown in the explorer (Modified Parameters, Database Resource Limits, Top 10 Channel Waits, Top Process Types).
 
-### 1.0.2 (2026-11-20)
+### 1.0.2 (2026-11-20), test build
 - The **trademark notice** (Apodofos™, French trade mark application no. 5322937, not yet registered) was added to the application footer, the About box and `--license`.
 
-### 1.0.1 (2026-11-19)
+### 1.0.1 (2026-11-19), test build
 - The product was renamed from QuietLoad to **Apodofos** ("light of performance"). The command line tool is `apodofos`, the desktop executable `Apodofos.exe`.
 
-### 1.0.0
+### 1.0.0 (test build)
 - First version, published under the name QuietLoad: AWR, ASH and Statspack analysis, findings, Fix first plan, charts, SQL, script and exports, offline documentation catalog.
 
 ## How this file is maintained
