@@ -11,7 +11,7 @@ Do without asking: create/rename branches, stage and commit, push, open/update/m
 Never do without explicit owner approval: change repository visibility, force-push to `main`, delete the repo or `main`, rewrite published history, change collaborators/secrets/settings.
 
 ## Safety gates before EVERY commit/push
-1. `git status` and review the staged file list. Never stage: `EXAMPLES/`, `EXAMPLES-local/`, `bin/`, `obj/`, `artifacts/`, secrets, tokens, `.env`, `*.pfx`, `*.snk`, keys, `settings.local.json`, third-party Oracle/Statspack/ASH sample reports.
+1. `git status` and review the staged file list. Never stage: `EXAMPLES/`, `EXAMPLES-local/`, `bin/`, `obj/`, `artifacts/`, secrets, tokens, `.env`, `*.pfx`, `*.snk`, keys, `.wrangler/`, `wrangler.toml`/`wrangler.json*`, `.dev.vars` (Cloudflare tooling files, tokens or caches), `settings.local.json`, third-party Oracle/Statspack/ASH sample reports.
 2. Scan the staged diff for secrets (keys, tokens, connection strings, private emails other than the public copyright line) and for real customer data (host/DB names, IPs). Stop and fix if found. This repository is public: anything pushed is public and may be cached or indexed even if later deleted.
 3. `dotnet build Apodofos.slnx` must succeed; run `dotnet test` before opening or merging a PR. Do not merge red.
 4. Never send report contents or project details anywhere except this GitHub repository.
