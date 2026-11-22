@@ -29,6 +29,7 @@ Chosen because it is restored as a NuGet SDK package (`installer/Apodofos.Instal
 
 Installer behaviour (`installer/Package.wxs`):
 
+* Wizard artwork: the Apodofos logo banner and the branded final-page panel are `installer/images/banner.bmp` (493x58) and `installer/images/dialog.bmp` (493x312), generated from `assets/apodofos-512.png` by `installer/make-wizard-images.ps1` (Windows PowerShell 7, System.Drawing; the .bmp files are committed). Re-run the script after changing the logo or brand colours. The `.msi` file icon in Explorer is always the default Windows Installer icon (a limit of the format); the wizard, Apps & features entry and shortcuts use the Apodofos icon.
 * Wizard (WixUI_Advanced): welcome, **licence page showing the AGPL-3.0 text**, "Install for me only / for all users" (per-user is the default and needs no admin), folder, optional features, install.
 * Optional features, off by default: **Desktop shortcut**, **Add apodofos (CLI) to PATH** (user PATH for per-user installs, system PATH for per-machine). A Start menu shortcut is always created.
 * Entry in Apps & features / Programs and Features; uninstall removes everything the product put on the machine: the program folder (including any file left in it), shortcuts, the PATH entry, the installer registry key and the settings and WebView2 profile folder `%LOCALAPPDATA%\Apodofos`. An upgrade keeps that settings folder; only an uninstall deletes it. Settings of other Windows users on a shared PC are not touched.
