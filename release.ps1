@@ -5,8 +5,11 @@
 # Steps: tests -> publish.ps1 -> (optional signing) -> portable zip -> MSI (WiX 5 via NuGet, no global install) -> checksums.
 # Idempotent: artifacts/release and artifacts/stage are rebuilt from scratch on every run. Fails loudly on any error.
 # Signing runs only when APODOFOS_SIGN_CERT_PATH is set (see docs/release.md); otherwise artifacts are UNSIGNED.
+# -MsiOnly: rebuilds ONLY the MSI (and SHA256SUMS.txt) from the existing artifacts/stage and artifacts/release of the same version;
+#   no tests, no publish: the application files and the portable zip are not touched. Use it to re-issue an installer fix.
 param(
     [switch]$SkipTests,
+    [switch]$MsiOnly,
     [string]$Runtime = 'win-x64'
 )
 $ErrorActionPreference = 'Stop'
@@ -27,11 +30,20 @@ Write-Host "== Apodofos release $version ($Runtime) =="
 $artifacts = Join-Path $PSScriptRoot 'artifacts'
 $stage     = Join-Path $artifacts 'stage'
 $release   = Join-Path $artifacts 'release'
-foreach ($p in $stage, $release, (Join-Path $artifacts 'installer-build'), (Join-Path $artifacts 'installer-obj')) {
+$toClean = if ($MsiOnly) { @((Join-Path $artifacts 'installer-build'), (Join-Path $artifacts 'installer-obj')) }
+           else { @($stage, $release, (Join-Path $artifacts 'installer-build'), (Join-Path $artifacts 'installer-obj')) }
+foreach ($p in $toClean) {
     if (Test-Path $p) { Remove-Item -Recurse -Force $p }
+}
+if ($MsiOnly) {
+    foreach ($f in (Join-Path $stage 'Apodofos.exe'), (Join-Path $stage 'cli\apodofos.exe'), (Join-Path $release "Apodofos-Portable-$version-$Runtime.zip")) {
+        if (-not (Test-Path $f)) { throw "-MsiOnly needs the existing build of version ${version}: missing $f (run release.ps1 without -MsiOnly first)." }
+    }
+    Write-Host 'MsiOnly: application files and the portable zip are reused unchanged.'
 }
 New-Item -ItemType Directory -Force $stage, $release | Out-Null
 
+if (-not $MsiOnly) {
 # --- 1. tests ---
 if ($SkipTests) { Write-Warning 'Tests skipped (-SkipTests).' }
 else {
@@ -44,6 +56,7 @@ Invoke-Native 'publish.ps1' { & (Join-Path $PSScriptRoot 'publish.ps1') -Runtime
 $desktop = Join-Path $artifacts 'desktop'
 $cli     = Join-Path $artifacts 'cli'
 foreach ($f in "$desktop\Apodofos.exe", "$cli\apodofos.exe") { if (-not (Test-Path $f)) { throw "Missing published file $f" } }
+}
 
 # --- 3. optional code signing (placeholder; only runs when a certificate is configured) ---
 function Invoke-CodeSign([string[]]$Files) {
@@ -63,6 +76,7 @@ function Invoke-CodeSign([string[]]$Files) {
     }
     Write-Host "Signed $($Files.Count) file(s)."
 }
+if (-not $MsiOnly) {
 if ($env:APODOFOS_SIGN_CERT_PATH) { Invoke-CodeSign @("$desktop\Apodofos.exe", "$cli\apodofos.exe") }
 else { Write-Warning 'APODOFOS_SIGN_CERT_PATH not set: artifacts will be UNSIGNED (Windows SmartScreen will warn).' }
 
@@ -84,6 +98,7 @@ Copy-Item "$stage\*" $portableDir -Recurse -Force
 $zip = Join-Path $release "Apodofos-Portable-$version-$Runtime.zip"
 Compress-Archive -Path "$portableDir\*" -DestinationPath $zip -CompressionLevel Optimal
 Remove-Item -Recurse -Force $portableDir
+}
 
 # --- 6. licence page for the installer (WiX needs RTF; AGPL text is converted verbatim) ---
 $text = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'LICENSE')) -replace "`r`n", "`n"
