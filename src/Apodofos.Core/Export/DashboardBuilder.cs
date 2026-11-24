@@ -43,8 +43,8 @@ public static class DashboardBuilder
     public static string Build(AnalysisResult? analysis, string? reportHtml, DashboardMode mode)
     {
         var html = ReadAsset("index.html");
-        var css = ReadAsset("app.css");
-        var charts = ReadAsset("charts.js");
+        var css = ReadAsset("app.css") + "\n" + ReadAsset("report.css");
+        var charts = ReadAsset("charts.js") + "\n</script>\n<script>\n" + ReadAsset("report.js");
         var app = ReadAsset("app.js");
         var icon = TryReadAsset("icon.svg");
         var json = ToJson(analysis, reportHtml, mode);

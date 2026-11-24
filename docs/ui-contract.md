@@ -67,7 +67,8 @@ UI to host (`{ type, ... }`, handled by `Apodofos.Host.HostMessageRouter`; unkno
 | `exportHtml` | | save the dashboard as a standalone HTML file |
 | `exportScript` | `text` | save the SQL script |
 | `copy` | `text` | system clipboard |
-| `print` | | system print dialog |
+| `print` | | system print dialog for the complete report (see "Print and PDF report"); the UI builds the report before sending this |
+| `exportPdf` | | save dialog, then the complete report is written as a PDF file (`IHostPlatform.PrintToPdfAsync`; the Windows shell uses WebView2 `Page.printToPDF`, A4, backgrounds on, page size from CSS). A shell that cannot write PDFs returns false and the user is told to use Print and choose "Save as PDF" |
 | `openUrl` | `url` | open a documentation link in the default browser. The host accepts only `https` URLs on `oracle.com` (and subdomains), without credentials; anything else is refused with a warning (`HostSession.IsAllowedDocUrl`) |
 | `removeRecent` | `path` | |
 | `clearRecent` | | |
@@ -81,6 +82,13 @@ In export mode use `navigator.clipboard` with a `document.execCommand('copy')` f
 - `HostMessageRouter`: parses the messages above and calls the session; a failing action is shown with `ShowMessageAsync` (never thrown into the shell).
 - `RecentStore`: paths only, newest first, at most 5, persisted as `recent.json` in the data directory. The list older versions kept inside `window.json` is imported once.
 - A shell owns only: the window, dialogs, the web view, drag-and-drop plumbing, key bindings (F5 / Ctrl+O), window placement (`window.json`, Windows only today) and its `IHostPlatform` implementation.
+
+## Print and PDF report
+Printing never prints "the tab that is open". `report.js` (`window.AwrReport.build(analysis, opts)`) builds one complete, formatted document from the analysis payload: cover, overall health and data-quality alerts, key numbers (every KPI tile), "Fix first", root causes, every finding (plain text, why it matters, technical details, evidence, steps, SQL, documentation citations with the URL printed), healthy checks, all curated charts, top SQL, report facts, disclaimer. `report.css` styles it (always light, A4, `@page` margins and page-number margin boxes, colours forced on with `print-color-adjust: exact`, severity carried by text as well as colour).
+- The report lives in `<div id="printreport">`: laid out but invisible on screen (so charts can measure their width), and in `@media print` it is the only visible element (`body > *:not(#printreport)` is hidden). It is rebuilt lazily: `load()` marks it stale, the **Print** and **Save PDF** buttons and the `beforeprint` event (Ctrl+P in a browser, export mode) call `buildReport()` first.
+- **Print**: desktop sends `print` to the host (browser print dialog, which also offers "Save as PDF"); export mode calls `window.print()`. **Save PDF** (desktop only) sends `exportPdf`.
+- Report text is untrusted: `report.js` uses `textContent` and text nodes only (pinned by `PrintReportTests`). No external requests.
+- Browser verification: `node tools/ui-qa/print.mjs <dashboard.html> <outDir>` (content checks per tab, PDF, full-page screenshot).
 
 ## Quality bar
 Accessible (keyboard, aria, contrast AA), prints cleanly (print CSS shows summary + findings), works at 1100 px minimum width, no external requests, total inlined size < 1.5 MB excluding report.

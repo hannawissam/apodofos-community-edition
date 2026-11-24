@@ -39,7 +39,9 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span id="lblOpen">Open report</span></button>
     <button type="button" class="btn" id="btnSave" data-host="desktop" title="Save this dashboard as a standalone HTML file">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 19h14"/></svg><span>Save HTML</span></button>
-    <button type="button" class="btn" id="btnPrint" title="Print the summary and findings">
+    <button type="button" class="btn" id="btnPdf" data-host="desktop" title="Save the complete formatted analysis report as a PDF file">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l5 5v13H6zM14 3v5h5M9 14h6M9 17h6"/></svg><span>Save PDF</span></button>
+    <button type="button" class="btn" id="btnPrint" title="Print the complete formatted analysis report (cover, key numbers, all findings, charts). To get a PDF file, choose Save as PDF as the printer.">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg><span>Print</span></button>
     <span class="vsep" aria-hidden="true"></span>
     <button type="button" class="iconbtn" id="btnLayoutReport" aria-pressed="false" title="Hide the original report (focus on analysis)" aria-label="Toggle original report pane">
@@ -135,6 +137,9 @@
 </footer>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- Print / PDF report: filled by report.js, laid out but invisible on screen, the only thing printed (see report.css). -->
+<div id="printreport" aria-hidden="true"></div>
 
 <!--AWR:DATA-->
 <!--AWR:SCRIPTS-->

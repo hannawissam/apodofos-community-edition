@@ -35,6 +35,9 @@ public class HostTests : IDisposable
         public Task SetClipboardAsync(string text) { Clipboard.Add(text); return Task.CompletedTask; }
         public Task PrintAsync() { Prints++; return Task.CompletedTask; }
         public List<string> OpenedUrls { get; } = [];
+        public bool PdfSupported { get; set; } = true;
+        public List<string> PdfPaths { get; } = [];
+        public Task<bool> PrintToPdfAsync(string path) { PdfPaths.Add(path); return Task.FromResult(PdfSupported); }
         public Task OpenUrlAsync(string url) { OpenedUrls.Add(url); return Task.CompletedTask; }
         public Task ShowMessageAsync(HostMessageKind kind, string text) { Messages.Add((kind, text)); return Task.CompletedTask; }
         public void SetWindowTitle(string title) => Titles.Add(title);
@@ -363,6 +366,33 @@ public class HostTests : IDisposable
         Assert.Single(_p.OpenedUrls);
         Assert.Single(_p.Messages);
         Assert.Equal(HostMessageKind.Warning, _p.Messages[0].Kind);
+    }
+
+    [Fact]
+    public async Task SavePdfNeedsAReport_AsksForAPath_AndExplainsWhenTheShellCannotDoIt()
+    {
+        var (s, r, _) = Create();
+        await s.OnPageReadyAsync(null);
+        await r.HandleAsync("{\"type\":\"exportPdf\"}");
+        Assert.Empty(_p.PdfPaths);
+        Assert.Equal(HostMessageKind.Info, Assert.Single(_p.Messages).Kind);
+
+        await s.LoadFileAsync(Fixture("awr-19c-synthetic.html"));
+        _p.Messages.Clear();
+        _p.NextSave = null; // cancelled
+        await r.HandleAsync("{\"type\":\"exportPdf\"}");
+        Assert.Empty(_p.PdfPaths);
+
+        _p.NextSave = Path.Combine(_dir, "r.pdf");
+        await r.HandleAsync("{\"type\":\"exportPdf\"}");
+        Assert.Equal([Path.Combine(_dir, "r.pdf")], _p.PdfPaths);
+        Assert.Empty(_p.Messages);
+        Assert.False(s.IsBusy);
+
+        _p.PdfSupported = false;
+        await r.HandleAsync("{\"type\":\"exportPdf\"}");
+        Assert.Equal(HostMessageKind.Warning, Assert.Single(_p.Messages).Kind);
+        Assert.Equal(_p.BusyStates.Count(b => b), _p.BusyStates.Count(b => !b)); // the busy overlay is always switched off again
     }
 
     // ---- RecentStore ----

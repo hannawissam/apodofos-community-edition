@@ -36,3 +36,5 @@ WCAG AA (computed from the resolved colours; code blocks and the gradient header
 - Zoom 125 % / 150 % of a 1100x700 window is `--vp 880x560` / `--vp 733x467` (CSS pixels). Below 1100 px the
   layout is best effort (the desktop app never goes below 1100x700); below 800 px the panes stack.
 - The contrast of the design tokens is also pinned by `tests/Apodofos.Tests/UiLayoutTests.cs`, which needs no browser.
+
+- `node print.mjs <dashboard.html> <outDir>`: Print / PDF report: opens the dashboard on the Findings tab, triggers Print, and checks in print media that the complete report is what prints (every KPI tile, finding, chart, the Fix first plan, the top SQL table; no app chrome; no overflow), that the same report comes out of every tab, and writes `report.pdf` and a full-page screenshot.

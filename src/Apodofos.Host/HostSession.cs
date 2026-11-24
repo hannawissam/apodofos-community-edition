@@ -168,6 +168,25 @@ public sealed class HostSession
         await File.WriteAllTextAsync(path, text, new UTF8Encoding(false));
     }
 
+    /// <summary>Saves the complete formatted report (the same document Print produces) as a PDF file.</summary>
+    public async Task ExportPdfAsync()
+    {
+        if (LastAnalysis == null)
+        {
+            await _platform.ShowMessageAsync(HostMessageKind.Info, "Open a report first, then save the analysis report as a PDF.");
+            return;
+        }
+        var path = await _platform.PickSaveFileAsync("Save analysis report as PDF", [new("PDF document", ["*.pdf"])], (LastReportName ?? "report") + "-analysis.pdf");
+        if (string.IsNullOrEmpty(path)) return;
+        _platform.SetBusy(true);
+        try
+        {
+            if (!await _platform.PrintToPdfAsync(path))
+                await _platform.ShowMessageAsync(HostMessageKind.Warning, "This app can't write PDF files directly here. Use Print and choose \u201cSave as PDF\u201d as the printer.");
+        }
+        finally { if (!_platform.IsClosed) _platform.SetBusy(false); }
+    }
+
     public Task CopyAsync(string text) => text.Length > 0 ? _platform.SetClipboardAsync(text) : Task.CompletedTask;
 
     public Task PrintAsync() => _platform.PrintAsync();

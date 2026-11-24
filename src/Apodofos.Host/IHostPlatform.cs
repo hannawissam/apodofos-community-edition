@@ -31,6 +31,12 @@ public interface IHostPlatform
 
     Task PrintAsync();
 
+    /// <summary>
+    /// Renders the page's print layout (the complete report) to a PDF file at <paramref name="path"/>. Returns false when the
+    /// shell cannot do it (the user is then told to use Print and choose "Save as PDF").
+    /// </summary>
+    Task<bool> PrintToPdfAsync(string path);
+
     /// <summary>Opens an already validated https URL in the user's default browser. The app itself never connects.</summary>
     Task OpenUrlAsync(string url);
 
