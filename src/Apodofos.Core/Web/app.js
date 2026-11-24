@@ -550,8 +550,7 @@
      validated again by the host). Without a host (or with an old one) the link is copied instead. file:/// is never a link. */
   function docAnchor(title, url, tip) {
     var u = safeUrl(url); if (!u) return null;
-    var a = h('a', { href: u, target: '_blank', rel: 'noopener noreferrer', title: tip ? tip + '
-' + u : u, text: title || u });
+    var a = h('a', { href: u, target: '_blank', rel: 'noopener noreferrer', title: tip ? tip + '\n' + u : u, text: title || u });
     if (MODE === 'desktop') a.addEventListener('click', function (e) {
       e.preventDefault();
       if (!host({ type: 'openUrl', url: u })) copyText(u, 'Link copied: paste it in a browser');
