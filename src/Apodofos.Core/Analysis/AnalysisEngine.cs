@@ -135,6 +135,8 @@ public static class AnalysisEngine
         AverageActiveSessions = r.Info.AverageActiveSessions,
         AnalyzedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
         AnalyzerVersion = Version,
+        Product = ProductInfo.Current.Name,
+        Edition = ProductInfo.Current.Edition,
         NumberFormat = r.NumberFormatNote
     };
 

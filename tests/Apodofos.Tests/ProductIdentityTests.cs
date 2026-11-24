@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Wissam HANNA
 
+using Apodofos.Core;
 using Apodofos.Core.Export;
 using Apodofos.Host;
 
@@ -157,6 +158,16 @@ public class ProductIdentityTests : IDisposable
         DataDirectoryMigration.Run("", Community);
     }
 
+    [Fact]
+    public void TheAnalysisNamesTheProductThatProducedIt()
+    {
+        var html = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "TestData", "awr-19c-synthetic.html"));
+        var a = Apodofos.Core.Analysis.AnalysisEngine.Analyze(Apodofos.Core.Parsing.AwrReportLoader.LoadContent(html, "t.html"));
+        Assert.Equal(ProductInfo.Current.Name, a.Meta.Product);
+        Assert.Equal(ProductInfo.Current.Edition, a.Meta.Edition);
+        Assert.Contains("\"product\":\"" + ProductInfo.Current.Name + "\"", DashboardBuilder.ToJson(a, null, DashboardMode.Export), StringComparison.Ordinal);
+    }
+
     // ---- trade mark guard ----
 
     [Fact]
@@ -165,7 +176,7 @@ public class ProductIdentityTests : IDisposable
         const string facts = "French trade mark application no. 5322937, not yet registered";
         Assert.Contains("Apodofos&trade; is a trademark of Wissam HANNA (" + facts + ")", DashboardBuilder.ReadAsset("index.html"), StringComparison.Ordinal);
         var root = RepoRoot();
-        foreach (var f in new[] { "NOTICE", "README.md", Path.Combine("src", "Apodofos.Cli", "Program.cs") })
+        foreach (var f in new[] { "NOTICE", "README.md", Path.Combine("src", "Apodofos.Cli", "Program.cs"), Path.Combine("src", "Apodofos.Core", "Web", "report.js") })
         {
             var t = File.ReadAllText(Path.Combine(root, f));
             Assert.True(t.Contains("5322937", StringComparison.Ordinal) && t.Contains("not yet registered", StringComparison.Ordinal), f + " must keep the trade mark notice");

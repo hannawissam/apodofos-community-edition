@@ -3,10 +3,10 @@
 
 using System.Reflection;
 
-namespace Apodofos.Host;
+namespace Apodofos.Core;
 
 /// <summary>
-/// Who this build is. "Apodofos" is the brand (suite); a product is "Apodofos &lt;Tool&gt;" with its own folders, executables and
+/// Who this build is (shared by the analysis metadata, the report, the CLI and every shell). "Apodofos" is the brand (suite); a product is "Apodofos &lt;Tool&gt;" with its own folders, executables and
 /// installer identity, so several products and both editions can live side by side and never touch each other's data.
 /// The values come from Edition.props at build time (assembly metadata); the defaults below are the Community Report Analyzer.
 /// The word "Apodofos" is a pending trade mark: never respell, abbreviate or fuse it in user-visible text.

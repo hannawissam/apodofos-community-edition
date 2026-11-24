@@ -35,6 +35,16 @@ public class PrintReportTests
     }
 
     [Fact]
+    public void TheReportPrintsTheProductNameAndTheTradeMarkNotice()
+    {
+        var js = DashboardBuilder.ReadAsset("report.js");
+        Assert.Contains("A.meta.product", js, StringComparison.Ordinal); // each edition prints its own name
+        Assert.Contains("\\u2122 is a trademark of Wissam HANNA (French trade mark application no. 5322937, not yet registered)", js, StringComparison.Ordinal);
+        Assert.Contains("rpt-tm", js, StringComparison.Ordinal);        // on the cover
+        Assert.Contains("@bottom-left", js, StringComparison.Ordinal);  // the running page footer carries the product name
+    }
+
+    [Fact]
     public void SavePdfIsADesktopButton()
     {
         var html = DashboardBuilder.ReadAsset("index.html");

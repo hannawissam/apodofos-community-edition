@@ -34,8 +34,8 @@ internal static class Program
         """;
 
     private static string Usage => UsageTemplate
-        .Replace("{NAME}", Apodofos.Host.ProductInfo.Current.Name, StringComparison.Ordinal)
-        .Replace("{CLI}", Apodofos.Host.ProductInfo.Current.CliName, StringComparison.Ordinal);
+        .Replace("{NAME}", Apodofos.Core.ProductInfo.Current.Name, StringComparison.Ordinal)
+        .Replace("{CLI}", Apodofos.Core.ProductInfo.Current.CliName, StringComparison.Ordinal);
 
     private static int Main(string[] args)
     {
@@ -123,7 +123,7 @@ internal static class Program
         return plus > 0 ? v[..plus] : v;
     }
 
-    internal static string VersionLine() => Apodofos.Host.ProductInfo.Current.VersionLine(VersionString());
+    internal static string VersionLine() => Apodofos.Core.ProductInfo.Current.VersionLine(VersionString());
 
     internal static string LicenseText() => string.Join(Environment.NewLine,
         VersionLine(),

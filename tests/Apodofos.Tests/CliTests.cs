@@ -25,7 +25,7 @@ public class CliTests : IDisposable
         var cfg = AppContext.BaseDirectory.Contains($"{Path.DirectorySeparatorChar}Release{Path.DirectorySeparatorChar}") ? "Release" : "Debug";
         var (code, _, err) = Exec("dotnet", $"build \"{proj}\" -c {cfg} -nologo -v q");
         Assert.True(code == 0, "CLI build failed: " + err);
-        return Path.Combine(proj, "bin", cfg, "net11.0", Apodofos.Host.ProductInfo.Current.CliName + ".dll");
+        return Path.Combine(proj, "bin", cfg, "net11.0", Apodofos.Core.ProductInfo.Current.CliName + ".dll");
     }
 
     private static (int Code, string Out, string Err) Exec(string file, string args)

@@ -48,6 +48,10 @@ try {
   check(m.drawn === m.charts, 'every chart is drawn', m.drawn + ' of ' + m.charts);
   check(m.sqlRows === expect.sql, 'top SQL table rows', m.sqlRows + ' of ' + expect.sql);
   check(!!m.h1, 'cover title present', m.h1);
+  const tm = await b.ev("(function(){var t=document.getElementById('printreport').innerText;return {tm:/Apodofos\u2122 is a trademark of Wissam HANNA/.test(t),n:(t.match(/is a trademark of Wissam HANNA/g)||[]).length,product:document.querySelector('#printreport .rpt-product').textContent,page:document.querySelector('#printreport style').textContent};})()");
+  check(tm.tm && tm.n >= 2, 'trade mark notice on the cover and in the closing note', tm.n + ' times');
+  check(/^Apodofos Report Analyzer/.test(tm.product), 'cover shows the product name', tm.product);
+  check(tm.page.includes(tm.product), 'page footer carries the product name', tm.page);
   check(m.overflowX <= 1, 'no horizontal overflow', 'overflow ' + m.overflowX + 'px, width ' + m.width + 'px');
 
   // the same report whichever tab is open
