@@ -209,7 +209,8 @@ public class ProductIdentityTests : IDisposable
             var parts = rel.Split(Path.DirectorySeparatorChar);
             if (parts.Any(p => skip.Contains(p, StringComparer.OrdinalIgnoreCase))) continue;
             if (!ext.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase)) continue;
-            if (Path.GetFileName(f) == "THIRD-PARTY-NOTICES.md") continue;
+            // documents that discuss look-alike names on purpose (third-party notices and naming analyses)
+            if (Path.GetFileName(f) == "THIRD-PARTY-NOTICES.md" || Path.GetFileName(f).EndsWith("-and-naming.md", StringComparison.OrdinalIgnoreCase)) continue;
             yield return f;
         }
     }
