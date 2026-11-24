@@ -9,12 +9,15 @@
         │
   Export (DashboardBuilder) → one self-contained HTML (UI + JSON + report)
         │
-  Hosts:  Desktop (WinForms + WebView2)   CLI (apodofos)   Any browser (exported file)
+  Host logic (Apodofos.Host: session, message router, recent files; shell-neutral)
+        │
+  Shells: Desktop (WinForms + WebView2)   CLI (apodofos)   Any browser (exported file)   [Linux/browser shell: planned]
 ```
 
 Key decisions
 - **Generic table model**: every `<table>` is kept (header + rows); rules address columns by normalized name, so Oracle layout differences (11g/12c/19c) don't break them and every metric can be charted.
 - **Rules auto-discovered** (`IRule`); knowledge base (`Knowledge/`) holds plain-English text, doc citations and SQL templates.
+- **Thin shells**: everything that must behave identically on every platform lives in `Apodofos.Host` behind `IHostPlatform` (see `docs/ui-contract.md`); a shell is only window, dialogs, web view and placement.
 - **One UI** (`Core/Web`): no frameworks, no network; reused by desktop and export.
 - **Security**: reports are untrusted input — scripts removed, CSP `default-src 'none'`, sandboxed iframe, escaped output, blocked navigation.
 

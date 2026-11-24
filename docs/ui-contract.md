@@ -55,9 +55,31 @@ Left pane: original report (iframe), with a section jump list. Right pane (resiz
 Non-DBA audience: default to plain English; technical details one click away. Empty state: big drop zone + "Open AWR report" button.
 
 ## Host messaging (desktop mode only)
-UI → host: `window.chrome.webview.postMessage({ type, ... })` with `type` in `open` | `exportHtml` | `exportScript` (`{text}`) | `copy` (`{text}`) | `print`.
-Host → UI: `window.AwrApp.load({ analysis, reportHtml, mode })`; `window.AwrApp.setAppVersion("1.0.4")` once the page is ready (shown in the About box; the host also puts the version in the window title).
+The page talks to its shell only through `window.AwrHost.send(msg)` (defined in `app.js`; returns `true` when a shell took the message). Transport detection: a shell may install `window.AwrHost = { post(msg) {...} }` before the page starts; otherwise WebView2 (`window.chrome.webview.postMessage`) is used. With no transport (export mode, plain browser) `send` returns `false` and the page falls back to Blob downloads, `navigator.clipboard` and `window.print()`.
+
+UI to host (`{ type, ... }`, handled by `Apodofos.Host.HostMessageRouter`; unknown or malformed messages are ignored):
+| type | fields | effect |
+|---|---|---|
+| `open` | | file dialog, then load |
+| `openPath` | `path` | load a file (recent list) |
+| `dropFile` | | file dropped on the page; the shell attaches the native path (WebView2: `postMessageWithAdditionalObjects`) |
+| `reanalyze` | `provider` | re-read the open file with another provider ("Not right?") |
+| `exportHtml` | | save the dashboard as a standalone HTML file |
+| `exportScript` | `text` | save the SQL script |
+| `copy` | `text` | system clipboard |
+| `print` | | system print dialog |
+| `removeRecent` | `path` | |
+| `clearRecent` | | |
+
+Host to UI (run in the page by `IHostPlatform.RunScriptAsync`): `window.AwrApp.load({ analysis, reportHtml, mode })`, `setSource({ name, provider, forced })`, `setRecent([{ path, name, type, opened, exists }])`, `notify({ kind: 'error'|'warning', message })`, `setAppVersion("1.0.4")` (shown in the About box; the host also puts the version in the window title).
 In export mode use `navigator.clipboard` with a `document.execCommand('copy')` fallback, and `Blob` downloads.
+
+### Shared host library (`src/Apodofos.Host`, `net11.0`, no UI dependency)
+- `IHostPlatform`: what a shell provides: `IsClosed`, `DataDirectory`, `PickOpenFileAsync`, `PickSaveFileAsync` (neutral `FileFilter` lists, return null when cancelled), `SetClipboardAsync`, `PrintAsync`, `ShowMessageAsync`, `SetWindowTitle`, `RunScriptAsync`, `SetBusy`.
+- `HostSession`: the single load pipeline (button, drag and drop, command line, recent, re-analyze; parsing runs off the UI thread), busy and dialog re-entrancy guards, pending file before the page is ready, exports, window title, host-to-UI pushes. Call it from the shell's UI thread.
+- `HostMessageRouter`: parses the messages above and calls the session; a failing action is shown with `ShowMessageAsync` (never thrown into the shell).
+- `RecentStore`: paths only, newest first, at most 5, persisted as `recent.json` in the data directory. The list older versions kept inside `window.json` is imported once.
+- A shell owns only: the window, dialogs, the web view, drag-and-drop plumbing, key bindings (F5 / Ctrl+O), window placement (`window.json`, Windows only today) and its `IHostPlatform` implementation.
 
 ## Quality bar
 Accessible (keyboard, aria, contrast AA), prints cleanly (print CSS shows summary + findings), works at 1100 px minimum width, no external requests, total inlined size < 1.5 MB excluding report.
@@ -66,4 +88,4 @@ Accessible (keyboard, aria, contrast AA), prints cleanly (print CSS shows summar
 
 ## Host-injected behaviour (desktop shell)
 - Drag and drop: the shell injects a capture-phase `drop` listener (`AddScriptToExecuteOnDocumentCreated`) that stops the page's own drop handling and posts `{ type: 'dropFile' }` with the dropped `File` via `chrome.webview.postMessageWithAdditionalObjects`; the host reads the native path and loads it. The page's own `drop` handler therefore never fires in the desktop app (it remains the fallback for export mode, where it only toasts).
-- The host owns the window title (`<file name> - Apodofos Report Analyzer`), F5 / Ctrl+O (open dialog), window size/position (`%LOCALAPPDATA%\Apodofos\window.json`, minimum 1100x700) and blocks all navigation except the in-memory page.
+- The host owns the window title (`<file name> — Apodofos Report Analyzer <version>`), F5 / Ctrl+O (open dialog), window size/position (`%LOCALAPPDATA%\Apodofos\window.json`, minimum 1100x700) and blocks all navigation except the in-memory page.

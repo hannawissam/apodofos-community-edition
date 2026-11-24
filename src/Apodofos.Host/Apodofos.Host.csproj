@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <RootNamespace>Apodofos.Host</RootNamespace>
+    <Description>Platform-neutral host logic shared by every Apodofos shell (session, message routing, recent files).</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Apodofos.Core\Apodofos.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Apodofos.Tests" />
+  </ItemGroup>
+</Project>
