@@ -353,15 +353,15 @@ private static void LegacyLatch(AnalysisContext ctx, AwrTable fg)
         if (rows.Count == 0) return;
         string Next(string e) => e.ToLowerInvariant() switch
         {
-            var x when x.StartsWith("db file scattered") => "full table or index fast-full scans: read 'SQL ordered by Reads' and 'Gets'",
-            var x when x.StartsWith("db file sequential") => "index and single-block access: read 'SQL ordered by Reads' and 'Tablespace IO Stats' for slow files",
+            var x when x.StartsWith("db file scattered", StringComparison.Ordinal) => "full table or index fast-full scans: read 'SQL ordered by Reads' and 'Gets'",
+            var x when x.StartsWith("db file sequential", StringComparison.Ordinal) => "index and single-block access: read 'SQL ordered by Reads' and 'Tablespace IO Stats' for slow files",
             "db cpu" => "CPU-heavy SQL: read 'SQL ordered by CPU' and 'Gets'",
-            var x when x.StartsWith("latch") => "'Latch Sleep Breakdown' and 'Latch Miss Sources'",
-            var x when x.StartsWith("log file") => "redo: 'Instance Activity Stats' (redo size, redo writes) and the redo log findings",
-            var x when x.StartsWith("buffer busy") || x.StartsWith("read by other") => "'Buffer Wait Statistics' and the segment sections",
-            var x when x.StartsWith("enq") || x == "enqueue" => "'Enqueue Activity'",
-            var x when x.StartsWith("direct path") => "sorts and parallel scans: 'PGA Aggr Target Histogram' and temp usage",
-            var x when x.StartsWith("free buffer") => "the DBWR / buffer cache findings",
+            var x when x.StartsWith("latch", StringComparison.Ordinal) => "'Latch Sleep Breakdown' and 'Latch Miss Sources'",
+            var x when x.StartsWith("log file", StringComparison.Ordinal) => "redo: 'Instance Activity Stats' (redo size, redo writes) and the redo log findings",
+            var x when x.StartsWith("buffer busy", StringComparison.Ordinal) || x.StartsWith("read by other", StringComparison.Ordinal) => "'Buffer Wait Statistics' and the segment sections",
+            var x when x.StartsWith("enq", StringComparison.Ordinal) || x == "enqueue" => "'Enqueue Activity'",
+            var x when x.StartsWith("direct path", StringComparison.Ordinal) => "sorts and parallel scans: 'PGA Aggr Target Histogram' and temp usage",
+            var x when x.StartsWith("free buffer", StringComparison.Ordinal) => "the DBWR / buffer cache findings",
             _ => "the matching event finding"
         };
         var parts = rows.Take(3).Select(x => $"{x.Name} ({P(x.Pct, 0)}) leads to {Next(x.Name)}").ToList();

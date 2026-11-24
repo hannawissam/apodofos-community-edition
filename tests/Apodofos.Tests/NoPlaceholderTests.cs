@@ -21,7 +21,7 @@ public class NoPlaceholderTests
                 var ext = Path.GetExtension(f).ToLowerInvariant();
                 if (ext is not (".cs" or ".md" or ".html" or ".js" or ".css" or ".json")) continue;
                 var t = File.ReadAllText(f);
-                if (t.Contains("[SOURCE_URL]") || t.Contains("{SOURCE_URL}") && !f.EndsWith("licensing.md")) bad.Add(f);
+                if (t.Contains("[SOURCE_URL]") || t.Contains("{SOURCE_URL}") && !f.EndsWith("licensing.md", StringComparison.Ordinal)) bad.Add(f);
             }
         }
         Assert.Empty(bad);
@@ -50,7 +50,7 @@ public class NoPlaceholderTests
         foreach (var f in files)
         {
             // legal-checklist.md and github-manager docs may name the private repo for the maintainer; public-facing files must not.
-            if (f.EndsWith("legal-checklist.md") || f.EndsWith("architecture.md")) continue;
+            if (f.EndsWith("legal-checklist.md", StringComparison.Ordinal) || f.EndsWith("architecture.md", StringComparison.Ordinal)) continue;
             if (oldUrl.IsMatch(File.ReadAllText(Path.Combine(root, f)))) bad.Add(f);
         }
         Assert.Empty(bad);

@@ -21,7 +21,7 @@ public static class CoverageMap
         public bool IsStatspack => Kinds.Contains('S');
         public string[] ConsumerList => Consumers.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         /// <summary>True when at least one consumer is a rule, chart, KPI or header extractor (not the explorer).</summary>
-        public bool HasRealConsumer => ConsumerList.Any(c => !c.StartsWith("X"));
+        public bool HasRealConsumer => ConsumerList.Any(c => !c.StartsWith("X", StringComparison.Ordinal));
     }
 
     // Title prefix | kinds (A=AWR, S=Statspack, H=ASH) | core (1/0) | consumers | note

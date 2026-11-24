@@ -1,0 +1,71 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (c) 2026 Wissam HANNA
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: build and test (${{ matrix.os }}, invariant=${{ matrix.invariant }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        invariant: ['0', '1']
+    env:
+      DOTNET_NOLOGO: '1'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: ${{ matrix.invariant }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: 11.0.x
+      # Desktop (WinForms) is Windows-only: on Linux build the platform-neutral projects.
+      - name: Build (Windows, whole solution)
+        if: runner.os == 'Windows'
+        run: dotnet build Apodofos.slnx -c Release
+      - name: Build (Linux, Core + CLI + tests)
+        if: runner.os == 'Linux'
+        run: |
+          dotnet build src/Apodofos.Cli -c Release
+          dotnet build tests/Apodofos.Tests -c Release
+      - name: Test
+        run: dotnet test tests/Apodofos.Tests -c Release --no-build --logger "console;verbosity=normal"
+
+  cli-smoke:
+    name: CLI smoke (linux-x64 self-contained)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: 11.0.x
+      - name: Publish CLI
+        run: dotnet publish src/Apodofos.Cli -c Release -r linux-x64 --self-contained -o out/cli
+      - name: Version
+        run: ./out/cli/apodofos --version
+      - name: Analyse every synthetic fixture
+        run: |
+          set -e
+          for f in tests/Apodofos.Tests/TestData/*.html tests/Apodofos.Tests/TestData/*.txt; do
+            echo "== $f"
+            ./out/cli/apodofos "$f" --text > /dev/null
+          done

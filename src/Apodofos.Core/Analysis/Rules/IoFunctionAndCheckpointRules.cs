@@ -51,7 +51,7 @@ public sealed class IoFunctionAndCheckpointRules : IRule
             }
         }
         // the redo-write case is already reported with more detail by the wait-event rules
-        if (bad.Count == 0 || (bad.Count == 1 && bad[0].Label == "LGWR" && ctx.Findings.Any(f => f.Title.StartsWith("Redo log writes are slow")))) return;
+        if (bad.Count == 0 || (bad.Count == 1 && bad[0].Label == "LGWR" && ctx.Findings.Any(f => f.Title.StartsWith("Redo log writes are slow", StringComparison.Ordinal)))) return;
         ctx.Add(new Finding
         {
             Severity = SeverityMath.ForLoad(ctx, bad.Any(b => b.Label is "LGWR" or "Buffer Cache Reads") ? Severity.Medium : Severity.Low),

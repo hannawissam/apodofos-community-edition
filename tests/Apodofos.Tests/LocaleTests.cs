@@ -333,29 +333,62 @@ public class LocaleTests
     [Theory]
     [InlineData("10-Mar-26 10:00:00")]
     [InlineData("10-mars-26 10:00:00")]
+    [InlineData("10-mars.-26 10:00:00")]
     [InlineData("10-Mär-26 10:00:00")]
+    [InlineData("10-März-26 10:00:00")]
     [InlineData("10-mar-26 10:00:00")]
     [InlineData("10-mar-26 10.00.00")]
+    [InlineData("10-marzo-26 10:00:00")]
+    [InlineData("10-mrt-26 10:00:00")]
     [InlineData("10-Mar-26 10:00:00 AM")]
+    [InlineData("10-mar-26 10:00:00 a. m.")]
     [InlineData("10.03.2026 10:00:00")]
     [InlineData("2026-03-10 10:00:00")]
     public void TimestampsInOtherLanguagesAreRecognised(string text)
     {
-        Assert.True(Apodofos.Core.Parsing.NumberConventions.Detect("") is not null);
-        var ok = TryTime(text, out var t);
-        Assert.True(ok, text);
-        Assert.Equal(2026, t.Year);
-        Assert.Equal(3, t.Month);
+        Assert.True(ReportIntegrity.TryParseTime(text, out var t), text);
+        Assert.Equal(new DateTime(2026, 3, 10, 10, 0, 0), t);
     }
 
-    private static bool TryTime(string text, out DateTime t)
+    [Theory]
+    [InlineData("14-janv.-26 08:15:00", 1)]
+    [InlineData("14-févr.-26 08:15:00", 2)]
+    [InlineData("14-avr.-26 08:15:00", 4)]
+    [InlineData("14-mai-26 08:15:00", 5)]
+    [InlineData("14-juil.-26 08:15:00", 7)]
+    [InlineData("14-août-26 08:15:00", 8)]
+    [InlineData("14-déc.-26 08:15:00", 12)]
+    [InlineData("14-Jän-26 08:15:00", 1)]
+    [InlineData("14-Okt-26 08:15:00", 10)]
+    [InlineData("14-Dez-26 08:15:00", 12)]
+    [InlineData("14-ene-26 08:15:00", 1)]
+    [InlineData("14-dic-26 08:15:00", 12)]
+    [InlineData("14-gen-26 08:15:00", 1)]
+    [InlineData("14-set-26 08:15:00", 9)]
+    [InlineData("14-ott-26 08:15:00", 10)]
+    [InlineData("14-out-26 08:15:00", 10)]
+    [InlineData("14-mei-26 08:15:00", 5)]
+    public void MonthNamesOfEveryLanguageMapToTheRightMonth(string text, int month)
     {
-        // ReportIntegrity is internal to the core assembly: exercise it through a report header
-        var html = Synthetic.AwrHtml(o => { o.BeginTime = text; o.EndTime = text.Replace("10:00:00", "11:00:00").Replace("10.00.00", "11.00.00"); });
-        var a = AnalysisEngine.Analyze(AwrReportLoader.LoadContent(html, "t.html"));
-        // a parseable window that matches the 60-minute elapsed time raises no header-consistency note
-        t = new DateTime(2026, 3, 10);
-        return !a.Warnings.Concat(a.DataQuality.Notes).Any(n => n.Contains("span", StringComparison.OrdinalIgnoreCase) || n.Contains("not after", StringComparison.OrdinalIgnoreCase))
-               && a.DataQuality.Notes.All(n => !n.Contains("plausible date", StringComparison.OrdinalIgnoreCase));
+        Assert.True(ReportIntegrity.TryParseTime(text, out var t), text);
+        Assert.Equal(month, t.Month);
+        Assert.Equal(14, t.Day);
+        Assert.Equal(new TimeSpan(8, 15, 0), t.TimeOfDay);
     }
+
+    [Theory]
+    [InlineData("10-mar-26 01:05:00 p. m.", 13)]
+    [InlineData("10-mar-26 01:05:00 PM", 13)]
+    [InlineData("10-mar-26 12:05:00 AM", 0)]
+    public void TwelveHourClocksAreRead(string text, int hour)
+    {
+        Assert.True(ReportIntegrity.TryParseTime(text, out var t), text);
+        Assert.Equal(hour, t.Hour);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("not a date")]
+    [InlineData("10-foo-26 10:00:00")]
+    public void GarbageIsRejectedWithoutThrowing(string text) => Assert.False(ReportIntegrity.TryParseTime(text, out _));
 }

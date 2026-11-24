@@ -14,7 +14,7 @@ public class ProviderTests
         public string DisplayName => "Fake PostgreSQL report";
         public string Engine => "PostgreSQL";
         public IReadOnlyList<string> FileExtensions { get; } = [".pgrep"];
-        public bool CanHandle(string content, string? fileName) => content.StartsWith("PGREPORT");
+        public bool CanHandle(string content, string? fileName) => content.StartsWith("PGREPORT", StringComparison.Ordinal);
         public ProviderResult Analyze(string content, string sourceName) =>
             new(new AnalysisResult { Meta = new ReportMeta { DbName = "pg" } }, "<html></html>");
     }

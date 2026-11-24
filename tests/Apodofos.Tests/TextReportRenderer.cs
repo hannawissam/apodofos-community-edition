@@ -26,8 +26,8 @@ internal static class TextReportRenderer
             n++;
             var summary = n <= 14 && t.Section is null;
             var title = t.Title;
-            if (summary && title.StartsWith("Database Instance")) title = "";
-            else if (summary && (title.StartsWith("Host Information") || title.StartsWith("Snapshot Information"))) title = "";
+            if (summary && title.StartsWith("Database Instance", StringComparison.Ordinal)) title = "";
+            else if (summary && (title.StartsWith("Host Information", StringComparison.Ordinal) || title.StartsWith("Snapshot Information", StringComparison.Ordinal))) title = "";
 
             if (title.Length > 0)
             {

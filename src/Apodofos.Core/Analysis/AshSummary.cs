@@ -33,7 +33,7 @@ internal static class AshSummary
         };
         if (ctx.Aas is not null)
             paras.Add(ctx.ActiveSessionsSentence("sessions"));
-        var mix = findings.FirstOrDefault(f => f.Title.StartsWith("Active session time was mostly") || f.Title.Contains("shared the time"));
+        var mix = findings.FirstOrDefault(f => f.Title.StartsWith("Active session time was mostly", StringComparison.Ordinal) || f.Title.Contains("shared the time"));
         if (mix != null) paras.Add(mix.Plain);
         paras.Add(actionable.Count == 0
             ? "No issues requiring action were found. ASH covers only the sampled window, so problems outside it are not visible here."
