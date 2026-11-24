@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Apodofos.Core\Apodofos.Core.csproj" />
+    <ProjectReference Include="..\..\src\Apodofos.Host\Apodofos.Host.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\EXAMPLES\*.html" Link="Examples\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />

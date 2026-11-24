@@ -3,6 +3,7 @@
     <Project Path="src/Apodofos.Core/Apodofos.Core.csproj" />
     <Project Path="src/Apodofos.Desktop/Apodofos.Desktop.csproj" />
     <Project Path="src/Apodofos.Cli/Apodofos.Cli.csproj" />
+    <Project Path="src/Apodofos.Host/Apodofos.Host.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Apodofos.Tests/Apodofos.Tests.csproj" />

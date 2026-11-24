@@ -165,11 +165,16 @@
     });
   }
 
-  function host(msg) {
+  // Host bridge (docs/ui-contract.md): every UI-to-host message goes through window.AwrHost.send. A shell may install its own
+  // transport before the page starts: window.AwrHost = { post: function (msg) { ... } }. WebView2 is detected automatically.
+  var AwrHost = window.AwrHost = window.AwrHost || {};
+  AwrHost.send = function (msg) {
+    if (typeof AwrHost.post === 'function') { AwrHost.post(msg); return true; }
     var w = window.chrome && window.chrome.webview;
-    if (MODE === 'desktop' && w && typeof w.postMessage === 'function') { w.postMessage(msg); return true; }
+    if (w && typeof w.postMessage === 'function') { w.postMessage(msg); return true; }
     return false;
-  }
+  };
+  function host(msg) { return MODE === 'desktop' && AwrHost.send(msg); }
   var toastTimer = null;
   function toast(msg) {
     var t = $('toast'); t.textContent = msg; t.classList.add('show');

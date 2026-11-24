@@ -21,6 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Apodofos.Core\Apodofos.Core.csproj" />
+    <ProjectReference Include="..\Apodofos.Host\Apodofos.Host.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\assets\apodofos.ico" LogicalName="Apodofos.ico" />
