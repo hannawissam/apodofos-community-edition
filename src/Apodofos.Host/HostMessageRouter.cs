@@ -26,7 +26,10 @@ public sealed class HostMessageRouter
     {
         try
         {
-            using var doc = JsonDocument.Parse(json);
+            JsonDocument doc;
+            try { doc = JsonDocument.Parse(json); }
+            catch (JsonException) { return; } // not our message
+            using var _ = doc;
             var root = doc.RootElement;
             if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("type", out var t) || t.ValueKind != JsonValueKind.String) return;
             var text = Str(root, "text") ?? "";
@@ -44,7 +47,6 @@ public sealed class HostMessageRouter
                 case "dropFile": if (droppedPaths is { Count: > 0 } && !string.IsNullOrEmpty(droppedPaths[0])) await _session.LoadFileAsync(droppedPaths[0]); break;
             }
         }
-        catch (JsonException) { /* not our message */ }
         catch (Exception ex)
         {
             await _platform.ShowMessageAsync(HostMessageKind.Error, ex.Message);

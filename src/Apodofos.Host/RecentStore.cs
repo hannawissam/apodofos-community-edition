@@ -84,7 +84,9 @@ public sealed class RecentStore
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_file)!);
-            File.WriteAllText(_file, JsonSerializer.Serialize(_items));
+            var tmp = _file + ".tmp";
+            File.WriteAllText(tmp, JsonSerializer.Serialize(_items));
+            File.Move(tmp, _file, overwrite: true); // atomic replace: a crash never leaves a half-written list
         }
         catch { /* best effort */ }
     }

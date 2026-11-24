@@ -145,7 +145,7 @@ public class HostTests : IDisposable
         var (s, _, _) = Create((p, f) =>
         {
             Interlocked.Increment(ref calls);
-            gate.Task.Wait();
+            Assert.True(gate.Task.Wait(TimeSpan.FromSeconds(10)));
             return new(ReportLoader.Load(p, f), "{}");
         });
         await s.OnPageReadyAsync(null);
@@ -267,7 +267,7 @@ public class HostTests : IDisposable
         _p.NextSave = sql;
         await r.HandleAsync("{\"type\":\"exportScript\",\"text\":\"-- é\\nselect 1 from dual;\"}");
         var bytes = await File.ReadAllBytesAsync(sql);
-        Assert.NotEqual(0xEF, bytes[0]);
+        Assert.False(bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF, "UTF-8 BOM written");
         Assert.Contains("select 1", System.Text.Encoding.UTF8.GetString(bytes), StringComparison.Ordinal);
         var html = Path.Combine(_dir, "d.html");
         _p.NextSave = html;
@@ -289,6 +289,43 @@ public class HostTests : IDisposable
         await s.PushRecentAsync();
         await s.NotifyAsync("error", "x");
         Assert.Equal(n, _p.Scripts.Count);
+    }
+
+    [Fact]
+    public async Task AWindowClosedDuringTheLoadReceivesNothing()
+    {
+        var (s, _, _) = Create((p, f) =>
+        {
+            var o = ReportLoader.Load(p, f);
+            _p.IsClosed = true; // the user closes the window while the report is being parsed
+            return new(o, "{}");
+        });
+        await s.OnPageReadyAsync(null);
+        var n = _p.Scripts.Count;
+        await s.LoadFileAsync(Fixture("awr-19c-synthetic.html"));
+        Assert.Equal(n, _p.Scripts.Count);
+        Assert.Empty(s.Recent.Items);
+    }
+
+    [Fact]
+    public async Task APageReadyEventRaisedTwiceInitialisesOnce()
+    {
+        var (s, _, loads) = Create();
+        await s.OnPageReadyAsync(Fixture("awr-19c-synthetic.html"));
+        await s.OnPageReadyAsync(Fixture("awr-19c-synthetic.html"));
+        Assert.Single(loads);
+        Assert.Single(_p.Scripts, x => x.StartsWith("window.AwrApp.setAppVersion(", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task ReanalyzeWithoutAProviderIsIgnored()
+    {
+        var (s, r, loads) = Create();
+        await s.OnPageReadyAsync(null);
+        await s.LoadFileAsync(Fixture("awr-19c-synthetic.html"));
+        await r.HandleAsync("{\"type\":\"reanalyze\",\"provider\":\"\"}");
+        await r.HandleAsync("{\"type\":\"reanalyze\"}");
+        Assert.Single(loads);
     }
 
     // ---- RecentStore ----
