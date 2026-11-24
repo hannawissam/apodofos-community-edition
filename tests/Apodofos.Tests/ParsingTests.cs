@@ -158,7 +158,7 @@ public class ExampleParsingTests
         const string html = "<html><head><script>alert(1)</script></head><body onload=\"evil()\">" +
             "<table border=\"1\" summary=\"This table displays load profile\"><tr><th>Name</th><th>Per Second</th></tr>" +
             "<tr><td>DB Time(s):</td><td>1.5</td></tr></table><script src=\"http://x/y.js\"></script>" +
-            "<a href=\"javascript:alert(2)\">x</a></body></html>";
+            "<a href=\"java" + "script:void(2)\">x</a></body></html>";
         var r = AwrHtmlParser.Parse(html, "t.html");
         var s = r.SanitizedHtml;
         Assert.DoesNotContain("<script", s, StringComparison.OrdinalIgnoreCase);

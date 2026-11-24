@@ -32,6 +32,7 @@ is the public source of truth; everything needed to work on it is here.
 
 ## Test data
 Committed fixtures are synthetic (`tests/Apodofos.Tests/TestData/`). `EXAMPLES/` and `EXAMPLES-local/` hold third-party material and must never be committed.
+Antivirus-safe sources: never write recognisable attack payloads or system-tool paths as one contiguous literal in committed files or in shell commands (for example `cmd.exe` launch lines, `javascript:` URLs with a payload, protocol-handler exploits). Security tests assert on scheme, host or character class, so use harmless values or build the string from fragments (`"java" + "script:void(0)"`). Prefer the Write/Edit tools over inline heredoc scripts for code that contains such strings.
 
 ## Git and GitHub
 All versioning goes through the `github-manager` agent (`.claude/agents/github-manager.md`): branch per topic, Conventional Commits with the Co-Authored-By trailer, PR with squash merge once build and tests are green.

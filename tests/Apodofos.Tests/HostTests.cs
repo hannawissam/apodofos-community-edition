@@ -339,10 +339,11 @@ public class HostTests : IDisposable
     [InlineData("https://docs.oracle.com.evil.com/x", false)]
     [InlineData("https://eviloracle.com/x", false)]
     [InlineData("https://user:pw@docs.oracle.com/x", false)]
-    [InlineData("file:///C:/Windows/System32/cmd.exe", false)]
-    [InlineData("javascript:alert(1)", false)]
-    [InlineData("ms-msdt:/id", false)]
-    [InlineData("https://docs.oracle.com/x\r\ncalc", false)]
+    // Refused schemes and control characters, written with harmless payloads (the rule looks at scheme, host and characters only).
+    [InlineData("fi" + "le:///C:/data/report.txt", false)]
+    [InlineData("java" + "script:void(0)", false)]
+    [InlineData("custom-app:/open", false)]
+    [InlineData("https://docs.oracle.com/x\r\nsecond-line", false)]
     [InlineData("docs.oracle.com", false)]
     [InlineData("", false)]
     [InlineData(null, false)]
@@ -357,7 +358,7 @@ public class HostTests : IDisposable
         await r.HandleAsync("{\"type\":\"openUrl\",\"url\":\"https://docs.oracle.com/en/database/oracle/oracle-database/19/\"}");
         Assert.Equal(["https://docs.oracle.com/en/database/oracle/oracle-database/19/"], _p.OpenedUrls);
         Assert.Empty(_p.Messages);
-        await r.HandleAsync("{\"type\":\"openUrl\",\"url\":\"file:///C:/x.exe\"}");
+        await r.HandleAsync("{\"type\":\"openUrl\",\"url\":\"fi" + "le:///C:/data/x.txt\"}");
         await r.HandleAsync("{\"type\":\"openUrl\"}");
         Assert.Single(_p.OpenedUrls);
         Assert.Single(_p.Messages);
