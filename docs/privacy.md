@@ -17,11 +17,16 @@ computer. The application makes no network connections.
 * The embedded interface is part of the program. It loads no fonts, scripts, images or styles from the internet, and it
   blocks navigation to any address other than its own built-in page. The command line tool (`apodofos`) and the HTML file
   it can export are equally self-contained.
+* Documentation links (to docs.oracle.com) are never fetched by the application. When you select one, the application asks your
+  operating system to open it in your default web browser (only `https` addresses on oracle.com are accepted), exactly as if
+  you had typed it there; your browser, not Apodofos, then connects. "Copy link" copies the address instead, and nothing is
+  opened.
 
 ## 2. What is stored on your computer
 The application writes the following, only on your computer, under `%LOCALAPPDATA%\Apodofos`:
-* `window.json`: the window position, size and maximised state, and the list of up to five recently opened report files (the
-  full file path, the report type and the date it was opened).
+* `window.json`: the window position, size and maximised state.
+* `recent.json`: the list of up to five recently opened report files (the full file path, the report type and the date it was
+  opened).
 * The Microsoft Edge WebView2 profile folder (`%LOCALAPPDATA%\Apodofos\EBWebView`): the Windows desktop application shows its
   interface through the Microsoft Edge WebView2 Runtime, which keeps its working files there. The interface also stores two
   display preferences in it (light or dark theme, position of the divider between the report and the analysis).

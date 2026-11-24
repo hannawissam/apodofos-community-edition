@@ -34,6 +34,8 @@ public class HostTests : IDisposable
         public Task<string?> PickSaveFileAsync(string title, IReadOnlyList<FileFilter> filters, string suggestedName) => Task.FromResult(NextSave);
         public Task SetClipboardAsync(string text) { Clipboard.Add(text); return Task.CompletedTask; }
         public Task PrintAsync() { Prints++; return Task.CompletedTask; }
+        public List<string> OpenedUrls { get; } = [];
+        public Task OpenUrlAsync(string url) { OpenedUrls.Add(url); return Task.CompletedTask; }
         public Task ShowMessageAsync(HostMessageKind kind, string text) { Messages.Add((kind, text)); return Task.CompletedTask; }
         public void SetWindowTitle(string title) => Titles.Add(title);
         public Task RunScriptAsync(string script) { Scripts.Add(script); return Task.CompletedTask; }
@@ -326,6 +328,41 @@ public class HostTests : IDisposable
         await r.HandleAsync("{\"type\":\"reanalyze\",\"provider\":\"\"}");
         await r.HandleAsync("{\"type\":\"reanalyze\"}");
         Assert.Single(loads);
+    }
+
+    [Theory]
+    [InlineData("https://docs.oracle.com/en/database/oracle/oracle-database/19/tgdba/index.html#GUID-1", true)]
+    [InlineData("https://www.oracle.com/database/", true)]
+    [InlineData("HTTPS://DOCS.ORACLE.COM/x", true)]
+    [InlineData("http://docs.oracle.com/x", false)]
+    [InlineData("https://evil.com/docs.oracle.com", false)]
+    [InlineData("https://docs.oracle.com.evil.com/x", false)]
+    [InlineData("https://eviloracle.com/x", false)]
+    [InlineData("https://user:pw@docs.oracle.com/x", false)]
+    // Refused schemes and control characters, written with harmless payloads (the rule looks at scheme, host and characters only).
+    [InlineData("fi" + "le:///C:/data/report.txt", false)]
+    [InlineData("java" + "script:void(0)", false)]
+    [InlineData("custom-app:/open", false)]
+    [InlineData("https://docs.oracle.com/x\r\nsecond-line", false)]
+    [InlineData("docs.oracle.com", false)]
+    [InlineData("", false)]
+    [InlineData(null, false)]
+    public void OnlyHttpsOracleDocumentationLinksMayLeaveTheApp(string? url, bool allowed) =>
+        Assert.Equal(allowed, HostSession.IsAllowedDocUrl(url));
+
+    [Fact]
+    public async Task OpenUrlOpensAllowedLinksAndRefusesTheRest()
+    {
+        var (s, r, _) = Create();
+        await s.OnPageReadyAsync(null);
+        await r.HandleAsync("{\"type\":\"openUrl\",\"url\":\"https://docs.oracle.com/en/database/oracle/oracle-database/19/\"}");
+        Assert.Equal(["https://docs.oracle.com/en/database/oracle/oracle-database/19/"], _p.OpenedUrls);
+        Assert.Empty(_p.Messages);
+        await r.HandleAsync("{\"type\":\"openUrl\",\"url\":\"fi" + "le:///C:/data/x.txt\"}");
+        await r.HandleAsync("{\"type\":\"openUrl\"}");
+        Assert.Single(_p.OpenedUrls);
+        Assert.Single(_p.Messages);
+        Assert.Equal(HostMessageKind.Warning, _p.Messages[0].Kind);
     }
 
     // ---- RecentStore ----

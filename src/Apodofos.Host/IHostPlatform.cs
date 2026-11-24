@@ -31,6 +31,9 @@ public interface IHostPlatform
 
     Task PrintAsync();
 
+    /// <summary>Opens an already validated https URL in the user's default browser. The app itself never connects.</summary>
+    Task OpenUrlAsync(string url);
+
     Task ShowMessageAsync(HostMessageKind kind, string text);
 
     void SetWindowTitle(string title);
