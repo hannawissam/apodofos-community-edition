@@ -270,6 +270,18 @@ public sealed class MainForm : Form, IHostPlatform
         return Task.CompletedTask;
     }
 
+    async Task<bool> IHostPlatform.PrintToPdfAsync(string path)
+    {
+        if (_web.CoreWebView2 == null) return false;
+        // The page's print layout (report.css): A4, backgrounds on, no browser header/footer (the report carries its own page footer).
+        var json = await _web.CoreWebView2.CallDevToolsProtocolMethodAsync("Page.printToPDF",
+            "{\"printBackground\":true,\"preferCSSPageSize\":true,\"displayHeaderFooter\":false,\"transferMode\":\"ReturnAsBase64\"}");
+        using var doc = JsonDocument.Parse(json);
+        if (!doc.RootElement.TryGetProperty("data", out var data) || data.GetString() is not { Length: > 0 } b64) return false;
+        await File.WriteAllBytesAsync(path, Convert.FromBase64String(b64));
+        return true;
+    }
+
     Task IHostPlatform.OpenUrlAsync(string url)
     {
         // The host has validated the URL (https, oracle.com). The default browser opens it; this app makes no connection.

@@ -268,9 +268,27 @@
     sel.onchange = function () { if (sel.value) showTable(sel.value); sel.selectedIndex = 0; };
   }
 
+  /* ================= print / PDF report ================= */
+  var reportDirty = true;
+  function buildReport() {
+    var box = $('printreport');
+    if (!A || !box || !window.AwrReport) { if (box) clear(box); return false; }
+    if (!reportDirty && box.firstChild) return true;
+    clear(box);
+    try {
+      var logo = document.querySelector('.logo svg'), ver = $('aboutVersionNo') ? $('aboutVersionNo').textContent : '';
+      var el = window.AwrReport.build(A, { logo: logo ? uniqueIds(logo.cloneNode(true)) : null, version: ver, now: new Date() });
+      box.appendChild(el);
+      if (el._afterAttach) el._afterAttach(); /* charts draw once the report is in the page (they measure their width) */
+      reportDirty = false;
+      return true;
+    } catch (e) { clear(box); return false; }
+  }
+
   /* ================= load ================= */
   function load(payload) {
     payload = payload || {};
+    reportDirty = true; clear($('printreport'));
     MODE = payload.mode === 'desktop' ? 'desktop' : 'export';
     document.body.setAttribute('data-mode', MODE);
     chartInstances.forEach(function (c) { try { c.destroy(); } catch (e) { /* ignore */ } });
@@ -1170,7 +1188,16 @@
       }
     });
     $('btnSave').addEventListener('click', function () { if (!host({ type: 'exportHtml' })) toast('Save is only available in the desktop app'); });
-    $('btnPrint').addEventListener('click', function () { if (!host({ type: 'print' })) window.print(); });
+    /* Print and PDF always use the complete report (report.js), never the tab that happens to be open. */
+    $('btnPrint').addEventListener('click', function () {
+      if (!buildReport()) { toast('Open a report first'); return; }
+      if (!host({ type: 'print' })) window.print();
+    });
+    $('btnPdf').addEventListener('click', function () {
+      if (!buildReport()) { toast('Open a report first'); return; }
+      if (!host({ type: 'exportPdf' })) window.print();
+    });
+    window.addEventListener('beforeprint', function () { buildReport(); }); /* Ctrl+P or a browser menu: same complete report */
     $('reportFrame').addEventListener('load', function () { if (REPORT || $('reportFrame').srcdoc) onFrameLoad(); });
     /* file drop anywhere: full-window overlay (the desktop host reads the dropped file's path) */
     var dz = $('dropzone'), ov = $('dropOverlay'), depth = 0;

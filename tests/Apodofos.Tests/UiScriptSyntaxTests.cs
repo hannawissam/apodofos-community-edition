@@ -16,6 +16,7 @@ public class UiScriptSyntaxTests
     [Theory]
     [InlineData("app.js")]
     [InlineData("charts.js")]
+    [InlineData("report.js")]
     public void EmbeddedUiScriptsParse(string asset)
     {
         var node = FindNode();
