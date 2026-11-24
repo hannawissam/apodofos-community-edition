@@ -58,7 +58,9 @@ public class CliTests : IDisposable
     {
         var (c, o, _) = Cli("--version");
         Assert.Equal(0, c);
-        Assert.Matches(@"^Apodofos Report Analyzer \d+\.\d+\.\d+\S* \(Community Edition\)", o.Trim());
+        var p = Apodofos.Core.ProductInfo.Current; // the Community name carries "(Community Edition)", the Professional name already says so
+        var suffix = p.Edition == "Community" ? @" \(Community Edition\)" : "";
+        Assert.Matches("^" + System.Text.RegularExpressions.Regex.Escape(p.Name) + @" \d+\.\d+\.\d+\S*" + suffix + "$", o.Trim());
     }
 
     [Fact]
