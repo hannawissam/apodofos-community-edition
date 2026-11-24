@@ -137,7 +137,7 @@ public sealed class AshCorrelationRules : IRule
     {
         var t = ctx.Report.Table("Top SQL with Top Events");
         if (t == null) return;
-        var known = ctx.Findings.SelectMany(f => f.Evidence).Where(e => e.Label == "SQL Id" || e.Label == "Same program, near-identical call" || e.Label.StartsWith("SQL most affected")).Select(e => e.Value).ToHashSet();
+        var known = ctx.Findings.SelectMany(f => f.Evidence).Where(e => e.Label == "SQL Id" || e.Label == "Same program, near-identical call" || e.Label.StartsWith("SQL most affected", StringComparison.Ordinal)).Select(e => e.Value).ToHashSet();
         var rows = t.DataRows.Where(r => (r.Num("% Activity") ?? 0) >= 5 && !known.Contains(r.Str("SQL ID"))).GroupBy(r => r.Str("SQL ID")).Take(3).ToList();
         foreach (var g in rows)
         {

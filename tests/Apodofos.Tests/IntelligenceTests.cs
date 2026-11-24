@@ -51,7 +51,7 @@ public class IntelligenceTests
             var row = tm.Rows.First(x => x[0].Trim().Equals("DB time", StringComparison.OrdinalIgnoreCase));
             row[tm.Col("Time (s)")] = "10";
         });
-        var f = Assert.Single(a.Findings, x => x.Title.StartsWith("Some numbers in this report do not agree"));
+        var f = Assert.Single(a.Findings, x => x.Title.StartsWith("Some numbers in this report do not agree", StringComparison.Ordinal));
         Assert.Equal(Confidence.Low, f.Confidence);
         Assert.Equal(Severity.Info, f.Severity);
         Assert.Contains(a.DataQuality.Notes, n => n.Contains("cross-check", StringComparison.OrdinalIgnoreCase));
@@ -67,7 +67,7 @@ public class IntelligenceTests
             var fg = r.Table("Foreground Wait Class") ?? r.Table("Wait Classes by Total Wait Time")!;
             foreach (var row in fg.Rows) row[fg.Col("% DB time", "%DB time")] = "60";
         });
-        Assert.Contains(a.Findings, x => x.Title.StartsWith("Some numbers in this report do not agree") && x.Evidence.Any(e => e.Label.Contains("wait-class", StringComparison.OrdinalIgnoreCase)));
+        Assert.Contains(a.Findings, x => x.Title.StartsWith("Some numbers in this report do not agree", StringComparison.Ordinal) && x.Evidence.Any(e => e.Label.Contains("wait-class", StringComparison.OrdinalIgnoreCase)));
     }
 
     [Fact]

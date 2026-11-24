@@ -1,0 +1,2 @@
+# Test fixtures are byte-exact inputs: never convert line endings on checkout (identical on Windows and Linux).
+tests/Apodofos.Tests/TestData/** -text

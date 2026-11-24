@@ -24,12 +24,40 @@ internal static partial class ReportIntegrity
         "MM/dd/yyyy HH:mm:ss", "dd/MM/yyyy HH:mm:ss", "MM/dd/yy HH:mm:ss", "dd.MM.yyyy HH:mm:ss", "dd.MM.yy HH:mm:ss", "dd/MM/yy HH:mm:ss", "d/M/yyyy HH:mm:ss"
     ];
 
-    // month names of the languages Oracle prints (NLS_DATE_LANGUAGE); invariant first, then the others
-    private static readonly string[] CultureNames = ["", "fr-FR", "de-DE", "es-ES", "it-IT", "pt-BR", "pt-PT", "nl-NL", "en-GB", "en-US"];
-    private static readonly List<CultureInfo> Cultures = CultureNames.Select(n =>
+    // Month names of the languages Oracle prints (NLS_DATE_LANGUAGE), mapped to the English abbreviation. An explicit table instead of
+    // CultureInfo keeps parsing identical on every platform and in InvariantGlobalization mode (no ICU/NLS data needed).
+    private static readonly Dictionary<string, string> MonthNames = BuildMonthNames();
+
+    private static Dictionary<string, string> BuildMonthNames()
     {
-        try { return CultureInfo.GetCultureInfo(n); } catch { return null!; }
-    }).Where(c => c is not null).ToList();
+        string[] en = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        string[][] names =
+        [
+            ["jan janv january janvier ene enero gen gennaio janeiro januar jän januari"],
+            ["feb february fév févr fevr février fevrier febrero febbraio fev fevereiro februar februari"],
+            ["mar march mars marzo março marco märz maerz mär mrz maart mrt"],
+            ["apr april avr avril abr abril aprile"],
+            ["may mai mayo mag maggio maio mei"],
+            ["jun june juin junio giu giugno junho juni"],
+            ["jul july juil juillet julio lug luglio julho juli"],
+            ["aug august août aout ago agosto agosto augustus"],
+            ["sep sept september septembre septiembre setiembre set settembre setembro"],
+            ["oct october octobre octubre ott ottobre out outubro okt oktober"],
+            ["nov november novembre noviembre novembro"],
+            ["dec december déc décembre diciembre dic dicembre dez dezembro dezember"]
+        ];
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < 12; i++)
+            foreach (var n in names[i][0].Split(' ')) map[n] = en[i];
+        return map;
+    }
+
+    // a month token between a number and a number: "14-janv.-26", "14-Mär-26", "14 gen 2026"
+    [GeneratedRegex(@"(?<=\d[-/ ])(?<m>\p{L}+)\.?(?=[-/ ]\d)", RegexOptions.CultureInvariant)]
+    private static partial Regex MonthToken();
+
+    private static string NormalizeMonth(string t) =>
+        MonthToken().Replace(t, m => MonthNames.TryGetValue(m.Groups["m"].Value, out var en) ? en : m.Value);
 
     /// <summary>Called by the parsers with the raw report text: flags a missing end-of-report marker.</summary>
     public static void InspectRaw(AwrReport report, string? content)
@@ -52,14 +80,11 @@ internal static partial class ReportIntegrity
         value = default;
         if (string.IsNullOrWhiteSpace(text)) return false;
         var t = Regex.Replace(text.Trim().Replace('\u00a0', ' ').Replace('\u202f', ' '), @"\s+", " ");
-        foreach (var culture in Cultures)
-        {
-            if (DateTime.TryParseExact(t, TimeFormats, culture, DateTimeStyles.AllowWhiteSpaces, out value)) return true;
-            // abbreviations with a trailing dot ("janv.", "févr.") and AM/PM variants
-            var d = t.Replace(".-", "-").Replace("a. m.", "AM").Replace("p. m.", "PM");
-            if (!ReferenceEquals(d, t) && DateTime.TryParseExact(d, TimeFormats, culture, DateTimeStyles.AllowWhiteSpaces, out value)) return true;
-        }
-        return false;
+        // month names in other languages become English, dotted AM/PM variants become AM/PM; then one invariant parse
+        var d = NormalizeMonth(t);
+        d = Regex.Replace(d, @"\ba\.\s?m\.?", "AM", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        d = Regex.Replace(d, @"\bp\.\s?m\.?", "PM", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        return DateTime.TryParseExact(d, TimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out value);
     }
 
     // majors that never existed, and the only minors (second component) each old major shipped

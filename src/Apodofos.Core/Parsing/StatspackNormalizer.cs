@@ -73,23 +73,23 @@ internal static partial class StatspackNormalizer
         var n = name.Trim().ToLowerInvariant();
         if (n is "db cpu" or "cpu time") return "";
         if (IsIdleEvent(name)) return "Idle";
-        if (n.StartsWith("gc ") || n.StartsWith("gcs ") || n.StartsWith("ges ")) return "Cluster";
+        if (n.StartsWith("gc ", StringComparison.Ordinal) || n.StartsWith("gcs ", StringComparison.Ordinal) || n.StartsWith("ges ", StringComparison.Ordinal)) return "Cluster";
         if (n is "log file sync") return "Commit";
-        if (n.StartsWith("log file switch") || n.StartsWith("log buffer space") || n.StartsWith("free buffer waits") || n.StartsWith("write complete waits")
-            || n.StartsWith("undo segment extension") || n.StartsWith("enq: hw") || n.StartsWith("enq: st") || n.StartsWith("enq: sq") || n.StartsWith("checkpoint completed")) return "Configuration";
-        if (n.StartsWith("enq: tx - row lock") || n.StartsWith("enq: tm") || n.StartsWith("enq: ul") || n.StartsWith("lock:")) return "Application";
-        if (n.StartsWith("enq: tx - index") || n.StartsWith("enq: tx - allocate") || n.StartsWith("enq: tx")) return n.Contains("row lock") ? "Application" : "Concurrency";
-        if (n.StartsWith("enq:") || n == "enqueue") return "Other";
-        if (n.StartsWith("latch free") || n.StartsWith("wait list latch")) return "Other";
-        if (n.StartsWith("latch:") || n.StartsWith("library cache") || n.StartsWith("cursor:") || n.StartsWith("row cache") || n.StartsWith("buffer busy")
-            || n.StartsWith("buffer exterminate") || n.StartsWith("mutex") || n.StartsWith("resmgr:become active")) return n.StartsWith("resmgr") ? "Scheduler" : "Concurrency";
-        if (n.StartsWith("resmgr:")) return "Scheduler";
-        if (n.StartsWith("sql*net")) return "Network";
-        if (n.StartsWith("control file") || n.StartsWith("db file parallel write") || n.StartsWith("log file parallel write") || n.StartsWith("log file sequential read")
-            || n.StartsWith("log archive") || n.StartsWith("db file single write") || n.StartsWith("ksfd") || n.StartsWith("rman") || n.StartsWith("os thread startup")
-) return n.StartsWith("os thread") ? "Concurrency" : "System I/O";
-        if (n.StartsWith("db file ") || n.StartsWith("direct path") || n.StartsWith("read by other session") || n.StartsWith("local write wait")) return "User I/O";
-        if (n.StartsWith("lgwr wait for redo copy") || n.StartsWith("sga:") || n.StartsWith("events in waitclass")) return "Other";
+        if (n.StartsWith("log file switch", StringComparison.Ordinal) || n.StartsWith("log buffer space", StringComparison.Ordinal) || n.StartsWith("free buffer waits", StringComparison.Ordinal) || n.StartsWith("write complete waits", StringComparison.Ordinal)
+            || n.StartsWith("undo segment extension", StringComparison.Ordinal) || n.StartsWith("enq: hw", StringComparison.Ordinal) || n.StartsWith("enq: st", StringComparison.Ordinal) || n.StartsWith("enq: sq", StringComparison.Ordinal) || n.StartsWith("checkpoint completed", StringComparison.Ordinal)) return "Configuration";
+        if (n.StartsWith("enq: tx - row lock", StringComparison.Ordinal) || n.StartsWith("enq: tm", StringComparison.Ordinal) || n.StartsWith("enq: ul", StringComparison.Ordinal) || n.StartsWith("lock:", StringComparison.Ordinal)) return "Application";
+        if (n.StartsWith("enq: tx - index", StringComparison.Ordinal) || n.StartsWith("enq: tx - allocate", StringComparison.Ordinal) || n.StartsWith("enq: tx", StringComparison.Ordinal)) return n.Contains("row lock") ? "Application" : "Concurrency";
+        if (n.StartsWith("enq:", StringComparison.Ordinal) || n == "enqueue") return "Other";
+        if (n.StartsWith("latch free", StringComparison.Ordinal) || n.StartsWith("wait list latch", StringComparison.Ordinal)) return "Other";
+        if (n.StartsWith("latch:", StringComparison.Ordinal) || n.StartsWith("library cache", StringComparison.Ordinal) || n.StartsWith("cursor:", StringComparison.Ordinal) || n.StartsWith("row cache", StringComparison.Ordinal) || n.StartsWith("buffer busy", StringComparison.Ordinal)
+            || n.StartsWith("buffer exterminate", StringComparison.Ordinal) || n.StartsWith("mutex", StringComparison.Ordinal) || n.StartsWith("resmgr:become active", StringComparison.Ordinal)) return n.StartsWith("resmgr", StringComparison.Ordinal) ? "Scheduler" : "Concurrency";
+        if (n.StartsWith("resmgr:", StringComparison.Ordinal)) return "Scheduler";
+        if (n.StartsWith("sql*net", StringComparison.Ordinal)) return "Network";
+        if (n.StartsWith("control file", StringComparison.Ordinal) || n.StartsWith("db file parallel write", StringComparison.Ordinal) || n.StartsWith("log file parallel write", StringComparison.Ordinal) || n.StartsWith("log file sequential read", StringComparison.Ordinal)
+            || n.StartsWith("log archive", StringComparison.Ordinal) || n.StartsWith("db file single write", StringComparison.Ordinal) || n.StartsWith("ksfd", StringComparison.Ordinal) || n.StartsWith("rman", StringComparison.Ordinal) || n.StartsWith("os thread startup", StringComparison.Ordinal)
+) return n.StartsWith("os thread", StringComparison.Ordinal) ? "Concurrency" : "System I/O";
+        if (n.StartsWith("db file ", StringComparison.Ordinal) || n.StartsWith("direct path", StringComparison.Ordinal) || n.StartsWith("read by other session", StringComparison.Ordinal) || n.StartsWith("local write wait", StringComparison.Ordinal)) return "User I/O";
+        if (n.StartsWith("lgwr wait for redo copy", StringComparison.Ordinal) || n.StartsWith("sga:", StringComparison.Ordinal) || n.StartsWith("events in waitclass", StringComparison.Ordinal)) return "Other";
         return "Other";
     }
 

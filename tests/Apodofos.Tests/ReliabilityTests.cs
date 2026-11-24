@@ -79,7 +79,7 @@ public class ReliabilityTests
     public void BackgroundWaitsMakingWaitClassesExceed100PercentIsNotAnInconsistency()
     {
         var a = Awr(); // "Wait Classes by Total Wait Time" adds up to 112.8% because it includes background waits
-        Assert.DoesNotContain(a.Findings, f => f.Title.StartsWith("Some numbers in this report do not agree"));
+        Assert.DoesNotContain(a.Findings, f => f.Title.StartsWith("Some numbers in this report do not agree", StringComparison.Ordinal));
         Assert.DoesNotContain(a.DataQuality.Notes, n => n.Contains("cross-check", StringComparison.OrdinalIgnoreCase));
     }
 
@@ -90,7 +90,7 @@ public class ReliabilityTests
             "<td align=\"right\" class=\"awrc\">92.0</td></tr>\n<tr><td align=\"left\" class=\"awrc\">Commit</td><td align=\"right\" class=\"awrc\">345,678</td><td align=\"right\" class=\"awrc\">0.0</td>");
         Assert.NotEqual(Synthetic.AwrHtml(), html);
         var a = Run(html, "x.html");
-        Assert.Contains(a.Findings, f => f.Title.StartsWith("Some numbers in this report do not agree") && f.Evidence.Any(e => e.Label.Contains("wait-class", StringComparison.OrdinalIgnoreCase)));
+        Assert.Contains(a.Findings, f => f.Title.StartsWith("Some numbers in this report do not agree", StringComparison.Ordinal) && f.Evidence.Any(e => e.Label.Contains("wait-class", StringComparison.OrdinalIgnoreCase)));
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public class ReliabilityTests
             Assert.Equal("Poor", a.DataQuality.Level);
             Assert.False(a.Health.Reliable);
             Assert.Contains(a.DataQuality.Alerts, x => x.Contains("End of Report", StringComparison.OrdinalIgnoreCase));
-            Assert.True(Run(content, name).Health.Reliable || name.StartsWith("ash"), name + " complete report must stay reliable");
+            Assert.True(Run(content, name).Health.Reliable || name.StartsWith("ash", StringComparison.Ordinal), name + " complete report must stay reliable");
         }
     }
 
@@ -230,7 +230,7 @@ public class ReliabilityTests
         {
             var root = FindUp(dir);
             if (root == null) continue; // third-party reports are never committed: this part skips when they are absent
-            foreach (var f in Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories).Where(p => p.EndsWith(".html") || p.EndsWith(".txt")).Take(40))
+            foreach (var f in Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories).Where(p => p.EndsWith(".html", StringComparison.Ordinal) || p.EndsWith(".txt", StringComparison.Ordinal)).Take(40))
                 yield return (Path.GetRelativePath(root, f), File.ReadAllText(f));
         }
     }
@@ -339,7 +339,7 @@ public class ReliabilityTests
     public void ACustomIndexGetsOptionsWithConsistentPlaceholdersNotAMixOfRealNamesAndPlaceholders()
     {
         var a = BufferBusyOn("APPOWNER", "ORDERS_PK");
-        var option = a.Findings.SelectMany(f => f.Sql).First(s => s.Title.StartsWith("Options to spread inserts"));
+        var option = a.Findings.SelectMany(f => f.Sql).First(s => s.Title.StartsWith("Options to spread inserts", StringComparison.Ordinal));
         Assert.Contains("&index_owner..&index_name", option.Code);
         Assert.DoesNotContain("APPOWNER.ORDERS_PK_HP", option.Code); // no real name next to &placeholders
         Assert.DoesNotContain("APPOWNER", option.Code);

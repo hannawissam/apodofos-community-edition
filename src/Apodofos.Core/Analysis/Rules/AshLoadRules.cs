@@ -203,7 +203,7 @@ public sealed class AshLoadRules : IRule
         var m = Regex.Match(label, @"\(\s*([\d.,]+)\s*(min|sec|hour|hr)", RegexOptions.IgnoreCase);
         if (!m.Success || Apodofos.Core.Parsing.NumberParser.Parse(m.Groups[1].Value) is not { } v) return 0;
         var u = m.Groups[2].Value.ToLowerInvariant();
-        return u.StartsWith("sec") ? v / 60 : u.StartsWith('h') ? v * 60 : v;
+        return u.StartsWith("sec", StringComparison.Ordinal) ? v / 60 : u.StartsWith('h') ? v * 60 : v;
     }
 
     private static void ActivityOverTime(AnalysisContext ctx)

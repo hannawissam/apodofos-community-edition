@@ -249,7 +249,7 @@ public static partial class AshTextParser
     {
         var t = line.Trim();
         if (t.Length < 3 || !t.All(ch => ch is '-' or ' ')) return false;
-        if (!t.Contains(' ') && (line.StartsWith("  ") || t.Length >= 50)) return false; // closing line
+        if (!t.Contains(' ') && (line.StartsWith("  ", StringComparison.Ordinal) || t.Length >= 50)) return false; // closing line
         return t.Contains('-');
     }
 

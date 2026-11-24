@@ -53,7 +53,7 @@ internal static class Program
                     case "--json": json = Next(args, ref i, a); break;
                     case "--script": script = Next(args, ref i, a); break;
                     default:
-                        if (a.StartsWith("--")) throw new ArgumentException($"Unknown option '{a}'.");
+                        if (a.StartsWith("--", StringComparison.Ordinal)) throw new ArgumentException($"Unknown option '{a}'.");
                         if (report != null) throw new ArgumentException("Only one report file can be given.");
                         report = a;
                         break;
@@ -133,7 +133,7 @@ internal static class Program
 
     private static string Next(string[] args, ref int i, string opt)
     {
-        if (i + 1 >= args.Length || args[i + 1].StartsWith("--")) throw new ArgumentException($"Option {opt} needs a file name.");
+        if (i + 1 >= args.Length || args[i + 1].StartsWith("--", StringComparison.Ordinal)) throw new ArgumentException($"Option {opt} needs a file name.");
         return args[++i];
     }
 

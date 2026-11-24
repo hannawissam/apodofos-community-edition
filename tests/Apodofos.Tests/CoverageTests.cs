@@ -88,7 +88,7 @@ public class CoverageTests
                 {
                     case "R" when !files.Contains(name) && !Regex.IsMatch(all, $@"(interface|class|enum|record) {name}"):
                         missing.Add($"{e.Title}: rule/class '{name}' not found"); break;
-                    case "C" when name.StartsWith("seg-") ? !all.Contains("\"seg-\"") : !all.Contains($"\"{name}\""):
+                    case "C" when name.StartsWith("seg-", StringComparison.Ordinal) ? !all.Contains("\"seg-\"") : !all.Contains($"\"{name}\""):
                         missing.Add($"{e.Title}: chart id '{name}' not found"); break;
                     case "K" when !all.Contains($"new(\"{name}\"") && !all.Contains($"\"{name}\""):
                         missing.Add($"{e.Title}: KPI '{name}' not found"); break;
@@ -109,10 +109,10 @@ public class CoverageTests
         {
             // a core section is consumed when one of its named rule/chart files mentions the section title (or its documented prefix)
             var key = e.Title;
-            var hit = e.ConsumerList.Where(c => c.StartsWith("R:")).Select(c => c.Substring(2))
+            var hit = e.ConsumerList.Where(c => c.StartsWith("R:", StringComparison.Ordinal)).Select(c => c.Substring(2))
                 .Any(r => sources.TryGetValue(r, out var s) && Mentions(s, key));
-            hit |= e.ConsumerList.Any(c => c.StartsWith("C:")) && (sources.TryGetValue("ChartBuilder", out var cb) && Mentions(cb, key) || sources.TryGetValue("AshChartBuilder", out var ab) && Mentions(ab, key));
-            hit |= e.ConsumerList.Any(c => c.StartsWith("M:") || c.StartsWith("S:")); // header extractors / AwrReport helpers are checked by parsing tests
+            hit |= e.ConsumerList.Any(c => c.StartsWith("C:", StringComparison.Ordinal)) && (sources.TryGetValue("ChartBuilder", out var cb) && Mentions(cb, key) || sources.TryGetValue("AshChartBuilder", out var ab) && Mentions(ab, key));
+            hit |= e.ConsumerList.Any(c => c.StartsWith("M:", StringComparison.Ordinal) || c.StartsWith("S:", StringComparison.Ordinal)); // header extractors / AwrReport helpers are checked by parsing tests
             hit |= sources.Values.Any(s => Mentions(s, key) && s.Contains("ctx.", StringComparison.Ordinal)); // referenced anywhere in the analysis layer
             if (!hit) bad.Add(key);
         }

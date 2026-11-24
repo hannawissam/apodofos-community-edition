@@ -10,5 +10,7 @@
     <Copyright>Copyright (c) 2026 Wissam HANNA</Copyright>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!-- one behaviour on every OS: no ICU/NLS dependency (month names etc. are handled by explicit tables) -->
+    <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 </Project>

@@ -178,7 +178,7 @@ public sealed class ConfigurationRules : IRule
         if (hits.Count == 0) return;
         ctx.Add(new Finding
         {
-            Severity = hits.Any(h => h.Note!.StartsWith("9") || h.Note!.StartsWith("100")) ? Severity.High : Severity.Medium,
+            Severity = hits.Any(h => h.Note!.StartsWith("9", StringComparison.Ordinal) || h.Note!.StartsWith("100", StringComparison.Ordinal)) ? Severity.High : Severity.Medium,
             Category = "Configuration",
             Title = $"{hits.Count} resource limit(s) are close to their maximum",
             Plain = "The database is configured with fixed maximums (for example, number of processes or sessions), and the peak usage since the instance started came close to them.",

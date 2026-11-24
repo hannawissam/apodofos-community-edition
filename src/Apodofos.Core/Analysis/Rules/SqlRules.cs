@@ -90,7 +90,7 @@ public sealed class SqlRules : IRule
             if (profile == "io")
                 recs.Add($"The statement is I/O-bound ({P(pctIo)} I/O). Reduce physical reads: better indexes, partition pruning, or avoiding full scans of large tables.");
             if (profile == "wait")
-                recs.Add(ashEventName.Length > 0 && !ashEventName.StartsWith("CPU")
+                recs.Add(ashEventName.Length > 0 && !ashEventName.StartsWith("CPU", StringComparison.Ordinal)
                     ? $"Most of its time is neither CPU nor disk. ASH shows it mainly waited on '{ashEventName}': see the matching wait-event finding."
                     : "Most of its time is neither CPU nor I/O: check ASH for the events it waited on (locks, contention, network).");
             if (children.Count > 0)
@@ -120,7 +120,7 @@ public sealed class SqlRules : IRule
                 Plain = $"One {(isPlsql ? "program call (a stored program or batch job, whose time includes the SQL statements it runs)" : "SQL statement")} is responsible for {P(pct)} of the time the database spent on user requests: {execText}." + parallelNote + " "
                         + (profile == "cpu" ? "It spends its time mostly working on the CPU, typically by reading far more data from memory than it needs."
                            : profile == "io" ? "It spends its time mostly reading from disk."
-                           : (ashEventName.Length > 0 && !ashEventName.StartsWith("CPU") ? $"It spends much of its time waiting ('{ashEventName}')." : "It spends much of its time waiting on something other than CPU or disk.")),
+                           : (ashEventName.Length > 0 && !ashEventName.StartsWith("CPU", StringComparison.Ordinal) ? $"It spends much of its time waiting ('{ashEventName}')." : "It spends much of its time waiting on something other than CPU or disk.")),
                 WhyItMatters = $"Improving this one statement could recover up to {P(pct)} of database time. That is usually the fastest win available.",
                 Technical = $"From DBA_HIST_SQLSTAT: elapsed {N(elapsed, 1)} s, executions {N(execs)}, elapsed/exec {N(perExec, 3)} s, %CPU {P(pctCpu)}, %IO {P(pctIo)}"
                             + (getsPerExec is not null ? $", buffer gets/exec {N(getsPerExec)}" : "")
@@ -136,7 +136,7 @@ public sealed class SqlRules : IRule
                     new("CPU / I/O share", $"{P(pctCpu)} / {P(pctIo)}"),
                     new("Buffer gets per execution", N(getsPerExec)),
                     new("SQL text", text.Length > 600 ? text[..600] + " ..." : text),
-                    .. (ashRows.Count > 0 ? new[] { new Evidence("ASH view", $"{N(ashActivity, 1)}% of all sampled activity", $"mostly '{ashEventName}'" + (ashRowSource.Length > 0 && !ashRowSource.StartsWith("**") ? $"; top row source {ashRowSource}" : "")) } : []),
+                    .. (ashRows.Count > 0 ? new[] { new Evidence("ASH view", $"{N(ashActivity, 1)}% of all sampled activity", $"mostly '{ashEventName}'" + (ashRowSource.Length > 0 && !ashRowSource.StartsWith("**", StringComparison.Ordinal) ? $"; top row source {ashRowSource}" : "")) } : []),
                     .. children.Select(c => new Evidence("Statement run by it", c.Str("SQL Id"), $"{c.Str("%Total")}% of DB time, {c.Str("Executions")} executions: {(c.Str("SQL Text").Length > 90 ? c.Str("SQL Text")[..90] : c.Str("SQL Text"))}"))
                 ],
                 Recommendations = recs,

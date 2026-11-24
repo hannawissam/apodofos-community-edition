@@ -29,7 +29,7 @@ public class AshTests
             Assert.DoesNotContain("DB time", x.Why);
         }
         Assert.Contains(a.ActionPlan, x => x.ExpectedImpact.Contains("active session time") || x.ExpectedImpact.Contains("whole workload"));
-        Assert.DoesNotContain(a.Findings, f => f.Title.Contains("DB time") || f.Title.StartsWith("Database time was mostly"));
+        Assert.DoesNotContain(a.Findings, f => f.Title.Contains("DB time") || f.Title.StartsWith("Database time was mostly", StringComparison.Ordinal));
     }
 
     // Regression: AwrRow is a struct, so a null check on FirstOrDefault() was always true and a parallel-query finding
@@ -153,10 +153,10 @@ public class AshTests
         Assert.Contains(titles, t => t.Contains("321,4711(1)") && t.Contains("blocked"));
         Assert.Contains(titles, t => t.Contains("TESTAPP.STOCK"));
         Assert.Contains(titles, t => t.Contains("2 different execution plans"));
-        Assert.Contains(titles, t => t.StartsWith("Hard parsing"));
+        Assert.Contains(titles, t => t.StartsWith("Hard parsing", StringComparison.Ordinal));
         Assert.Contains(titles, t => t.Contains("decoded parameters"));
         var blocker = a.Findings.First(f => f.Title.Contains("321,4711"));
-        Assert.Contains(blocker.Evidence, e => e.Label.Contains("blocker itself active") && e.Value.StartsWith("No"));
+        Assert.Contains(blocker.Evidence, e => e.Label.Contains("blocker itself active") && e.Value.StartsWith("No", StringComparison.Ordinal));
         var decoded = a.Findings.First(f => f.Title.Contains("decoded parameters"));
         Assert.Contains(decoded.Evidence, e => e.Note != null && e.Note.Contains("TX lock, mode 6"));
         // every finding carries both audiences' text and at least a doc reference
@@ -208,7 +208,7 @@ public class AshTests
     public void SummaryAndKpisSpeakAsh()
     {
         var a = Analyze(Html);
-        Assert.Contains(a.Health.Paragraphs, p => p.StartsWith("This ASH report"));
+        Assert.Contains(a.Health.Paragraphs, p => p.StartsWith("This ASH report", StringComparison.Ordinal));
         Assert.DoesNotContain(a.Health.Paragraphs, p => p.Contains("AWR") || p.Contains("DB time"));
         Assert.Contains(a.Kpis, k => k.Key == "aas" && k.Value == "5.20");
         Assert.Contains(a.Kpis, k => k.Key == "top-sql" && k.Value == "7gt1k0abc2xyz");
@@ -238,7 +238,7 @@ public class AshTests
     {
         var content = File.ReadAllText(Txt).Replace("V$ACTIVE_SESSION_HISTORY", "DBA_HIST_ACTIVE_SESS_HISTORY");
         var a = ReportProviderRegistry.AnalyzeContent(content, "h.txt").Analysis;
-        Assert.Contains(a.Findings, f => f.Title.StartsWith("Data comes from the ASH history"));
+        Assert.Contains(a.Findings, f => f.Title.StartsWith("Data comes from the ASH history", StringComparison.Ordinal));
         Assert.Contains("dba_hist_active_sess_history", string.Join("\n", a.Findings.SelectMany(f => f.Sql).Select(s => s.Code)));
     }
 
