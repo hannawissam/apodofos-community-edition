@@ -546,19 +546,32 @@
     if (!A._byUrl) { A._byUrl = {}; A.docs.forEach(function (d) { if (d.url && !A._byUrl[d.url]) A._byUrl[d.url] = d; }); }
     return A._byUrl[u] || null;
   }
-  /* Same behaviour as before: desktop host never navigates, the link is copied; exported page opens it in a new tab. file:/// is never a link. */
+  /* Doc links: the export opens them in a new tab; the desktop host opens them in the default browser ({type:'openUrl'}, https only,
+     validated again by the host). Without a host (or with an old one) the link is copied instead. file:/// is never a link. */
   function docAnchor(title, url, tip) {
     var u = safeUrl(url); if (!u) return null;
-    var a = h('a', { href: u, target: '_blank', rel: 'noopener noreferrer', title: tip ? tip + '\n' + u : u, text: title || u });
-    if (MODE === 'desktop') a.addEventListener('click', function (e) { e.preventDefault(); copyText(u, 'Link copied: open it in a browser on a connected machine'); });
+    var a = h('a', { href: u, target: '_blank', rel: 'noopener noreferrer', title: tip ? tip + '
+' + u : u, text: title || u });
+    if (MODE === 'desktop') a.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (!host({ type: 'openUrl', url: u })) copyText(u, 'Link copied: paste it in a browser');
+    });
     return a;
+  }
+  /* A link plus a small "copy link" button: open it in the browser, or copy it to use elsewhere. */
+  function docLink(title, url, tip) {
+    var a = docAnchor(title, url, tip); if (!a) return null;
+    var u = safeUrl(url);
+    var b = h('button', { type: 'button', class: 'btn sm linkcopy', title: 'Copy link', 'aria-label': 'Copy link: ' + (title || u) }, ico('copy'));
+    b.addEventListener('click', function (e) { e.stopPropagation(); copyText(u, 'Link copied'); });
+    return h('span', { class: 'doclink' }, a, b);
   }
   function showLearn(tableId) {
     var box = clear($('learn')), ids = (A.sectionDocs && A.sectionDocs[tableId]) || [], n = 0;
     box.appendChild(document.createTextNode('Learn more: '));
     ids.forEach(function (id) {
       var d = docsById[id]; if (!d) return;
-      var a = d.local ? h('span', { class: 'tag', title: d.local, text: d.title }) : docAnchor(d.title, d.url, d.summary);
+      var a = d.local ? h('span', { class: 'tag', title: d.local, text: d.title }) : docLink(d.title, d.url, d.summary);
       if (!a) return;
       if (n++) box.appendChild(document.createTextNode(' \u00b7 '));
       box.appendChild(a);
@@ -586,7 +599,7 @@
     var count = h('p', { class: 'meta', role: 'status', 'aria-live': 'polite', style: 'margin:8px 0 0;color:var(--muted);font-size:12px' });
     var list = h('div', { class: 'doclist' });
     p.appendChild(h('div', { class: 'toolrow' }, q, bsel)); p.appendChild(h('div', { style: 'margin-top:8px' }, chips)); p.appendChild(count); p.appendChild(list);
-    p.appendChild(h('p', { style: 'margin-top:14px;color:var(--muted);font-size:12px', text: 'Links are not fetched by this application. ' + (MODE === 'desktop' ? 'Selecting a link copies it so you can open it in a browser.' : 'Selecting a link opens it in a new browser tab.') }));
+    p.appendChild(h('p', { style: 'margin-top:14px;color:var(--muted);font-size:12px', text: 'This application never fetches links itself. ' + (MODE === 'desktop' ? 'Selecting a link opens it in your default browser; “Copy link” copies it instead.' : 'Selecting a link opens it in a new browser tab.') }));
     function row(d) {
       var title = d.local ? h('h4', { text: d.title }) : h('h4', null, docAnchor(d.title, d.url, '') || d.title);
       var meta = [d.book, d.section ? 'Section: ' + d.section : '', (d.releases || []).join(', ')].filter(Boolean).join('  \u00b7  ');
@@ -663,7 +676,7 @@
       var lk = h('div', { class: 'links' });
       f.docs.forEach(function (d) {
         var cat = catalogByUrl(d.url);
-        var n = docAnchor(d.title, d.url, cat && cat.summary);
+        var n = docLink(d.title, d.url, cat && cat.summary);
         if (n) lk.appendChild(n); else lk.appendChild(h('span', { class: 'tag', title: cat && cat.local ? cat.local : '', text: d.title || d.url }));
       });
       inner.appendChild(section('Oracle documentation', lk));

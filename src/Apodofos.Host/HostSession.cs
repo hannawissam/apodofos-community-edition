@@ -172,6 +172,25 @@ public sealed class HostSession
 
     public Task PrintAsync() => _platform.PrintAsync();
 
+    /// <summary>
+    /// Only documentation links may leave the app: https, no credentials, on oracle.com (docs.oracle.com and friends).
+    /// Everything else (file:, javascript:, other hosts, report-supplied junk) is refused.
+    /// </summary>
+    public static bool IsAllowedDocUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url) || url.Length > 2048 || url.Any(char.IsControl)) return false;
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var u)) return false;
+        if (u.Scheme != Uri.UriSchemeHttps || !string.IsNullOrEmpty(u.UserInfo)) return false;
+        var host = u.IdnHost;
+        return host.Equals("oracle.com", StringComparison.OrdinalIgnoreCase) || host.EndsWith(".oracle.com", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public async Task OpenUrlAsync(string url)
+    {
+        if (IsAllowedDocUrl(url)) await _platform.OpenUrlAsync(url);
+        else await _platform.ShowMessageAsync(HostMessageKind.Warning, "This link can't be opened from here. Use \u201cCopy link\u201d instead.");
+    }
+
     public async Task PushRecentAsync()
     {
         if (!_ready || _platform.IsClosed) return;

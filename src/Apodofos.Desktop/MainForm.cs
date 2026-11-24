@@ -270,6 +270,13 @@ public sealed class MainForm : Form, IHostPlatform
         return Task.CompletedTask;
     }
 
+    Task IHostPlatform.OpenUrlAsync(string url)
+    {
+        // The host has validated the URL (https, oracle.com). The default browser opens it; this app makes no connection.
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+        return Task.CompletedTask;
+    }
+
     Task IHostPlatform.ShowMessageAsync(HostMessageKind kind, string text)
     {
         if (IsDisposed) return Task.CompletedTask;

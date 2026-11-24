@@ -39,6 +39,7 @@ public sealed class HostMessageRouter
                 case "exportHtml": await _session.ExportHtmlAsync(); break;
                 case "exportScript": await _session.ExportScriptAsync(text); break;
                 case "copy": await _session.CopyAsync(text); break;
+                case "openUrl": if (Str(root, "url") is { Length: > 0 } url) await _session.OpenUrlAsync(url); break;
                 case "print": await _session.PrintAsync(); break;
                 case "openPath": if (Str(root, "path") is { Length: > 0 } p) await _session.LoadFileAsync(p); break;
                 case "removeRecent": if (Str(root, "path") is { } rp) await _session.RemoveRecentAsync(rp); break;
