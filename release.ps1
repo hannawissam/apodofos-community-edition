@@ -1,7 +1,9 @@
-# Builds the shippable Windows x64 artifacts into artifacts/release/ (git-ignored):
-#   Apodofos-Portable-<version>-win-x64.zip
-#   Apodofos-Setup-<version>-win-x64.msi
+# Builds the shippable Windows artifacts into artifacts/release/ (git-ignored). Names come from Edition.props
+# (ApodofosReleasePrefix, e.g. Apodofos-ReportAnalyzer), so editions never collide:
+#   <ApodofosReleasePrefix>-Portable-<version>-<rid>.zip
+#   <ApodofosReleasePrefix>-Setup-<version>-<rid>.msi
 #   SHA256SUMS.txt
+# -ArtifactsDir <dir> builds everything under <dir> instead of artifacts/ (use a scratch folder for trial builds).
 # Steps: tests -> publish.ps1 -> (optional signing) -> portable zip -> MSI (WiX 5 via NuGet, no global install) -> checksums.
 # Idempotent: artifacts/release and artifacts/stage are rebuilt from scratch on every run. Fails loudly on any error.
 # Signing runs only when APODOFOS_SIGN_CERT_PATH is set (see docs/release.md); otherwise artifacts are UNSIGNED.
@@ -10,7 +12,8 @@
 param(
     [switch]$SkipTests,
     [switch]$MsiOnly,
-    [string]$Runtime = 'win-x64'
+    [string]$Runtime = 'win-x64',
+    [string]$ArtifactsDir
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -25,9 +28,20 @@ function Invoke-Native([string]$What, [scriptblock]$Block) {
 [xml]$props = Get-Content (Join-Path $PSScriptRoot 'Directory.Build.props')
 $version = ($props.Project.PropertyGroup | ForEach-Object { $_.Version } | Where-Object { $_ } | Select-Object -First 1)
 if (-not $version -or $version -notmatch '^\d+\.\d+\.\d+$') { throw "Could not read a MAJOR.MINOR.PATCH <Version> from Directory.Build.props (got '$version')." }
-Write-Host "== Apodofos release $version ($Runtime) =="
+# --- edition identity from Edition.props (no names hardcoded here) ---
+[xml]$edition = Get-Content (Join-Path $PSScriptRoot 'Edition.props')
+$ed = @{}
+foreach ($n in $edition.Project.PropertyGroup.ChildNodes) { if ($n.NodeType -eq 'Element') { $ed[$n.Name] = $n.InnerText.Trim() } }
+foreach ($k in 'ApodofosProductName', 'ApodofosDesktopExe', 'ApodofosCliExe', 'ApodofosReleasePrefix', 'ApodofosProductSlug', 'ApodofosUpgradeCode') {
+    if (-not $ed[$k]) { throw "Edition.props is missing $k" }
+}
+$desktopExe = "$($ed.ApodofosDesktopExe).exe"
+$cliExe     = "$($ed.ApodofosCliExe).exe"
+$prefix     = $ed.ApodofosReleasePrefix
+$cliAlias   = if ($ed.ApodofosMigrateLegacyData -eq 'true') { 'apodofos' } else { $null }   # legacy command name kept working by cli\apodofos.cmd
+Write-Host "== $($ed.ApodofosProductName) $($ed.ApodofosEdition) release $version ($Runtime) =="
 
-$artifacts = Join-Path $PSScriptRoot 'artifacts'
+$artifacts = if ($ArtifactsDir) { $ArtifactsDir } else { Join-Path $PSScriptRoot 'artifacts' }
 $stage     = Join-Path $artifacts 'stage'
 $release   = Join-Path $artifacts 'release'
 $toClean = if ($MsiOnly) { @((Join-Path $artifacts 'installer-build'), (Join-Path $artifacts 'installer-obj')) }
@@ -36,7 +50,7 @@ foreach ($p in $toClean) {
     if (Test-Path $p) { Remove-Item -Recurse -Force $p }
 }
 if ($MsiOnly) {
-    foreach ($f in (Join-Path $stage 'Apodofos.exe'), (Join-Path $stage 'cli\apodofos.exe'), (Join-Path $release "Apodofos-Portable-$version-$Runtime.zip")) {
+    foreach ($f in (Join-Path $stage $desktopExe), (Join-Path $stage "cli\$cliExe"), (Join-Path $release "$prefix-Portable-$version-$Runtime.zip")) {
         if (-not (Test-Path $f)) { throw "-MsiOnly needs the existing build of version ${version}: missing $f (run release.ps1 without -MsiOnly first)." }
     }
     Write-Host 'MsiOnly: application files and the portable zip are reused unchanged.'
@@ -52,10 +66,10 @@ else {
 }
 
 # --- 2. publish ---
-Invoke-Native 'publish.ps1' { & (Join-Path $PSScriptRoot 'publish.ps1') -Runtime $Runtime }
+Invoke-Native 'publish.ps1' { & (Join-Path $PSScriptRoot 'publish.ps1') -Runtime $Runtime -ArtifactsDir $artifacts }
 $desktop = Join-Path $artifacts 'desktop'
 $cli     = Join-Path $artifacts 'cli'
-foreach ($f in "$desktop\Apodofos.exe", "$cli\apodofos.exe") { if (-not (Test-Path $f)) { throw "Missing published file $f" } }
+foreach ($f in "$desktop\$desktopExe", "$cli\$cliExe") { if (-not (Test-Path $f)) { throw "Missing published file $f" } }
 }
 
 # --- 3. optional code signing (placeholder; only runs when a certificate is configured) ---
@@ -70,21 +84,25 @@ function Invoke-CodeSign([string[]]$Files) {
     if (-not $signtool) { throw 'APODOFOS_SIGN_CERT_PATH is set but signtool.exe was not found (install the Windows SDK).' }
     $ts = if ($env:APODOFOS_SIGN_TIMESTAMP_URL) { $env:APODOFOS_SIGN_TIMESTAMP_URL } else { 'http://timestamp.digicert.com' }
     foreach ($f in $Files) {
-        $a = @('sign', '/fd', 'SHA256', '/tr', $ts, '/td', 'SHA256', '/f', $env:APODOFOS_SIGN_CERT_PATH, '/d', 'Apodofos Report Analyzer')
+        $a = @('sign', '/fd', 'SHA256', '/tr', $ts, '/td', 'SHA256', '/f', $env:APODOFOS_SIGN_CERT_PATH, '/d', $ed.ApodofosProductName)
         if ($env:APODOFOS_SIGN_CERT_PASSWORD) { $a += @('/p', $env:APODOFOS_SIGN_CERT_PASSWORD) }
         Invoke-Native "signtool sign $f" { & $signtool @a $f }
     }
     Write-Host "Signed $($Files.Count) file(s)."
 }
 if (-not $MsiOnly) {
-if ($env:APODOFOS_SIGN_CERT_PATH) { Invoke-CodeSign @("$desktop\Apodofos.exe", "$cli\apodofos.exe") }
+if ($env:APODOFOS_SIGN_CERT_PATH) { Invoke-CodeSign @("$desktop\$desktopExe", "$cli\$cliExe") }
 else { Write-Warning 'APODOFOS_SIGN_CERT_PATH not set: artifacts will be UNSIGNED (Windows SmartScreen will warn).' }
 
 # --- 4. staging layout shared by the zip and the MSI ---
-#     (Apodofos.exe and apodofos.exe differ only by case, so the CLI lives in cli\)
+#     (the CLI lives in cli\ next to the optional legacy-name shim)
 Copy-Item "$desktop\*" $stage -Recurse -Force
 New-Item -ItemType Directory -Force (Join-Path $stage 'cli') | Out-Null
-Copy-Item "$cli\apodofos.exe" (Join-Path $stage 'cli') -Force
+Copy-Item "$cli\$cliExe" (Join-Path $stage 'cli') -Force
+if ($cliAlias) {
+    # scripts that still call the old command name keep working: forward every argument and the exit code
+    [IO.File]::WriteAllText((Join-Path $stage "cli\$cliAlias.cmd"), "@echo off`r`n`"%~dp0$cliExe`" %*`r`n", [Text.Encoding]::ASCII)
+}
 foreach ($f in 'LICENSE', 'NOTICE', 'THIRD-PARTY-NOTICES.md') { if (-not (Test-Path (Join-Path $stage $f))) { throw "Missing $f in stage" } }
 if (-not (Test-Path (Join-Path $stage 'DOTNET-RUNTIME-THIRD-PARTY-NOTICES.txt'))) { throw 'Missing .NET runtime notices (publish.ps1 could not find them).' }
 
@@ -93,9 +111,9 @@ $portableDir = Join-Path $artifacts 'portable-src'
 if (Test-Path $portableDir) { Remove-Item -Recurse -Force $portableDir }
 New-Item -ItemType Directory -Force $portableDir | Out-Null
 Copy-Item "$stage\*" $portableDir -Recurse -Force
-(Get-Content (Join-Path $PSScriptRoot 'installer\README-PORTABLE.txt') -Raw).Replace('__VERSION__', $version) |
+(Get-Content (Join-Path $PSScriptRoot 'installer\README-PORTABLE.txt') -Raw).Replace('__VERSION__', $version).Replace('__PRODUCT__', $ed.ApodofosProductName).Replace('__SLUG__', $ed.ApodofosProductSlug).Replace('__DESKTOPEXE__', $desktopExe).Replace('__CLIEXE__', $cliExe) |
     Set-Content (Join-Path $portableDir 'README-PORTABLE.txt') -Encoding utf8
-$zip = Join-Path $release "Apodofos-Portable-$version-$Runtime.zip"
+$zip = Join-Path $release "$prefix-Portable-$version-$Runtime.zip"
 Compress-Archive -Path "$portableDir\*" -DestinationPath $zip -CompressionLevel Optimal
 Remove-Item -Recurse -Force $portableDir
 }
@@ -116,8 +134,8 @@ foreach ($ch in $text.ToCharArray()) {
 [IO.File]::WriteAllText((Join-Path $stage 'LICENSE.rtf'), $sb.ToString(), [Text.Encoding]::ASCII)
 
 # --- 7. MSI (WiX Toolset 5.0.2 SDK restored from NuGet; nothing is installed system-wide) ---
-Invoke-Native 'WiX build' { dotnet build (Join-Path $PSScriptRoot 'installer\Apodofos.Installer.wixproj') -c Release --nologo -p:StageDir="$stage\" -v:minimal }
-$msiBuilt = Join-Path $artifacts "installer-build\Apodofos-Setup-$version-$Runtime.msi"
+Invoke-Native 'WiX build' { dotnet build (Join-Path $PSScriptRoot 'installer\Apodofos.Installer.wixproj') -c Release --nologo -p:StageDir="$stage\" -p:ArtifactsDir="$artifacts\" -p:Rid=$Runtime -v:minimal }
+$msiBuilt = Join-Path $artifacts "installer-build\$prefix-Setup-$version-$Runtime.msi"
 if (-not (Test-Path $msiBuilt)) { throw "MSI not produced at $msiBuilt" }
 $msi = Join-Path $release (Split-Path $msiBuilt -Leaf)
 Copy-Item $msiBuilt $msi -Force

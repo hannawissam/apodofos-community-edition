@@ -1,16 +1,25 @@
 <Project>
+  <Import Project="$(MSBuildThisFileDirectory)Edition.props" />
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.0.7</Version>
+    <Version>1.1.0</Version>
     <Company>Wissam HANNA</Company>
     <Authors>Wissam HANNA</Authors>
-    <Product>Apodofos Report Analyzer</Product>
+    <Product>$(ApodofosProductName)</Product>
     <Copyright>Copyright (c) 2026 Wissam HANNA</Copyright>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <!-- one behaviour on every OS: no ICU/NLS dependency (month names etc. are handled by explicit tables) -->
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
+  <!-- identity readable at run time (Apodofos.Host.ProductInfo): folder names, product name, edition -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute"><_Parameter1>ApodofosProductName</_Parameter1><_Parameter2>$(ApodofosProductName)</_Parameter2></AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute"><_Parameter1>ApodofosEdition</_Parameter1><_Parameter2>$(ApodofosEdition)</_Parameter2></AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute"><_Parameter1>ApodofosProductSlug</_Parameter1><_Parameter2>$(ApodofosProductSlug)</_Parameter2></AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute"><_Parameter1>ApodofosCliName</_Parameter1><_Parameter2>$(ApodofosCliExe)</_Parameter2></AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute"><_Parameter1>ApodofosMigrateLegacyData</_Parameter1><_Parameter2>$(ApodofosMigrateLegacyData)</_Parameter2></AssemblyAttribute>
+  </ItemGroup>
 </Project>

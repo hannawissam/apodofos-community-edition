@@ -61,11 +61,11 @@ jobs:
       - name: Publish CLI
         run: dotnet publish src/Apodofos.Cli -c Release -r linux-x64 --self-contained -o out/cli
       - name: Version
-        run: ./out/cli/apodofos --version
+        run: ./out/cli/apodofos-report --version
       - name: Analyse every synthetic fixture
         run: |
           set -e
           for f in tests/Apodofos.Tests/TestData/*.html tests/Apodofos.Tests/TestData/*.txt; do
             echo "== $f"
-            ./out/cli/apodofos "$f" --text > /dev/null
+            ./out/cli/apodofos-report "$f" --text > /dev/null
           done

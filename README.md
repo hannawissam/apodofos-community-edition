@@ -50,12 +50,12 @@ dotnet run --project src/Apodofos.Cli -- report.html --text
 
 ## Command line
 ```
-apodofos <report> [--html out.html] [--json out.json] [--script out.sql] [--text]
-apodofos --version
-apodofos --license
-apodofos --help
+apodofos-report <report> [--html out.html] [--json out.json] [--script out.sql] [--text]
+apodofos-report --version
+apodofos-report --license
+apodofos-report --help
 ```
-With no output option, `--text` is assumed. Exit codes: 0 ok, 1 usage error, 2 file unreadable, 3 not a valid
+The installer and the portable zip also provide the former command name `apodofos` as an alias, so existing scripts keep working. With no output option, `--text` is assumed. Exit codes: 0 ok, 1 usage error, 2 file unreadable, 3 not a valid
 AWR/ASH/Statspack report, 4 other error. `--license` prints the copyright, licence, no-warranty and Oracle
 non-affiliation notices.
 

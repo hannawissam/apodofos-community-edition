@@ -14,11 +14,11 @@ internal static class Program
 {
     private const int ExitOk = 0, ExitUsage = 1, ExitUnreadable = 2, ExitInvalid = 3, ExitError = 4;
 
-    private const string Usage = """
-        Apodofos Report Analyzer (offline) - analyzes Oracle AWR, ASH and Statspack reports (HTML or text).
+    private const string UsageTemplate = """
+        {NAME} (offline) - analyzes Oracle AWR, ASH and Statspack reports (HTML or text).
 
         Usage:
-          apodofos <report> [--html out.html] [--json out.json] [--script out.sql] [--text]
+          {CLI} <report> [--html out.html] [--json out.json] [--script out.sql] [--text]
 
         Options:
           --html <file>     Write the self-contained interactive dashboard.
@@ -32,6 +32,10 @@ internal static class Program
         With no output option, --text is assumed.
         Exit codes: 0 ok, 1 usage error, 2 file unreadable, 3 not a valid AWR report, 4 other error.
         """;
+
+    private static string Usage => UsageTemplate
+        .Replace("{NAME}", Apodofos.Host.ProductInfo.Current.Name, StringComparison.Ordinal)
+        .Replace("{CLI}", Apodofos.Host.ProductInfo.Current.CliName, StringComparison.Ordinal);
 
     private static int Main(string[] args)
     {
@@ -119,7 +123,7 @@ internal static class Program
         return plus > 0 ? v[..plus] : v;
     }
 
-    internal static string VersionLine() => $"Apodofos Report Analyzer {VersionString()} (Community Edition)";
+    internal static string VersionLine() => Apodofos.Host.ProductInfo.Current.VersionLine(VersionString());
 
     internal static string LicenseText() => string.Join(Environment.NewLine,
         VersionLine(),
