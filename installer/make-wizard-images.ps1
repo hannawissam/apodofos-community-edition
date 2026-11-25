@@ -36,7 +36,7 @@ $f1 = New-Object Drawing.Font 'Segoe UI Semibold', 15, ([Drawing.FontStyle]::Reg
 $f2 = New-Object Drawing.Font 'Segoe UI', 10, ([Drawing.FontStyle]::Regular), ([Drawing.GraphicsUnit]::Pixel)
 $sf = New-Object Drawing.StringFormat; $sf.Alignment = 'Center'
 $c.G.DrawString('Apodofos', $f1, [Drawing.Brushes]::White, (New-Object Drawing.RectangleF 0, 182, 164, 26), $sf)
-$c.G.DrawString('Report Analyzer', $f2, (New-Object Drawing.SolidBrush $muted), (New-Object Drawing.RectangleF 0, 210, 164, 18), $sf)
+$c.G.DrawString('Performance Report Analyzer', $f2, (New-Object Drawing.SolidBrush $muted), (New-Object Drawing.RectangleF 0, 210, 164, 18), $sf)
 $c.G.FillRectangle((New-Object Drawing.SolidBrush $amber), 62, 240, 40, 3)
 $c.Bmp.Save((Join-Path $outDir 'dialog.bmp'), [Drawing.Imaging.ImageFormat]::Bmp); $c.G.Dispose(); $c.Bmp.Dispose()
 $logo.Dispose()
