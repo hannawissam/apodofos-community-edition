@@ -19,6 +19,7 @@ public sealed record LoadedReport(ReportLoadOutcome Outcome, string? PayloadJson
 /// </summary>
 public sealed class HostSession
 {
+    /// <summary>Default window/dialog title; a shell passes its own product name (<see cref="ProductInfo.Name"/>).</summary>
     public const string AppTitle = "Apodofos Report Analyzer";
 
     private static readonly FileFilter[] OpenFilters =
@@ -32,6 +33,7 @@ public sealed class HostSession
 
     private readonly IHostPlatform _platform;
     private readonly string _appVersion;
+    private readonly string _appTitle;
     private readonly Func<string, string?, LoadedReport> _loader;
     private readonly Func<string, bool> _fileExists;
     private bool _ready;
@@ -40,8 +42,9 @@ public sealed class HostSession
     private string? _pendingFile;
 
     public HostSession(IHostPlatform platform, RecentStore recent, string appVersion,
-        Func<string, string?, LoadedReport>? loader = null, Func<string, bool>? fileExists = null)
+        Func<string, string?, LoadedReport>? loader = null, Func<string, bool>? fileExists = null, string? appTitle = null)
     {
+        _appTitle = string.IsNullOrWhiteSpace(appTitle) ? AppTitle : appTitle;
         _platform = platform;
         Recent = recent;
         _appVersion = appVersion;
@@ -57,7 +60,7 @@ public sealed class HostSession
     public bool IsReady => _ready;
     public bool IsBusy => _busy;
 
-    public string DefaultTitle => AppTitle + " " + _appVersion;
+    public string DefaultTitle => _appTitle + " " + _appVersion;
 
     private static LoadedReport DefaultLoader(string path, string? forcedProviderId)
     {

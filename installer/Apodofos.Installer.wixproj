@@ -1,22 +1,25 @@
 <Project Sdk="WixToolset.Sdk/5.0.2">
-  <!-- Builds artifacts/release/Apodofos-Setup-<version>-win-x64.msi. Run via release.ps1 (it stages the
-       published files and generates the licence RTF first). Not part of Apodofos.slnx on purpose. -->
+  <!-- Builds <ApodofosReleasePrefix>-Setup-<version>-<rid>.msi (identity from Edition.props via Directory.Build.props). Run via release.ps1
+       (it stages the published files and generates the licence RTF first). Not part of Apodofos.slnx on purpose.
+       Overridable from release.ps1: -p:StageDir, -p:ArtifactsDir, -p:Rid. -->
   <PropertyGroup>
-    <OutputName>Apodofos-Setup-$(Version)-win-x64</OutputName>
+    <Rid Condition="'$(Rid)' == ''">win-x64</Rid>
+    <OutputName>$(ApodofosReleasePrefix)-Setup-$(Version)-$(Rid)</OutputName>
     <InstallerPlatform>x64</InstallerPlatform>
     <Platform>x64</Platform>
     <!-- ICE61: same-version upgrades are allowed on purpose; ICE105: the optional machine-wide PATH component is only installed in per-machine mode; ICE38/43/57: the shortcut components come in a per-user (HKCU key path) and an all-users (HKLM key path) variant selected by ALLUSERS, which the static check cannot see. -->
     <SuppressIces>ICE38;ICE43;ICE57;ICE61;ICE91;ICE105</SuppressIces>
+    <ArtifactsDir Condition="'$(ArtifactsDir)' == ''">$(MSBuildThisFileDirectory)..\artifacts\</ArtifactsDir>
     <!-- Staging folder filled by release.ps1 -->
-    <StageDir Condition="'$(StageDir)' == ''">$(MSBuildThisFileDirectory)..\artifacts\stage\</StageDir>
-    <DefineConstants>$(DefineConstants);StageDir=$(StageDir);AppVersion=$(Version)</DefineConstants>
-    <OutputPath>$(MSBuildThisFileDirectory)..\artifacts\installer-build\</OutputPath>
-    <IntermediateOutputPath>$(MSBuildThisFileDirectory)..\artifacts\installer-obj\</IntermediateOutputPath>
+    <StageDir Condition="'$(StageDir)' == ''">$(ArtifactsDir)stage\</StageDir>
+    <DefineConstants>$(DefineConstants);StageDir=$(StageDir);AppVersion=$(Version);ProductName=$(ApodofosProductName);ProductSlug=$(ApodofosProductSlug);DesktopExe=$(ApodofosDesktopExe);CliExe=$(ApodofosCliExe);UpgradeCode=$(ApodofosUpgradeCode)</DefineConstants>
+    <!-- the legacy 'apodofos' command name keeps working (cli\apodofos.cmd) only for the edition that claims the 1.0.x data -->
+    <DefineConstants Condition="'$(ApodofosMigrateLegacyData)' == 'true'">$(DefineConstants);CliAlias=apodofos;LegacyData=1</DefineConstants>
+    <OutputPath>$(ArtifactsDir)installer-build\</OutputPath>
+    <IntermediateOutputPath>$(ArtifactsDir)installer-obj\</IntermediateOutputPath>
     <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
   </ItemGroup>
 </Project>
-
-

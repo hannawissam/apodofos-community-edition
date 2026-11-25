@@ -29,6 +29,9 @@ public sealed class ReportMeta
     public double? AverageActiveSessions { get; set; }
     public string AnalyzedAt { get; set; } = "";
     public string AnalyzerVersion { get; set; } = "";
+    /// <summary>Product that produced the analysis, e.g. "Apodofos Report Analyzer" (the print/PDF report shows it).</summary>
+    public string Product { get; set; } = "";
+    public string Edition { get; set; } = "";
     /// <summary>Detected number format, e.g. "Numbers read as 1.234,56 (comma decimal, dot thousands)." (shown beside the report header).</summary>
     public string NumberFormat { get; set; } = "";
 }

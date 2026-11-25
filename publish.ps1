@@ -4,10 +4,12 @@
 # machines that lack it (e.g. a clean Windows 10).
 # License files (LICENSE, NOTICE, THIRD-PARTY-NOTICES.md) and the .NET runtime's own third-party
 # notices are copied next to each published executable.
-param([string]$Runtime = 'win-x64')
+# Executable names (ApodofosReportAnalyzer.exe, apodofos-report.exe) come from Edition.props through the project files.
+# -ArtifactsDir redirects the output (default: artifacts next to this script).
+param([string]$Runtime = 'win-x64', [string]$ArtifactsDir)
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
-$out = Join-Path $PSScriptRoot 'artifacts'
+$out = if ($ArtifactsDir) { $ArtifactsDir } else { Join-Path $PSScriptRoot 'artifacts' }
 foreach ($d in 'desktop', 'cli') {
     $p = Join-Path $out $d
     if (Test-Path $p) { Remove-Item -Recurse -Force $p }   # no stale files from earlier publishes
@@ -46,6 +48,10 @@ foreach ($d in 'desktop', 'cli') {
     if ($rt) { Copy-Item $rt (Join-Path $dir 'DOTNET-RUNTIME-THIRD-PARTY-NOTICES.txt') -Force }
     else { Write-Warning ".NET runtime third-party notices not found for $d" }
 }
+
+[xml]$edition = Get-Content (Join-Path $PSScriptRoot 'Edition.props')
+$ed = @{}; foreach ($n in $edition.Project.PropertyGroup.ChildNodes) { if ($n.NodeType -eq 'Element') { $ed[$n.Name] = $n.InnerText.Trim() } }
+foreach ($f in "desktop\$($ed.ApodofosDesktopExe).exe", "cli\$($ed.ApodofosCliExe).exe") { if (-not (Test-Path (Join-Path $out $f))) { throw "Expected published file missing: $f" } }
 
 Get-ChildItem $out -Recurse -File | ForEach-Object { '{0,10:N1} MB  {1}' -f ($_.Length / 1MB), $_.FullName.Substring($out.Length + 1) }
 Write-Host "Done: $out"

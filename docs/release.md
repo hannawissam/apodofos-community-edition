@@ -1,14 +1,14 @@
-# Releasing Apodofos (Windows x64)
+# Releasing Apodofos Report Analyzer (Windows x64)
 
 `release.ps1` at the repository root produces everything under `artifacts/release/` (git-ignored):
 
 | File | What it is |
 |------|------------|
-| `Apodofos-Portable-<version>-win-x64.zip` | Unzip-and-run edition: `Apodofos.exe`, `cli\apodofos.exe`, `LICENSE`, `NOTICE`, `THIRD-PARTY-NOTICES.md`, `DOTNET-RUNTIME-THIRD-PARTY-NOTICES.txt`, `README-PORTABLE.txt` |
-| `Apodofos-Setup-<version>-win-x64.msi` | Windows Installer package (per-user install, no administrator rights) |
+| `Apodofos-ReportAnalyzer-Portable-<version>-win-x64.zip` | Unzip-and-run edition: `ApodofosReportAnalyzer.exe`, `cli\apodofos-report.exe`, `cli\apodofos.cmd` (forwards the former command name `apodofos`), `LICENSE`, `NOTICE`, `THIRD-PARTY-NOTICES.md`, `DOTNET-RUNTIME-THIRD-PARTY-NOTICES.txt`, `README-PORTABLE.txt` |
+| `Apodofos-ReportAnalyzer-Setup-<version>-win-x64.msi` | Windows Installer package (per-user install, no administrator rights) |
 | `SHA256SUMS.txt` | SHA-256 of both files (`<hash> *<file>`) |
 
-The version is read from `Directory.Build.props` (`<Version>`). The CLI sits in `cli\` because `Apodofos.exe` and `apodofos.exe` differ only by letter case, which Windows treats as the same file name.
+The version is read from `Directory.Build.props` (`<Version>`). The CLI sits in `cli\` next to the desktop program. All names (product name, folder, executables, release file prefix, installer upgrade code) come from `Edition.props`, the one file that differs between the Community and Professional builds: "Apodofos" is the brand, each product has its own folders, registry key, executables and installer identity, so the editions install side by side and removing one never touches the other. The Community upgrade code is unchanged since 1.0.x, so 1.0.x installs upgrade in place. Never respell, abbreviate or fuse the word "Apodofos" (pending trade mark).
 
 ## Release notes (update them for every release)
 
@@ -20,7 +20,10 @@ The version is read from `Directory.Build.props` (`<Version>`). The CLI sits in 
 ./release.ps1              # build + test + publish + zip + MSI + checksums
 ./release.ps1 -SkipTests   # skip the build/test step (not for real releases)
 ./release.ps1 -MsiOnly     # rebuild ONLY the MSI and SHA256SUMS.txt from the existing build of the same version
+./release.ps1 -SkipTests -ArtifactsDir <folder>   # build into another folder (checks, experiments)
 ```
+
+After building, validate the MSI statically (no install): `pwsh tools/verify-msi.ps1 -Msi artifacts\release\Apodofos-ReportAnalyzer-Setup-<version>-win-x64.msi` (identity, folders, registry, uninstall cleanup scope, shortcuts, files). The real install, upgrade and uninstall test is `tools/test-installer.ps1` (it deletes the product's settings folder, so run it on a machine where that is acceptable).
 
 `-MsiOnly` is for re-issuing an installer fix without rebuilding the application: it needs the existing `artifacts/stage` and `artifacts/release` of the same `<Version>` (it stops with a clear message if they are missing), skips the tests and the publish, and leaves the application files and the portable zip untouched (the zip keeps its checksum). It takes about a minute.
 
@@ -34,7 +37,7 @@ Installer behaviour (`installer/Package.wxs`):
 
 * Wizard artwork: the Apodofos logo banner and the branded final-page panel are `installer/images/banner.bmp` (493x58) and `installer/images/dialog.bmp` (493x312), generated from `assets/apodofos-512.png` by `installer/make-wizard-images.ps1` (Windows PowerShell 7, System.Drawing; the .bmp files are committed). Re-run the script after changing the logo or brand colours. The `.msi` file icon in Explorer is always the default Windows Installer icon (a limit of the format); the wizard, Apps & features entry and shortcuts use the Apodofos icon.
 * Wizard (WixUI_FeatureTree): welcome page, **licence page showing the AGPL-3.0 text**, custom setup (optional features and the install folder), ready to install, install, final page. There is no "install for all users" page: the installer is per-user only. The default folder is `%LOCALAPPDATA%\Programs\Apodofos`, in the wizard and in silent installs alike.
-* Optional features, off by default: **Desktop shortcut**, **Add apodofos (CLI) to PATH** (added to the current user's PATH). A Start menu shortcut is always created.
+* Optional features, off by default: **Desktop shortcut**, **Add apodofos-report (CLI) to PATH** (added to the current user's PATH). A Start menu shortcut is always created.
 * Entry in Apps & features / Programs and Features; uninstall removes everything the product put on the machine: the program folder (including any file left in it), shortcuts, the PATH entry, the installer registry key and the settings and WebView2 profile folder `%LOCALAPPDATA%\Apodofos`. An upgrade keeps that settings folder; only an uninstall deletes it. Settings of other Windows users on a shared PC are not touched. The uninstall also works while the application is running (tested): Windows Installer closes it and nothing is left behind.
 * `MajorUpgrade`: installing a newer (or the same) version replaces the old one in place; installing an older one is refused.
 * Microsoft Edge WebView2 Evergreen runtime check (registry `...\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}`, machine and user). If missing, the installer stops with a message explaining how to download it manually. The installer never downloads or bundles it. `SKIPWEBVIEW2CHECK=1` bypasses the check.
@@ -42,12 +45,12 @@ Installer behaviour (`installer/Package.wxs`):
 Silent install (no wizard):
 
 ```
-msiexec /i Apodofos-Setup-<version>-win-x64.msi /qn /l*v setup.log
-msiexec /i Apodofos-Setup-<version>-win-x64.msi /qn INSTALLFOLDER="D:\Tools\Apodofos" ADDLOCAL=Main,DesktopShortcutFeature,PathFeature
-msiexec /x Apodofos-Setup-<version>-win-x64.msi /qn                     # uninstall
+msiexec /i Apodofos-ReportAnalyzer-Setup-<version>-win-x64.msi /qn /l*v setup.log
+msiexec /i Apodofos-ReportAnalyzer-Setup-<version>-win-x64.msi /qn INSTALLFOLDER="D:\Tools\Apodofos\ReportAnalyzer" ADDLOCAL=Main,DesktopShortcutFeature,PathFeature
+msiexec /x Apodofos-ReportAnalyzer-Setup-<version>-win-x64.msi /qn                     # uninstall
 ```
 
-Without `INSTALLFOLDER` the install goes to `%LOCALAPPDATA%\Programs\Apodofos`. All installs are per user, so none of these commands needs an elevated prompt. (Old command lines that still pass `MSIINSTALLPERUSER=1 ALLUSERS=2` keep working: the properties are ignored.)
+Without `INSTALLFOLDER` the install goes to `%LOCALAPPDATA%\Programs\Apodofos\ReportAnalyzer` (settings and the WebView2 profile are in `%LOCALAPPDATA%\Apodofos\ReportAnalyzer`, the installer registry key in `HKCU\Software\Apodofos\ReportAnalyzer`; uninstall removes only these, never the shared `Apodofos` parents unless they are empty). A silent upgrade resets the optional features unless `ADDLOCAL` is passed again. All installs are per user, so none of these commands needs an elevated prompt. (Old command lines that still pass `MSIINSTALLPERUSER=1 ALLUSERS=2` keep working: the properties are ignored.)
 
 Upgrades: installing this MSI over an older 1.0.x MSI of the same product replaces it in place, whether the older one was installed by the old wizard (`%LOCALAPPDATA%\Apps\Apodofos`) or silently (`%LOCALAPPDATA%\Programs\Apodofos`); the old copy is removed and one entry remains in Apps & features. An older all-users (per-machine) install cannot be replaced without an elevated prompt: uninstall that entry once from Settings, Apps, then install the new MSI.
 
@@ -59,14 +62,16 @@ Unsigned executables and installers trigger Microsoft Defender SmartScreen ("Win
 * **EV code-signing certificate**: stronger identity validation; the key lives on a hardware token or cloud HSM. Since 2024 Microsoft no longer gives EV certificates instant SmartScreen reputation: every signed file still builds reputation through downloads.
 * **Azure Trusted Signing** (Artifact Signing): Microsoft-managed short-lived certificates, no key to protect, works from CI; use the `Azure.CodeSigning.Dll` signtool dlib or the `trusted-signing-cli`.
 
-`release.ps1` has a signing step that runs only when `APODOFOS_SIGN_CERT_PATH` is set (PFX path); optional `APODOFOS_SIGN_CERT_PASSWORD` and `APODOFOS_SIGN_TIMESTAMP_URL` (default DigiCert). It signs `Apodofos.exe` and `apodofos.exe` before they are packaged, then the MSI, using `signtool.exe` (Windows SDK) with SHA-256 and an RFC 3161 timestamp. For a token/HSM or Azure Trusted Signing, adapt `Invoke-CodeSign` in `release.ps1`. Never commit certificates (`*.pfx` is not to be staged). Checksums are computed after signing.
+`release.ps1` has a signing step that runs only when `APODOFOS_SIGN_CERT_PATH` is set (PFX path); optional `APODOFOS_SIGN_CERT_PASSWORD` and `APODOFOS_SIGN_TIMESTAMP_URL` (default DigiCert). It signs `ApodofosReportAnalyzer.exe` and `apodofos-report.exe` before they are packaged, then the MSI, using `signtool.exe` (Windows SDK) with SHA-256 and an RFC 3161 timestamp. For a token/HSM or Azure Trusted Signing, adapt `Invoke-CodeSign` in `release.ps1`. Never commit certificates (`*.pfx` is not to be staged). Checksums are computed after signing.
 
 ## Verify a download
 
 ```
-Get-FileHash -Algorithm SHA256 .\Apodofos-Setup-<version>-win-x64.msi
+Get-FileHash -Algorithm SHA256 .\Apodofos-ReportAnalyzer-Setup-<version>-win-x64.msi
 # compare with the matching line of SHA256SUMS.txt
 ```
+
+> The test records below are history: they describe the 1.0.x file names and folders (`Apodofos.exe`, `apodofos.exe`, `Programs\Apodofos`). 1.1.0 renamed them (see above and `RELEASE-NOTES.md`).
 
 ## Tests performed on 1.0.0 (Windows 11, non-elevated user)
 

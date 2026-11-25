@@ -1,12 +1,16 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
-  <!-- Per-user only (no administrator rights, no UAC): everything is installed under %LOCALAPPDATA%\Programs\Apodofos and HKCU. -->
-  <Package Name="Apodofos Report Analyzer" Manufacturer="Wissam HANNA" Version="$(var.AppVersion)"
-           UpgradeCode="F4D8DA80-FBED-4F75-A47F-A25C42A06683" Scope="perUser" Language="1033">
-    <SummaryInformation Description="Apodofos Report Analyzer - offline Oracle AWR/ASH/Statspack analyzer" />
+  <!-- Identity comes from Edition.props through the wixproj (DefineConstants): ProductName, ProductSlug, DesktopExe, CliExe, UpgradeCode,
+       and CliAlias (only when the edition keeps the legacy 'apodofos' command line name working).
+       Per-user only (no administrator rights, no UAC): everything is installed under %LOCALAPPDATA%\Programs\Apodofos\<slug> and
+       HKCU\Software\Apodofos\<slug>; settings live in %LOCALAPPDATA%\Apodofos\<slug>. Every product owns its slug folders only, so removing
+       one product never touches another product or edition. -->
+  <Package Name="$(var.ProductName)" Manufacturer="Wissam HANNA" Version="$(var.AppVersion)"
+           UpgradeCode="$(var.UpgradeCode)" Scope="perUser" Language="1033">
+    <SummaryInformation Description="$(var.ProductName) - offline Oracle AWR/ASH/Statspack analyzer" />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
     <!-- Upgrade in place; same-version rebuilds also replace the installed copy. -->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of Apodofos is already installed." AllowSameVersionUpgrades="yes" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of $(var.ProductName) is already installed." AllowSameVersionUpgrades="yes" />
 
     <Icon Id="Apodofos.ico" SourceFile="..\assets\apodofos.ico" />
     <Property Id="ARPPRODUCTICON" Value="Apodofos.ico" />
@@ -25,43 +29,71 @@
       <RegistrySearch Id="Wv2User" Root="HKCU" Key="Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Name="pv" Type="raw" Bitness="always64" />
     </Property>
     <Launch Condition="Installed OR SKIPWEBVIEW2CHECK OR (WEBVIEW2_VERSION AND WEBVIEW2_VERSION &lt;&gt; &quot;0.0.0.0&quot;) OR (WEBVIEW2_VERSION_USER AND WEBVIEW2_VERSION_USER &lt;&gt; &quot;0.0.0.0&quot;)"
-            Message="Apodofos needs the Microsoft Edge WebView2 Evergreen Runtime, which was not found. Install it from https://developer.microsoft.com/microsoft-edge/webview2/ (Evergreen Standalone Installer), then run this setup again." />
+            Message="$(var.ProductName) needs the Microsoft Edge WebView2 Evergreen Runtime, which was not found. Install it from https://developer.microsoft.com/microsoft-edge/webview2/ (Evergreen Standalone Installer), then run this setup again." />
 
+    <!-- %LOCALAPPDATA%\Programs\Apodofos\<slug>\cli -->
     <StandardDirectory Id="LocalAppDataFolder">
       <Directory Id="ProgramsFolderUser" Name="Programs">
-        <Directory Id="APPLICATIONFOLDER" Name="Apodofos">
-          <Directory Id="CLIFOLDER" Name="cli" />
+        <Directory Id="BrandFolder" Name="Apodofos">
+          <Directory Id="APPLICATIONFOLDER" Name="$(var.ProductSlug)">
+            <Directory Id="CLIFOLDER" Name="cli" />
+          </Directory>
         </Directory>
       </Directory>
     </StandardDirectory>
 
-    <Feature Id="Main" Title="Apodofos Report Analyzer" Description="The desktop application and the apodofos command line tool." AllowAbsent="no" Level="1">
+    <Feature Id="Main" Title="$(var.ProductName)" Description="The desktop application and the $(var.CliExe) command line tool." AllowAbsent="no" Level="1">
       <ComponentGroupRef Id="AppFiles" />
       <ComponentRef Id="StartMenuShortcut" />
       <ComponentRef Id="AppRegistryCleanup" />
     </Feature>
-    <Feature Id="DesktopShortcutFeature" Title="Desktop shortcut" Description="Add an Apodofos shortcut to the desktop." Level="1000">
+    <Feature Id="DesktopShortcutFeature" Title="Desktop shortcut" Description="Add a $(var.ProductName) shortcut to the desktop." Level="1000">
       <ComponentRef Id="DesktopShortcut" />
     </Feature>
-    <Feature Id="PathFeature" Title="Add apodofos (CLI) to PATH" Description="Lets you run 'apodofos' from any new terminal window." Level="1000">
+    <Feature Id="PathFeature" Title="Add $(var.CliExe) (CLI) to PATH" Description="Lets you run '$(var.CliExe)' from any new terminal window." Level="1000">
       <ComponentRef Id="PathUser" />
     </Feature>
     <!-- Features default to unselected (Level 1000 > INSTALLLEVEL 1); select them in the wizard or via ADDLOCAL. -->
 
-    <!-- Silent installs: the public property INSTALLFOLDER may choose another folder; the default is %LOCALAPPDATA%\Programs\Apodofos. -->
+    <!-- Silent installs: the public property INSTALLFOLDER may choose another folder; the default is %LOCALAPPDATA%\Programs\Apodofos\<slug>. -->
     <Property Id="INSTALLFOLDER" Secure="yes" />
     <SetProperty Id="APPLICATIONFOLDER" Value="[INSTALLFOLDER]" After="CostInitialize" Condition="INSTALLFOLDER" />
 
     <!-- Clean uninstall. Removing the product (not upgrading it) also deletes what the application created: its settings and
-         WebView2 profile folder %LOCALAPPDATA%\Apodofos (window position, recent files, cache) and anything left in the install
-         folder. Upgrades keep all of it (UPGRADINGPRODUCTCODE is set while an old version is removed by a newer one). -->
+         WebView2 profile folder %LOCALAPPDATA%\Apodofos\<slug> (window position, recent files, cache) and anything left in this
+         product's install folder. ONLY the product's own slug folders are removed recursively; the shared parents
+         (Programs\Apodofos and %LOCALAPPDATA%\Apodofos) are removed with a NON-recursive rmdir, which fails harmlessly while another
+         product still lives there. Upgrades keep all of it (UPGRADINGPRODUCTCODE is set while an old version is removed by a newer one). -->
     <CustomAction Id="CleanInstallFolder" Directory="SystemFolder" ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c rmdir /s /q &quot;[APPLICATIONFOLDER]&quot;"
                   Execute="deferred" Impersonate="yes" Return="ignore" />
-    <CustomAction Id="CleanUserData" Directory="SystemFolder" ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c rmdir /s /q &quot;[LocalAppDataFolder]Apodofos&quot;"
+    <CustomAction Id="CleanInstallParent" Directory="SystemFolder" ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c rmdir &quot;[ProgramsFolderUser]Apodofos&quot;"
                   Execute="deferred" Impersonate="yes" Return="ignore" />
+    <CustomAction Id="CleanUserData" Directory="SystemFolder" ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c rmdir /s /q &quot;[LocalAppDataFolder]Apodofos\$(var.ProductSlug)&quot;"
+                  Execute="deferred" Impersonate="yes" Return="ignore" />
+    <CustomAction Id="CleanUserDataParent" Directory="SystemFolder" ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c rmdir &quot;[LocalAppDataFolder]Apodofos&quot;"
+                  Execute="deferred" Impersonate="yes" Return="ignore" />
+    <?ifdef LegacyData?>
+    <!-- 1.0.x kept its data FLAT in %LOCALAPPDATA%\Apodofos. The new app moves it into <slug> on first run, but a user may upgrade and uninstall
+         without ever starting it: remove exactly those three legacy items (never the folder root, never other subfolders). -->
+    <CustomAction Id="CleanLegacyWindow" Directory="SystemFolder" ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c del /f /q &quot;[LocalAppDataFolder]Apodofos\window.json&quot;"
+                  Execute="deferred" Impersonate="yes" Return="ignore" />
+    <CustomAction Id="CleanLegacyRecent" Directory="SystemFolder" ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c del /f /q &quot;[LocalAppDataFolder]Apodofos\recent.json&quot;"
+                  Execute="deferred" Impersonate="yes" Return="ignore" />
+    <CustomAction Id="CleanLegacyProfile" Directory="SystemFolder" ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c rmdir /s /q &quot;[LocalAppDataFolder]Apodofos\EBWebView&quot;"
+                  Execute="deferred" Impersonate="yes" Return="ignore" />
+    <?endif?>
     <InstallExecuteSequence>
       <Custom Action="CleanInstallFolder" After="RemoveFiles" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
-      <Custom Action="CleanUserData" After="CleanInstallFolder" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="CleanInstallParent" After="CleanInstallFolder" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="CleanUserData" After="CleanInstallParent" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <?ifdef LegacyData?>
+      <Custom Action="CleanLegacyWindow" After="CleanUserData" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="CleanLegacyRecent" After="CleanLegacyWindow" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="CleanLegacyProfile" After="CleanLegacyRecent" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="CleanUserDataParent" After="CleanLegacyProfile" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <?else?>
+      <Custom Action="CleanUserDataParent" After="CleanUserData" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <?endif?>
     </InstallExecuteSequence>
 
     <!-- Welcome, licence, feature selection (optional desktop shortcut and PATH entry, install folder), install. No "install for all users" page. -->
@@ -70,8 +102,12 @@
 
   <Fragment>
     <ComponentGroup Id="AppFiles" Directory="APPLICATIONFOLDER">
-      <Component Id="ApodofosExe" Guid="*"><File Id="ApodofosExe" Source="$(StageDir)Apodofos.exe" KeyPath="yes" /></Component>
-      <Component Id="ApodofosCli" Guid="*" Directory="CLIFOLDER"><File Id="ApodofosCli" Source="$(StageDir)cli\apodofos.exe" KeyPath="yes" /></Component>
+      <Component Id="ApodofosExe" Guid="*"><File Id="ApodofosExe" Source="$(StageDir)$(var.DesktopExe).exe" KeyPath="yes" /></Component>
+      <Component Id="ApodofosCli" Guid="*" Directory="CLIFOLDER"><File Id="ApodofosCli" Source="$(StageDir)cli\$(var.CliExe).exe" KeyPath="yes" /></Component>
+      <?ifdef CliAlias?>
+      <!-- keeps scripts that call the old command name working: forwards every argument to the CLI -->
+      <Component Id="ApodofosCliAlias" Guid="*" Directory="CLIFOLDER"><File Id="ApodofosCliAlias" Source="$(StageDir)cli\$(var.CliAlias).cmd" KeyPath="yes" /></Component>
+      <?endif?>
       <Component Id="LegalLicense" Guid="*"><File Source="$(StageDir)LICENSE" KeyPath="yes" /></Component>
       <Component Id="LegalNotice" Guid="*"><File Source="$(StageDir)NOTICE" KeyPath="yes" /></Component>
       <Component Id="LegalThirdParty" Guid="*"><File Source="$(StageDir)THIRD-PARTY-NOTICES.md" KeyPath="yes" /></Component>
@@ -80,32 +116,34 @@
 
     <StandardDirectory Id="ProgramMenuFolder">
       <Component Id="StartMenuShortcut" Guid="*">
-        <Shortcut Id="StartMenuLnk" Name="Apodofos Report Analyzer" Target="[APPLICATIONFOLDER]Apodofos.exe" WorkingDirectory="APPLICATIONFOLDER" Icon="Apodofos.ico" />
-        <RegistryValue Root="HKCU" Key="Software\Apodofos\Installer" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+        <Shortcut Id="StartMenuLnk" Name="$(var.ProductName)" Target="[APPLICATIONFOLDER]$(var.DesktopExe).exe" WorkingDirectory="APPLICATIONFOLDER" Icon="Apodofos.ico" />
+        <RegistryValue Root="HKCU" Key="Software\Apodofos\$(var.ProductSlug)\Installer" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </StandardDirectory>
     <StandardDirectory Id="DesktopFolder">
       <Component Id="DesktopShortcut" Guid="*">
-        <Shortcut Id="DesktopLnk" Name="Apodofos Report Analyzer" Target="[APPLICATIONFOLDER]Apodofos.exe" WorkingDirectory="APPLICATIONFOLDER" Icon="Apodofos.ico" />
-        <RegistryValue Root="HKCU" Key="Software\Apodofos\Installer" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+        <Shortcut Id="DesktopLnk" Name="$(var.ProductName)" Target="[APPLICATIONFOLDER]$(var.DesktopExe).exe" WorkingDirectory="APPLICATIONFOLDER" Icon="Apodofos.ico" />
+        <RegistryValue Root="HKCU" Key="Software\Apodofos\$(var.ProductSlug)\Installer" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </StandardDirectory>
     <DirectoryRef Id="APPLICATIONFOLDER">
-      <!-- Removes the whole HKCU Software\Apodofos key, including every value the installer wrote, when the product is removed. -->
+      <!-- Removes the product's own HKCU Software\Apodofos\<slug> key, including every value the installer wrote, when the product is
+           removed. The shared Software\Apodofos parent key is never touched. -->
       <Component Id="AppRegistryCleanup" Guid="*">
-        <RegistryKey Root="HKCU" Key="Software\Apodofos" ForceDeleteOnUninstall="yes">
+        <RegistryKey Root="HKCU" Key="Software\Apodofos\$(var.ProductSlug)" ForceDeleteOnUninstall="yes">
           <RegistryValue Name="InstallFolder" Type="string" Value="[APPLICATIONFOLDER]" KeyPath="yes" />
         </RegistryKey>
         <!-- ICE64: every folder this package creates inside the user profile must be removed on uninstall (only when empty). -->
         <RemoveFolder Id="RmCliFolder" Directory="CLIFOLDER" On="uninstall" />
         <RemoveFolder Id="RmAppFolder" Directory="APPLICATIONFOLDER" On="uninstall" />
+        <RemoveFolder Id="RmBrandFolder" Directory="BrandFolder" On="uninstall" />
         <RemoveFolder Id="RmProgramsUserFolder" Directory="ProgramsFolderUser" On="uninstall" />
       </Component>
     </DirectoryRef>
     <DirectoryRef Id="CLIFOLDER">
       <Component Id="PathUser" Guid="*">
         <Environment Id="PathUserEnv" Name="PATH" Value="[CLIFOLDER]" Action="set" Part="last" System="no" Permanent="no" />
-        <RegistryValue Root="HKCU" Key="Software\Apodofos\Installer" Name="PathUser" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKCU" Key="Software\Apodofos\$(var.ProductSlug)\Installer" Name="PathUser" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </DirectoryRef>
   </Fragment>

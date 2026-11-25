@@ -4,6 +4,7 @@
 using System.Reflection;
 using System.Text.Json;
 using Apodofos.Core.Export;
+using Apodofos.Core;
 using Apodofos.Host;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
@@ -16,7 +17,8 @@ namespace Apodofos.Desktop;
 /// </summary>
 public sealed class MainForm : Form, IHostPlatform
 {
-    private const string AppTitle = HostSession.AppTitle;
+    private static readonly ProductInfo Product = ProductInfo.Current;
+    private static string AppTitle => Product.Name;
     private static readonly string AppVersion = ReadAppVersion();
 
     private static string ReadAppVersion()
@@ -56,9 +58,10 @@ public sealed class MainForm : Form, IHostPlatform
     public MainForm(string? initialFile)
     {
         _initialFile = initialFile;
-        _dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Apodofos");
-        MigrateLegacyDataDir(_dataDir);
-        _session = new HostSession(this, new RecentStore(_dataDir), AppVersion);
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        _dataDir = Product.DataDirectory(localAppData); // %LOCALAPPDATA%\Apodofos\<product>: never shared with another product or edition
+        DataDirectoryMigration.Run(localAppData, Product); // one-time move from the 1.0.x flat layout
+        _session = new HostSession(this, new RecentStore(_dataDir), AppVersion, appTitle: Product.Name);
         _router = new HostMessageRouter(_session, this);
         Text = _session.DefaultTitle;
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -98,23 +101,7 @@ public sealed class MainForm : Form, IHostPlatform
         Shown += async (_, _) => await InitWebViewAsync();
     }
 
-    // One-time migration of the settings folder used before the product was renamed.
-    private static void MigrateLegacyDataDir(string newDir)
-    {
-        try
-        {
-            if (Directory.Exists(newDir)) return;
-            var parent = Path.GetDirectoryName(newDir)!;
-            foreach (var old in new[] { "Quiet" + "Load", "Perf" + "Lens" })
-            {
-                var legacy = Path.Combine(parent, old);
-                if (Directory.Exists(legacy)) { Directory.Move(legacy, newDir); return; }
-            }
-        }
-        catch { /* best effort; settings simply start fresh */ }
-    }
-
-    // ---- window placement (%LOCALAPPDATA%\Apodofos\window.json); the recent list belongs to the host (recent.json) ----
+    // ---- window placement (<data folder>\window.json); the recent list belongs to the host (recent.json) ----
     private sealed record Placement(int X, int Y, int W, int H, bool Max);
 
     private string PlacementFile => Path.Combine(_dataDir, "window.json");

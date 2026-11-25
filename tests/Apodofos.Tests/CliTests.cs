@@ -23,19 +23,27 @@ public class CliTests : IDisposable
         Assert.NotNull(dir);
         var proj = Path.Combine(dir!.FullName, "src", "Apodofos.Cli");
         var cfg = AppContext.BaseDirectory.Contains($"{Path.DirectorySeparatorChar}Release{Path.DirectorySeparatorChar}") ? "Release" : "Debug";
-        var (code, _, err) = Exec("dotnet", $"build \"{proj}\" -c {cfg} -nologo -v q");
+        var (code, _, err) = Exec("dotnet", $"build \"{proj}\" -c {cfg} -nologo -v q -nodeReuse:false -p:UseSharedCompilation=false");
         Assert.True(code == 0, "CLI build failed: " + err);
-        return Path.Combine(proj, "bin", cfg, "net11.0", "apodofos.dll");
+        return Path.Combine(proj, "bin", cfg, "net11.0", Apodofos.Core.ProductInfo.Current.CliName + ".dll");
     }
 
     private static (int Code, string Out, string Err) Exec(string file, string args)
     {
         var psi = new ProcessStartInfo(file, args) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
+        // A build started from a test must not leave worker processes behind: they inherit our output pipes and would keep
+        // them open until they idle out (about 15 minutes), which used to hang the first test that built the CLI.
+        psi.Environment["MSBUILDDISABLENODEREUSE"] = "1";
+        psi.Environment["DOTNET_CLI_USE_MSBUILD_SERVER"] = "0";
+        psi.Environment["UseSharedCompilation"] = "false";
+        psi.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
         using var p = Process.Start(psi)!;
         var o = p.StandardOutput.ReadToEndAsync();
         var e = p.StandardError.ReadToEndAsync();
         if (!p.WaitForExit(120_000)) { p.Kill(true); throw new TimeoutException(file + " " + args); }
-        return (p.ExitCode, o.Result, e.Result);
+        // the process has exited; never wait on the pipes beyond a short grace period, in case a stray child still holds them
+        Task.WaitAll([o, e], TimeSpan.FromSeconds(10));
+        return (p.ExitCode, o.IsCompletedSuccessfully ? o.Result : "", e.IsCompletedSuccessfully ? e.Result : "");
     }
 
     private static (int Code, string Out, string Err) Cli(params string[] args) =>
@@ -58,7 +66,9 @@ public class CliTests : IDisposable
     {
         var (c, o, _) = Cli("--version");
         Assert.Equal(0, c);
-        Assert.Matches(@"^Apodofos Report Analyzer \d+\.\d+\.\d+\S* \(Community Edition\)", o.Trim());
+        var p = Apodofos.Core.ProductInfo.Current; // the Community name carries "(Community Edition)", the Professional name already says so
+        var suffix = p.Edition == "Community" ? @" \(Community Edition\)" : "";
+        Assert.Matches("^" + System.Text.RegularExpressions.Regex.Escape(p.Name) + @" \d+\.\d+\.\d+\S*" + suffix + "$", o.Trim());
     }
 
     [Fact]

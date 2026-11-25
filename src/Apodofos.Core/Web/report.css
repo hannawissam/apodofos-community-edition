@@ -47,6 +47,8 @@
 .rpt-facts dt { flex: none; color: #b5d2e2; min-width: 24mm; }
 .rpt-facts dd { overflow-wrap: anywhere; font-weight: 600; color: #fff; }
 .rpt .rpt-gen { margin-top: 3.5mm; font-size: 7.5pt; color: #a9c7d9; }
+.rpt .rpt-tm { margin: 2.5mm 0 0; font-size: 7.5pt; color: #a9c7d9; letter-spacing: .01em; }
+.rpt .rpt-tm + .rpt-gen { margin-top: 1mm; }
 
 /* sections: numbered, with a teal rule */
 .rpt-sec { margin: 0 0 5.5mm; counter-increment: sec; }

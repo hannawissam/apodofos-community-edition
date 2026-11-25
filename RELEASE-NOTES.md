@@ -28,8 +28,9 @@ Apodofos™ is a trademark of Wissam HANNA (French trade mark application no. 53
 
 ### The application
 - **Desktop app** for Windows 10/11 (WinForms and WebView2): the original report with jump-to-section links beside the analysis, light and dark themes, a recent-files list, drag and drop, remembered window position, Save HTML, Print, an About box and the version in the title bar and the About box.
-- **Command line** `apodofos <report> [--text] [--html out.html] [--json out.json] [--script out.sql]`, `--version`, `--license`, `--help`, with documented exit codes, for automation.
-- **Exports**: a self-contained interactive HTML dashboard, JSON, a SQL script and print/PDF.
+- **Command line** `apodofos-report <report> [--text] [--html out.html] [--json out.json] [--script out.sql]`, `--version`, `--license`, `--help`, with documented exit codes, for automation. The former command name `apodofos` still works (the installer and the portable zip include a small forwarding file).
+- **Print and PDF report**: Print (and Ctrl+P) always produce one complete, formatted report, whichever tab is open: cover, overall health, key numbers (every tile), the Fix first plan, root causes, every finding with evidence, steps, SQL and documentation citations, all charts, top SQL and the report facts. **Save PDF** writes it as a PDF file (A4, page numbers) without going through a print dialog.
+- **Exports**: a self-contained interactive HTML dashboard, JSON, a SQL script and the PDF report.
 - **Installer and portable zip**: an MSI (per user only, no administrator rights needed, in-place upgrades, and an uninstall that removes everything it put on the machine, settings included) and a portable zip with the CLI in the `cli` folder, both self-contained (no .NET install). SHA-256 checksums are published with every release. The files are not code-signed yet, so Windows SmartScreen may warn.
 
 ### Privacy and security
@@ -43,6 +44,17 @@ Free software under **AGPL-3.0-only**, no warranty. The name and logo are not co
 ## Release history
 
 **Version 1.0.7 is the first official public release of Apodofos Report Analyzer.** Versions 1.0.0 to 1.0.6 were test builds, published on 2026-11-19 and 2026-11-20 while the product was being finalised. They are kept for the record, are marked as pre-releases on GitHub, and should not be used: install 1.0.7 or later.
+
+### 1.1.0 (release candidate, 2026-11-25), the product name everywhere
+- **One consistent name: Apodofos Report Analyzer.** "Apodofos" is the brand; the application is "Apodofos Report Analyzer" in the window, the installer, the shortcuts, the command line and the documentation. The program file is now `ApodofosReportAnalyzer.exe` and the command line tool is `apodofos-report` (the old command `apodofos` keeps working through a small forwarding file, so existing scripts are not broken).
+- **Everything the application owns now lives in its own product folder**: the program in `%LOCALAPPDATA%\Programs\Apodofos\ReportAnalyzer`, your settings and recent files in `%LOCALAPPDATA%\Apodofos\ReportAnalyzer`, and the installer key in `HKCU\Software\Apodofos\ReportAnalyzer`. Uninstalling removes only this product's folders and keys, never anything else stored under the Apodofos name.
+- **Your settings move by themselves.** The first time 1.1.0 starts it moves your window position, recent reports and the WebView2 profile from the old folder (`%LOCALAPPDATA%\Apodofos`) into the new one. Installing 1.1.0 over 1.0.x is an in-place upgrade (same installer family); the old shortcuts are replaced. If you launch the program or the command line by its old file path in your own scripts or shortcuts, point them at the new file names. Going back to 1.0.x starts with an empty recent-reports list.
+- **Release files have new names**: `Apodofos-ReportAnalyzer-Setup-<version>-win-x64.msi` and `Apodofos-ReportAnalyzer-Portable-<version>-win-x64.zip`, with SHA-256 checksums as before.
+- **New: a complete formatted print and PDF report.** Printing no longer prints only the tab that happens to be open (for example, the key-number tiles were missing when Findings was shown). Print and Ctrl+P give one designed report with every section, and the new **Save PDF** button writes it to a file.
+- **New: documentation links open in your default browser**, and every link has a small copy button. Only secure (https) links to oracle.com are opened. The application itself still makes no connection: your browser does, when you click.
+- **More robust parsing of dates in other languages**: month names in French, German, Spanish, Italian, Portuguese and Dutch reports are recognised by the application itself, so the result no longer depends on the language data of the computer. A new guard test also catches any script error that would blank the page before a build is released.
+- **Under the hood** (no change in what you see): the logic shared by every window type moved into a separate library with its own tests, the recent-reports list is stored in `recent.json`, and the source repository now builds and tests automatically on Windows and Linux.
+- **Known limits:** the files are still not code-signed, so Windows SmartScreen may warn; the first start after the upgrade takes a moment longer while settings are moved.
 
 ### 1.0.7 (2026-11-20), first official public release
 - **First official public release.** It includes everything from the test builds 1.0.1 to 1.0.6 listed below.
