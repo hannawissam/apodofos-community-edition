@@ -2,7 +2,7 @@
 
 Apodofos Report Analyzer, Community Edition (the "application")
 Publisher: Wissam HANNA
-Effective date: 2026-11-19
+Effective date: 2026-11-25
 
 ## In short
 Apodofos Community Edition does not collect, transmit, sell or share any data. Your reports are analysed entirely on your own
