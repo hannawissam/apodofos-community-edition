@@ -143,9 +143,11 @@ if ($env:APODOFOS_SIGN_CERT_PATH) { Invoke-CodeSign @($msi) }
 
 # --- 8. checksums ---
 $sums = Join-Path $release 'SHA256SUMS.txt'
-Get-ChildItem $release -File | Where-Object { $_.Name -ne 'SHA256SUMS.txt' } | Sort-Object Name | ForEach-Object {
+$lines = Get-ChildItem $release -File | Where-Object { $_.Name -ne 'SHA256SUMS.txt' } | Sort-Object Name | ForEach-Object {
     '{0} *{1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $_.Name
-} | Set-Content $sums -Encoding ascii
+}
+# LF line endings (as in 1.0.7): the file must verify with `sha256sum -c` on Linux and macOS as well as with PowerShell
+[IO.File]::WriteAllText($sums, (($lines -join "`n") + "`n"), [Text.Encoding]::ASCII)
 
 Write-Host ''
 Get-ChildItem $release -File | ForEach-Object { '{0,12:N0} bytes  {1}' -f $_.Length, $_.Name }
