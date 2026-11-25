@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Wissam HANNA
 
-// Renders the Apodofos Report Analyzer icon at all Windows icon sizes and packs them into a PNG-based .ico.
+// Renders the Apodofos Performance Report Analyzer icon at all Windows icon sizes and packs them into a PNG-based .ico.
 // Usage: dotnet run --project tools/IconGen -- <outputDir>
 // Design (256-unit grid, mirrors assets/apodofos.svg):
 //   deep-teal rounded tile  -> "database / Oracle performance" context

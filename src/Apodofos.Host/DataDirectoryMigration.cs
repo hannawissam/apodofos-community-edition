@@ -14,6 +14,9 @@ namespace Apodofos.Host;
 public static class DataDirectoryMigration
 {
     private static readonly string[] FlatFiles = ["window.json", "recent.json"];
+
+    // product folder names of earlier releases under %LOCALAPPDATA%\Apodofos (1.1.0 used "ReportAnalyzer")
+    private static readonly string[] PreviousSlugs = ["ReportAnalyzer"];
     private const string FlatProfileFolder = "EBWebView";
 
     // pre-rename product folder names (written split so the old names do not appear as plain words)
@@ -26,6 +29,17 @@ public static class DataDirectoryMigration
             if (!product.MigrateLegacyData) return;
             var target = product.DataDirectory(localAppData);
             if (FlatFiles.Any(f => File.Exists(Path.Combine(target, f))) || Directory.Exists(Path.Combine(target, FlatProfileFolder))) return; // already migrated or in use
+
+            // the layout of the previous release: the whole product folder moves to the new name
+            foreach (var prev in PreviousSlugs)
+            {
+                var prevDir = Path.Combine(localAppData, ProductInfo.Brand, prev);
+                if (!Directory.Exists(prevDir) || string.Equals(prevDir, target, StringComparison.OrdinalIgnoreCase)) continue;
+                if (Directory.Exists(target) && Directory.EnumerateFileSystemEntries(target).Any()) break;
+                if (Directory.Exists(target)) Directory.Delete(target);
+                Directory.Move(prevDir, target);
+                return;
+            }
 
             var flat = Path.Combine(localAppData, ProductInfo.Brand);
             var moved = false;

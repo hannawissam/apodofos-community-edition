@@ -13,8 +13,9 @@
     <!-- Staging folder filled by release.ps1 -->
     <StageDir Condition="'$(StageDir)' == ''">$(ArtifactsDir)stage\</StageDir>
     <DefineConstants>$(DefineConstants);StageDir=$(StageDir);AppVersion=$(Version);ProductName=$(ApodofosProductName);ProductSlug=$(ApodofosProductSlug);DesktopExe=$(ApodofosDesktopExe);CliExe=$(ApodofosCliExe);UpgradeCode=$(ApodofosUpgradeCode)</DefineConstants>
-    <!-- the legacy 'apodofos' command name keeps working (cli\apodofos.cmd) only for the edition that claims the 1.0.x data -->
-    <DefineConstants Condition="'$(ApodofosMigrateLegacyData)' == 'true'">$(DefineConstants);CliAlias=apodofos;LegacyData=1</DefineConstants>
+    <!-- the former command names keep working (cli\apodofos.cmd from 1.0.x, cli\apodofos-report.cmd from 1.1.0) and the 1.1.0 data folder
+         is cleaned on uninstall, only for the edition that claims the earlier data. Keep these names in step with release.ps1. -->
+    <DefineConstants Condition="'$(ApodofosMigrateLegacyData)' == 'true'">$(DefineConstants);CliAlias1=apodofos;CliAlias2=apodofos-report;LegacyDataSlug=ReportAnalyzer;LegacyData=1</DefineConstants>
     <OutputPath>$(ArtifactsDir)installer-build\</OutputPath>
     <IntermediateOutputPath>$(ArtifactsDir)installer-obj\</IntermediateOutputPath>
     <EnableDefaultCompileItems>true</EnableDefaultCompileItems>

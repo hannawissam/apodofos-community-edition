@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Apodofos Report Analyzer</title>
+<title>Apodofos Performance Report Analyzer</title>
 <script>
 /* apply the saved theme before first paint to avoid a flash */
 (function () { try { var t = localStorage.getItem('awr.theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
@@ -19,7 +19,7 @@
     <span class="logo" aria-hidden="true"><!--AWR:ICON--></span>
     <div class="brand-text">
       <div class="titlerow">
-        <h1 id="appTitle">Apodofos Report Analyzer</h1>
+        <h1 id="appTitle">Apodofos Performance Report Analyzer</h1>
         <span id="typeBadge" class="tbadge" hidden></span>
         <span id="notRight" class="notright" hidden>
           <button type="button" class="quietlink" id="btnNotRight" aria-haspopup="menu" aria-expanded="false" aria-controls="typeMenu">Not right?</button>
@@ -48,7 +48,7 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16"/><path d="M5.5 8h4M5.5 11h4M5.5 14h3" /></svg></button>
     <button type="button" class="iconbtn" id="btnLayoutAnalysis" aria-pressed="false" title="Hide the analysis (focus on the report)" aria-label="Toggle analysis pane">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16"/><path d="M14.5 16v-3M17 16v-6M19.5 16v-4"/></svg></button>
-    <button type="button" class="iconbtn" id="btnAbout" title="About Apodofos Report Analyzer" aria-label="About" aria-haspopup="dialog">
+    <button type="button" class="iconbtn" id="btnAbout" title="About Apodofos Performance Report Analyzer" aria-label="About" aria-haspopup="dialog">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
     <button type="button" class="iconbtn" id="btnTheme" title="Switch light / dark theme" aria-label="Switch light or dark theme">
       <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/></svg>
@@ -116,14 +116,14 @@
 <div id="dropOverlay" class="drop-overlay" aria-hidden="true" hidden><div class="drop-msg">Drop to analyze this report</div></div>
 
 <dialog id="aboutDlg" class="about" aria-labelledby="aboutTitle">
-  <h2 id="aboutTitle">About Apodofos Report Analyzer</h2>
+  <h2 id="aboutTitle">About Apodofos Performance Report Analyzer</h2>
   <p id="aboutVersion" hidden><strong>Version <span id="aboutVersionNo"></span></strong></p>
-  <p>Apodofos Report Analyzer, Community Edition. Copyright &copy; 2026 Wissam HANNA.</p>
+  <p>Apodofos Performance Report Analyzer, Community Edition. Copyright &copy; 2026 Wissam HANNA.</p>
   <p>This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License, version 3 only (AGPL-3.0-only). It comes with <b>ABSOLUTELY NO WARRANTY</b>; without even the implied warranty of merchantability or fitness for a particular purpose.</p>
   <p>The full licence text is in the <code>LICENSE</code> file shipped with this application.</p>
   <p>Source code: <span class="srcurl" id="srcUrl">https://github.com/hannawissam/apodofos-community-edition</span> <button type="button" class="linkbtn" id="btnCopySrc">Copy link</button></p>
   <p>If you run a modified version of this program for users over a network you must offer them the corresponding source code.</p>
-  <p>Apodofos Report Analyzer is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.</p>
+  <p>Apodofos Performance Report Analyzer is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.</p>
   <p>Apodofos&trade; is a trademark of Wissam HANNA (French trade mark application no. 5322937, not yet registered) and the brand of a suite of database software. The name and logo are not licensed under the AGPL; see <code>TRADEMARK.md</code>.</p>
   <p>The application works fully offline: it never connects to a database or to the internet.</p>
   <p>Privacy: the application collects and sends no data. See the file <code>docs/privacy.md</code> in the source repository.</p>
@@ -131,9 +131,9 @@
 </dialog>
 
 <footer class="appfoot" role="contentinfo">
-  <span>&copy; 2026 Wissam HANNA. Apodofos Report Analyzer, Community Edition, is copyrighted to Wissam HANNA and is free software licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only), with ABSOLUTELY NO WARRANTY. Source code and license: <span class="srcurl">https://github.com/hannawissam/apodofos-community-edition</span> (see also the LICENSE file shipped with this application). <button type="button" class="linkbtn" id="btnAboutFoot">About</button></span>
+  <span>&copy; 2026 Wissam HANNA. Apodofos Performance Report Analyzer, Community Edition, is copyrighted to Wissam HANNA and is free software licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only), with ABSOLUTELY NO WARRANTY. Source code and license: <span class="srcurl">https://github.com/hannawissam/apodofos-community-edition</span> (see also the LICENSE file shipped with this application). <button type="button" class="linkbtn" id="btnAboutFoot">About</button></span>
   <span>Apodofos&trade; is a trademark of Wissam HANNA (French trade mark application no. 5322937, not yet registered).</span>
-  <span>Apodofos Report Analyzer is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.</span>
+  <span>Apodofos Performance Report Analyzer is not an Oracle product and is not affiliated with, sponsored by or endorsed by Oracle. Oracle and all Oracle product names are trademarks or registered trademarks of Oracle Corporation and/or its affiliates.</span>
 </footer>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>

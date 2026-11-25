@@ -20,7 +20,7 @@ public sealed record LoadedReport(ReportLoadOutcome Outcome, string? PayloadJson
 public sealed class HostSession
 {
     /// <summary>Default window/dialog title; a shell passes its own product name (<see cref="ProductInfo.Name"/>).</summary>
-    public const string AppTitle = "Apodofos Report Analyzer";
+    public const string AppTitle = "Apodofos Performance Report Analyzer";
 
     private static readonly FileFilter[] OpenFilters =
     [

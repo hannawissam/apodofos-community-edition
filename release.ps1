@@ -1,5 +1,5 @@
 # Builds the shippable Windows artifacts into artifacts/release/ (git-ignored). Names come from Edition.props
-# (ApodofosReleasePrefix, e.g. Apodofos-ReportAnalyzer), so editions never collide:
+# (ApodofosReleasePrefix, e.g. Apodofos-PerformanceReportAnalyzer), so editions never collide:
 #   <ApodofosReleasePrefix>-Portable-<version>-<rid>.zip
 #   <ApodofosReleasePrefix>-Setup-<version>-<rid>.msi
 #   SHA256SUMS.txt
@@ -38,7 +38,9 @@ foreach ($k in 'ApodofosProductName', 'ApodofosDesktopExe', 'ApodofosCliExe', 'A
 $desktopExe = "$($ed.ApodofosDesktopExe).exe"
 $cliExe     = "$($ed.ApodofosCliExe).exe"
 $prefix     = $ed.ApodofosReleasePrefix
-$cliAlias   = if ($ed.ApodofosMigrateLegacyData -eq 'true') { 'apodofos' } else { $null }   # legacy command name kept working by cli\apodofos.cmd
+# former command names kept working by cli\<name>.cmd shims: 'apodofos' (1.0.x) and 'apodofos-report' (1.1.0); only the edition that claims the earlier data
+# (keep in step with CliAlias1/CliAlias2 in installer\Apodofos.Installer.wixproj)
+$cliAliases = if ($ed.ApodofosMigrateLegacyData -eq 'true') { @('apodofos', 'apodofos-report') } else { @() }
 Write-Host "== $($ed.ApodofosProductName) $($ed.ApodofosEdition) release $version ($Runtime) =="
 
 $artifacts = if ($ArtifactsDir) { $ArtifactsDir } else { Join-Path $PSScriptRoot 'artifacts' }
@@ -99,8 +101,8 @@ else { Write-Warning 'APODOFOS_SIGN_CERT_PATH not set: artifacts will be UNSIGNE
 Copy-Item "$desktop\*" $stage -Recurse -Force
 New-Item -ItemType Directory -Force (Join-Path $stage 'cli') | Out-Null
 Copy-Item "$cli\$cliExe" (Join-Path $stage 'cli') -Force
-if ($cliAlias) {
-    # scripts that still call the old command name keep working: forward every argument and the exit code
+foreach ($cliAlias in $cliAliases) {
+    # scripts that still call a former command name keep working: forward every argument and the exit code
     [IO.File]::WriteAllText((Join-Path $stage "cli\$cliAlias.cmd"), "@echo off`r`n`"%~dp0$cliExe`" %*`r`n", [Text.Encoding]::ASCII)
 }
 foreach ($f in 'LICENSE', 'NOTICE', 'THIRD-PARTY-NOTICES.md') { if (-not (Test-Path (Join-Path $stage $f))) { throw "Missing $f in stage" } }

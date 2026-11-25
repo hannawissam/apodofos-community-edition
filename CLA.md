@@ -1,6 +1,6 @@
 # Apodofos Contributor License Agreement (CLA)
 
-Project: Apodofos Report Analyzer, Community Edition (AGPL-3.0-only), maintained by Wissam HANNA (the "Maintainer").
+Project: Apodofos Performance Report Analyzer, Community Edition (AGPL-3.0-only), maintained by Wissam HANNA (the "Maintainer").
 Version 1.0, effective 2026-11-19. Language: English (this version prevails over any translation).
 
 ## Summary (not part of the legal text)

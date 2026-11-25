@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Wissam HANNA
 
-/* Apodofos Report Analyzer - UI logic (vanilla JS, offline).
+/* Apodofos Performance Report Analyzer - UI logic (vanilla JS, offline).
  * Reads window.__AWR__ = { analysis, reportHtml, mode } and exposes window.AwrApp.load(payload).
  * SECURITY: every string that comes from the report or the analysis is inserted with textContent /
  * setAttribute only (see h()). innerHTML is never used. The report itself lives in a sandboxed iframe (srcdoc).
@@ -126,7 +126,7 @@
     });
     document.addEventListener('click', function (e) { if (!$('notRight').contains(e.target)) closeTypeMenu(false); });
   }
-  function setSource(s) { SRC = s || null; if (SRC && SRC.name) document.title = SRC.name + ' \u2014 Apodofos Report Analyzer'; updateBadge(); }
+  function setSource(s) { SRC = s || null; if (SRC && SRC.name) document.title = SRC.name + ' \u2014 Apodofos Performance Report Analyzer'; updateBadge(); }
 
   /* the desktop host tells the UI which version is running; shown in the About box (the window title is set by the host) */
   function setAppVersion(v) {
@@ -300,9 +300,9 @@
     if (!A) {
       empty.hidden = false;
       $('emptyHint').textContent = MODE === 'desktop' ? 'Supported: Oracle 19c and later AWR, ASH and Statspack reports saved as .html or .txt.' : 'No analysis data is embedded in this page.';
-      $('appTitle').textContent = 'Apodofos Report Analyzer';
+      $('appTitle').textContent = 'Apodofos Performance Report Analyzer';
       $('appSub').textContent = 'Offline performance report analysis';
-      document.title = 'Apodofos Report Analyzer';
+      document.title = 'Apodofos Performance Report Analyzer';
       $('reportFrame').srcdoc = '';
       $('frameEmpty').hidden = false;
       ['summary', 'findings', 'charts', 'sql', 'script', 'docs'].forEach(function (n) { clear($('panel-' + n)); });
@@ -326,7 +326,7 @@
     $('appTitle').textContent = name; $('appTitle').title = name;
     $('appSub').textContent = [m.release ? 'Oracle ' + m.release : '', m.host, m.beginTime && m.endTime ? m.beginTime + ' \u2192 ' + m.endTime : ''].filter(Boolean).join('  \u00b7  ') || ((m.reportType || 'AWR') + ' report analysis');
     $('appSub').title = $('appSub').textContent;
-    document.title = name + ' \u2014 Apodofos Report Analyzer';
+    document.title = name + ' \u2014 Apodofos Performance Report Analyzer';
     var fr = $('reportFrame');
     $('frameEmpty').hidden = !!REPORT; frameReady = !REPORT;
     fr.srcdoc = REPORT;
@@ -863,7 +863,7 @@
   /* ================= script tab ================= */
   function buildScript() {
     var p = clear($('panel-script')), m = A.meta, lines = [], n = 0, fcount = 0, groups = [], head = [];
-    lines.push('-- Apodofos Report Analyzer: suggested diagnostic and tuning statements');
+    lines.push('-- Apodofos Performance Report Analyzer: suggested diagnostic and tuning statements');
     lines.push('-- Database: ' + (m.dbName || '?') + '   Instance: ' + (m.instance || '?') + '   Report window: ' + (m.beginTime || '?') + ' to ' + (m.endTime || '?'));
     lines.push('-- Generated: ' + (m.analyzedAt || ''));
     lines.push('-- IMPORTANT: nothing here has been run. Review every statement, test outside production first,');

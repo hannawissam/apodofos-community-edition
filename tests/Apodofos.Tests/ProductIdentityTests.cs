@@ -18,8 +18,8 @@ public class ProductIdentityTests : IDisposable
     public ProductIdentityTests() => Directory.CreateDirectory(_root);
     public void Dispose() { try { Directory.Delete(_root, true); } catch { /* temp */ } }
 
-    private static readonly ProductInfo Community = new("Apodofos Report Analyzer", "Community", "ReportAnalyzer", "apodofos-report", true);
-    private static readonly ProductInfo Professional = new("Apodofos Report Analyzer Professional", "Professional", "ReportAnalyzerPro", "apodofos-report-pro", false);
+    private static readonly ProductInfo Community = new("Apodofos Performance Report Analyzer", "Community", "PerformanceReportAnalyzer", "ApodofosReportAnalyzer", true);
+    private static readonly ProductInfo Professional = new("Apodofos Performance Report Analyzer Professional", "Professional", "PerformanceAnalyzerPro", "ApodofosPerfAnalyzer", false);
 
     // ---- identity ----
 
@@ -31,7 +31,7 @@ public class ProductIdentityTests : IDisposable
         Assert.Equal("Apodofos", ProductInfo.Brand);
         Assert.False(string.IsNullOrWhiteSpace(p.Slug));
         Assert.DoesNotContain(' ', p.Slug);
-        Assert.StartsWith("apodofos-report", p.CliName, StringComparison.Ordinal);
+        Assert.StartsWith("Apodofos", p.CliName, StringComparison.OrdinalIgnoreCase); // edition-specific name, brand word first
         var props = File.ReadAllText(Path.Combine(RepoRoot(), "Edition.props"));
         Assert.Contains("<ApodofosProductSlug>" + p.Slug + "</ApodofosProductSlug>", props, StringComparison.Ordinal);
         Assert.Contains("<ApodofosCliExe>" + p.CliName + "</ApodofosCliExe>", props, StringComparison.Ordinal);
@@ -43,8 +43,8 @@ public class ProductIdentityTests : IDisposable
     {
         var a = Community.DataDirectory(_root);
         var b = Professional.DataDirectory(_root);
-        Assert.Equal(Path.Combine(_root, "Apodofos", "ReportAnalyzer"), a);
-        Assert.Equal(Path.Combine(_root, "Apodofos", "ReportAnalyzerPro"), b);
+        Assert.Equal(Path.Combine(_root, "Apodofos", "PerformanceReportAnalyzer"), a);
+        Assert.Equal(Path.Combine(_root, "Apodofos", "PerformanceAnalyzerPro"), b);
         Assert.NotEqual(a, b);
         Assert.False(b.StartsWith(a + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)); // neither folder is inside the other
     }
@@ -52,17 +52,17 @@ public class ProductIdentityTests : IDisposable
     [Fact]
     public void VersionLineNamesTheEditionOnlyWhenTheNameDoesNot()
     {
-        Assert.Equal("Apodofos Report Analyzer 1.1.0 (Community Edition)", Community.VersionLine("1.1.0"));
-        Assert.Equal("Apodofos Report Analyzer Professional 1.1.0", Professional.VersionLine("1.1.0"));
+        Assert.Equal("Apodofos Performance Report Analyzer 1.1.0 (Community Edition)", Community.VersionLine("1.1.0"));
+        Assert.Equal("Apodofos Performance Report Analyzer Professional 1.1.0", Professional.VersionLine("1.1.0"));
     }
 
     [Fact]
-    public void AssemblyMetadataFallsBackToTheCommunityReportAnalyzer()
+    public void AssemblyMetadataFallsBackToTheCommunityProduct()
     {
         var p = ProductInfo.FromAssembly(typeof(string).Assembly); // no Apodofos metadata there
-        Assert.Equal("Apodofos Report Analyzer", p.Name);
-        Assert.Equal("ReportAnalyzer", p.Slug);
-        Assert.Equal("apodofos-report", p.CliName);
+        Assert.Equal("Apodofos Performance Report Analyzer", p.Name);
+        Assert.Equal("PerformanceReportAnalyzer", p.Slug);
+        Assert.Equal("ApodofosReportAnalyzer", p.CliName);
         Assert.True(p.MigrateLegacyData);
     }
 
@@ -70,8 +70,8 @@ public class ProductIdentityTests : IDisposable
     public void WindowTitleAndDialogsUseTheProductName()
     {
         var s = new HostSession(new NullPlatform(), new RecentStore(_root), "1.2.3", appTitle: Professional.Name);
-        Assert.Equal("Apodofos Report Analyzer Professional 1.2.3", s.DefaultTitle);
-        Assert.Equal("Apodofos Report Analyzer 1.2.3", new HostSession(new NullPlatform(), new RecentStore(_root), "1.2.3").DefaultTitle);
+        Assert.Equal("Apodofos Performance Report Analyzer Professional 1.2.3", s.DefaultTitle);
+        Assert.Equal("Apodofos Performance Report Analyzer 1.2.3", new HostSession(new NullPlatform(), new RecentStore(_root), "1.2.3").DefaultTitle);
     }
 
     // ---- migration from the 1.0.x flat layout ----
@@ -136,6 +136,46 @@ public class ProductIdentityTests : IDisposable
         DataDirectoryMigration.Run(_root, Community);
         Assert.Equal("[\"new\"]", File.ReadAllText(Path.Combine(target, "recent.json")));
         Assert.True(File.Exists(Path.Combine(Flat, "window.json"))); // not overwritten, not lost
+    }
+
+    [Fact]
+    public void TheFolderOfThePreviousReleaseMovesToTheNewProductFolderWithItsContents()
+    {
+        var old = Path.Combine(Flat, "ReportAnalyzer");
+        Directory.CreateDirectory(Path.Combine(old, "EBWebView"));
+        File.WriteAllText(Path.Combine(old, "window.json"), "w1");
+        File.WriteAllText(Path.Combine(old, "recent.json"), "r1");
+        File.WriteAllText(Path.Combine(old, "EBWebView", "p"), "x");
+        DataDirectoryMigration.Run(_root, Community);
+        var target = Community.DataDirectory(_root);
+        Assert.Equal("w1", File.ReadAllText(Path.Combine(target, "window.json")));
+        Assert.Equal("r1", File.ReadAllText(Path.Combine(target, "recent.json")));
+        Assert.True(File.Exists(Path.Combine(target, "EBWebView", "p")));
+        Assert.False(Directory.Exists(old));
+        DataDirectoryMigration.Run(_root, Community); // second start: nothing to do, nothing lost
+        Assert.Equal("w1", File.ReadAllText(Path.Combine(target, "window.json")));
+    }
+
+    [Fact]
+    public void ThePreviousReleaseFolderIsLeftAloneWhenTheNewOneAlreadyHoldsData()
+    {
+        var old = Path.Combine(Flat, "ReportAnalyzer"); Directory.CreateDirectory(old);
+        File.WriteAllText(Path.Combine(old, "window.json"), "old");
+        var target = Community.DataDirectory(_root); Directory.CreateDirectory(target);
+        File.WriteAllText(Path.Combine(target, "window.json"), "new");
+        DataDirectoryMigration.Run(_root, Community);
+        Assert.Equal("new", File.ReadAllText(Path.Combine(target, "window.json")));
+        Assert.Equal("old", File.ReadAllText(Path.Combine(old, "window.json")));
+    }
+
+    [Fact]
+    public void TheProfessionalEditionNeverAdoptsThePreviousReleaseFolderOfCommunity()
+    {
+        var old = Path.Combine(Flat, "ReportAnalyzer"); Directory.CreateDirectory(old);
+        File.WriteAllText(Path.Combine(old, "window.json"), "community");
+        DataDirectoryMigration.Run(_root, Professional);
+        Assert.True(File.Exists(Path.Combine(old, "window.json")));
+        Assert.False(Directory.Exists(Professional.DataDirectory(_root)));
     }
 
     [Fact]

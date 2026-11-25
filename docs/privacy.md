@@ -1,6 +1,6 @@
 # Apodofos Privacy Notice
 
-Apodofos Report Analyzer, Community Edition (the "application")
+Apodofos Performance Report Analyzer, Community Edition (the "application")
 Publisher: Wissam HANNA
 Effective date: 2026-11-25
 
@@ -15,7 +15,7 @@ computer. The application makes no network connections.
 * No cookies, advertising or tracking of any kind.
 * No connection to an Oracle database or to any other server. The application only reads report files that you choose.
 * The embedded interface is part of the program. It loads no fonts, scripts, images or styles from the internet, and it
-  blocks navigation to any address other than its own built-in page. The command line tool (`apodofos-report`) and the HTML file
+  blocks navigation to any address other than its own built-in page. The command line tool (`ApodofosReportAnalyzer`) and the HTML file
   it can export are equally self-contained.
 * Documentation links (to docs.oracle.com) are never fetched by the application. When you select one, the application asks your
   operating system to open it in your default web browser (only `https` addresses on oracle.com are accepted), exactly as if
@@ -23,11 +23,11 @@ computer. The application makes no network connections.
   opened.
 
 ## 2. What is stored on your computer
-The application writes the following, only on your computer, under `%LOCALAPPDATA%\Apodofos\ReportAnalyzer` (older versions used `%LOCALAPPDATA%\Apodofos` directly; the application moves those files into the new folder the first time it starts):
+The application writes the following, only on your computer, under `%LOCALAPPDATA%\Apodofos\PerformanceReportAnalyzer` (older versions used `%LOCALAPPDATA%\Apodofos` directly, or its `ReportAnalyzer` subfolder; the application moves those files into the new folder the first time it starts):
 * `window.json`: the window position, size and maximised state.
 * `recent.json`: the list of up to five recently opened report files (the full file path, the report type and the date it was
   opened).
-* The Microsoft Edge WebView2 profile folder (`%LOCALAPPDATA%\Apodofos\ReportAnalyzer\EBWebView`): the Windows desktop application shows its
+* The Microsoft Edge WebView2 profile folder (`%LOCALAPPDATA%\Apodofos\PerformanceReportAnalyzer\EBWebView`): the Windows desktop application shows its
   interface through the Microsoft Edge WebView2 Runtime, which keeps its working files there. The interface also stores two
   display preferences in it (light or dark theme, position of the divider between the report and the analysis).
 
@@ -35,7 +35,7 @@ Report contents are not copied into these files. The application keeps no other 
 in memory only while the application is open.
 
 To remove this data: click **Clear list** on the start screen to empty the recent-reports list (the "x" next to an entry
-removes one entry), or close the application and delete the folder `%LOCALAPPDATA%\Apodofos\ReportAnalyzer`. Uninstalling the
+removes one entry), or close the application and delete the folder `%LOCALAPPDATA%\Apodofos\PerformanceReportAnalyzer`. Uninstalling the
 application with the Windows installer (MSI) deletes this folder too (and only this folder: settings of any other Apodofos product are left alone); a portable copy leaves it until you delete it yourself.
 
 ## 3. Your reports and what you export

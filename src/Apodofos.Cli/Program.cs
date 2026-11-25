@@ -152,7 +152,7 @@ internal static class Program
     internal static string BuildScript(AnalysisResult r)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("-- Apodofos Report Analyzer - SQL for findings");
+        sb.AppendLine("-- Apodofos Performance Report Analyzer - SQL for findings");
         sb.AppendLine($"-- Database: {r.Meta.DbName}  Instance: {r.Meta.Instance}  Snapshots: {r.Meta.BeginSnap}-{r.Meta.EndSnap}");
         sb.AppendLine("-- Review every statement before running it. Statements marked CAUTION change the system.");
         sb.AppendLine();

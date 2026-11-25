@@ -10,12 +10,14 @@
     * registry rows are under HKCU Software\Apodofos\<slug> only
     * custom actions delete only the product's own folders: the install folder, %LOCALAPPDATA%\Apodofos\<slug>, a NON-recursive rmdir of the
       shared parents, and (only when ApodofosMigrateLegacyData is true) exactly the three 1.0.x flat items window.json, recent.json, EBWebView
+      plus the 1.1.0 data folder Apodofos\ReportAnalyzer
     * shortcuts target <ApodofosDesktopExe>.exe
-    * files include <ApodofosDesktopExe>.exe, cli\<ApodofosCliExe>.exe and (legacy-data edition) cli\apodofos.cmd; none is named Apodofos.exe/apodofos.exe
+    * files include <ApodofosDesktopExe>.exe, cli\<ApodofosCliExe>.exe and (legacy-data edition) the shims cli\apodofos.cmd (1.0.x) and
+      cli\apodofos-report.cmd (1.1.0); none is named Apodofos.exe/apodofos.exe/apodofos-report.exe
   Exit code 0 when everything passes, 1 otherwise.
 
 .EXAMPLE
-  .\tools\verify-msi.ps1 -Msi .\artifacts\release\Apodofos-ReportAnalyzer-Setup-1.1.0-win-x64.msi
+  .\tools\verify-msi.ps1 -Msi .\artifacts\release\Apodofos-PerformanceReportAnalyzer-Setup-1.2.0-win-x64.msi
 #>
 [CmdletBinding()]
 param(
@@ -108,7 +110,8 @@ Check 'no RemoveRegistry rows outside the product key' (@($rmReg | Where-Object 
 
 # --- custom actions ---
 $cas = @(Query 'SELECT Action, Type, Source, Target FROM CustomAction' 4)
-$legacyItems = @('window.json', 'recent.json', 'EBWebView')
+$legacySlug110 = 'ReportAnalyzer'   # the 1.1.0 data folder under %LOCALAPPDATA%\Apodofos
+$legacyShims = @('apodofos.cmd', 'apodofos-report.cmd')   # 1.0.x and 1.1.0 command names
 $caProblems = @()
 $sawUserData = $false; $sawInstall = $false
 foreach ($ca in $cas) {
@@ -123,6 +126,7 @@ foreach ($ca in $cas) {
         '^\[ProgramsFolderUser\]Apodofos$' { $ok = ($verb -eq 'rmdir' -and -not $recursive) }               # shared parent: NON-recursive only
         '^\[LocalAppDataFolder\]Apodofos$' { $ok = ($verb -eq 'rmdir' -and -not $recursive) }               # shared parent: NON-recursive only
         "^\[LocalAppDataFolder\]Apodofos\\$([regex]::Escape($slug))$" { $ok = ($verb -eq 'rmdir' -and $recursive); $sawUserData = $ok }
+        "^\[LocalAppDataFolder\]Apodofos\\$([regex]::Escape($legacySlug110))$" { $ok = $legacy -and $verb -eq 'rmdir' -and $recursive }   # 1.1.0 data folder: that folder only
         '^\[LocalAppDataFolder\]Apodofos\\(window\.json|recent\.json|EBWebView)$' {
             $ok = $legacy -and ($recursive -eq ($Matches[1] -eq 'EBWebView')) -and (($verb -eq 'rmdir') -eq ($Matches[1] -eq 'EBWebView'))
         }
@@ -133,6 +137,8 @@ Check 'custom actions delete only the product folders / allowed legacy items (ne
 Check 'CleanInstallFolder removes [APPLICATIONFOLDER] and CleanUserData removes only Apodofos\<slug>' ($sawInstall -and $sawUserData)
 $legacyCas = @($cas | Where-Object { $_[3] -match 'Apodofos\\(window\.json|recent\.json|EBWebView)' })
 Check "legacy flat cleanup present exactly when ApodofosMigrateLegacyData is true (found $($legacyCas.Count), expected $(if ($legacy) { 3 } else { 0 }))" ($legacyCas.Count -eq $(if ($legacy) { 3 } else { 0 }))
+$legacy110Cas = @($cas | Where-Object { $_[3] -match "Apodofos\\$([regex]::Escape($legacySlug110))`"" })
+Check "1.1.0 data folder cleanup present exactly when ApodofosMigrateLegacyData is true (found $($legacy110Cas.Count), expected $(if ($legacy) { 1 } else { 0 }))" ($legacy110Cas.Count -eq $(if ($legacy) { 1 } else { 0 }))
 Check 'no custom action touches HKCU Software\Apodofos' (@($cas | Where-Object { $_[3] -match '(?i)reg(\.exe)?\s+delete' }).Count -eq 0)
 $uninstSeq = @(Query 'SELECT Action, Condition FROM InstallExecuteSequence' 2 | Where-Object { $_[0] -like 'Clean*' })
 Check 'cleanup actions are skipped during upgrades (UPGRADINGPRODUCTCODE guard)' ($uninstSeq.Count -gt 0 -and @($uninstSeq | Where-Object { $_[1] -notmatch 'NOT UPGRADINGPRODUCTCODE' }).Count -eq 0)
@@ -148,11 +154,17 @@ $files = @(Query 'SELECT File, Component_, FileName FROM File' 3 | ForEach-Objec
 $names = @($files | ForEach-Object { $_.Name })
 Check "file $desktopExe present" ($names -contains $desktopExe)
 Check "file $cliExe present" ($names -contains $cliExe)
-if ($legacy) { Check 'file apodofos.cmd (legacy command shim) present' ($names -contains 'apodofos.cmd') }
-else { Check 'no apodofos.cmd shim in an edition without legacy data' ($names -notcontains 'apodofos.cmd') }
-Check 'no file named Apodofos.exe / apodofos.exe' (@($names | Where-Object { $_ -ieq 'apodofos.exe' }).Count -eq 0)
+foreach ($shim in $legacyShims) {
+    if ($legacy) { Check "file $shim (former command name shim) present" ($names -contains $shim) }
+    else { Check "no $shim shim in an edition without legacy data" ($names -notcontains $shim) }
+}
+Check 'no file named Apodofos.exe / apodofos.exe / apodofos-report.exe / ApodofosReportAnalyzer.exe outside cli' (@($names | Where-Object { $_ -ieq 'apodofos.exe' -or $_ -ieq 'apodofos-report.exe' }).Count -eq 0)
+Check "$desktopExe and $cliExe are different files (desktop at the root, CLI in cli)" ($desktopExe -ine $cliExe)
+$exeComps = @(Query 'SELECT File, Component_ FROM File' 2 | Where-Object { $_[0] -in 'ApodofosExe', 'ApodofosCli' })
+$compDir = @{}; foreach ($r in @(Query 'SELECT Component, Directory_ FROM Component' 2)) { $compDir[$r[0]] = $r[1] }
+Check 'desktop exe in APPLICATIONFOLDER, CLI exe in CLIFOLDER' ((@($exeComps | Where-Object { $_[0] -eq 'ApodofosExe' -and $compDir[$_[1]] -eq 'APPLICATIONFOLDER' }).Count -eq 1) -and (@($exeComps | Where-Object { $_[0] -eq 'ApodofosCli' -and $compDir[$_[1]] -eq 'CLIFOLDER' }).Count -eq 1))
 $cliDir = @(Query 'SELECT Component, Directory_ FROM Component' 2)
-Check 'CLI files live in the cli folder' (@($cliDir | Where-Object { $_[1] -eq 'CLIFOLDER' }).Count -ge $(if ($legacy) { 2 } else { 1 }))
+Check 'CLI files live in the cli folder' (@($cliDir | Where-Object { $_[1] -eq 'CLIFOLDER' }).Count -ge $(if ($legacy) { 3 } else { 1 }))
 
 [void][Runtime.InteropServices.Marshal]::ReleaseComObject($db)
 if ($fail) { Write-Host "$fail check(s) failed." -ForegroundColor Red; exit 1 } else { Write-Host 'All static MSI checks passed.' -ForegroundColor Green; exit 0 }

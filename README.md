@@ -1,6 +1,6 @@
-# Apodofos Report Analyzer (Community Edition)
+# Apodofos Performance Report Analyzer (Community Edition)
 
-<img src="assets/apodofos-256.png" width="96" align="right" alt="Apodofos Report Analyzer icon"/>
+<img src="assets/apodofos-256.png" width="96" align="right" alt="Apodofos Performance Report Analyzer icon"/>
 
 An **offline** Windows tool that analyzes Oracle **AWR**, **ASH** and **Statspack** reports (HTML or text). It never
 connects to a database and never uses the internet: you give it a report file, it gives you a diagnosis.
@@ -50,10 +50,10 @@ dotnet run --project src/Apodofos.Cli -- report.html --text
 
 ## Command line
 ```
-apodofos-report <report> [--html out.html] [--json out.json] [--script out.sql] [--text]
-apodofos-report --version
-apodofos-report --license
-apodofos-report --help
+ApodofosReportAnalyzer <report> [--html out.html] [--json out.json] [--script out.sql] [--text]
+ApodofosReportAnalyzer --version
+ApodofosReportAnalyzer --license
+ApodofosReportAnalyzer --help
 ```
 The installer and the portable zip also provide the former command name `apodofos` as an alias, so existing scripts keep working. With no output option, `--text` is assumed. Exit codes: 0 ok, 1 usage error, 2 file unreadable, 3 not a valid
 AWR/ASH/Statspack report, 4 other error. `--license` prints the copyright, licence, no-warranty and Oracle
@@ -105,14 +105,14 @@ browser.
 
 ## License
 
-**Apodofos Report Analyzer, Community Edition** is free software, Copyright (c) 2026 Wissam HANNA, licensed under the
+**Apodofos Performance Report Analyzer, Community Edition** is free software, Copyright (c) 2026 Wissam HANNA, licensed under the
 **GNU Affero General Public License, version 3 only** (SPDX: `AGPL-3.0-only`). See [LICENSE](LICENSE). It comes with
 ABSOLUTELY NO WARRANTY. If you distribute it, or offer a modified version to users over a network, you must make the
 corresponding source code available under the same licence (AGPL section 13). Source code:
 https://github.com/hannawissam/apodofos-community-edition
 
 * The name and logo "Apodofos" are not licensed under the AGPL: see [TRADEMARK.md](TRADEMARK.md). Forks must rename.
-* Apodofos&trade; is a trademark of Wissam HANNA (French trade mark application no. 5322937, filed 2026-11-20, not yet registered) and the umbrella brand of a suite of database software; Apodofos Report Analyzer is its first product.
+* Apodofos&trade; is a trademark of Wissam HANNA (French trade mark application no. 5322937, filed 2026-11-20, not yet registered) and the umbrella brand of a suite of database software; Apodofos Performance Report Analyzer is its first product.
 * For now the project does **not** accept external code contributions by pull request unless the maintainer agreed beforehand in an issue. Bug reports, feature requests and documentation suggestions through issues are welcome. Any invited contribution requires the [CLA](CLA.md); see [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 * Third-party components stay under their own licences: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md), [NOTICE](NOTICE).
 * **Apodofos Professional Edition** is a separate, private, proprietary product under its own licence; it is not part of this repository.

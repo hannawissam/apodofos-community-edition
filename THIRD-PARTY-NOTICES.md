@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-Apodofos Report Analyzer, Community Edition (Copyright 2026 Wissam HANNA, AGPL-3.0-only, see `LICENSE`) incorporates or is
+Apodofos Performance Report Analyzer, Community Edition (Copyright 2026 Wissam HANNA, AGPL-3.0-only, see `LICENSE`) incorporates or is
 distributed together with the third-party components below. **Third-party components remain under their own licences;
 the AGPL licence of this project does not change them.** License identifiers are SPDX identifiers.
 Licenses were read from each package's own `.nuspec` / license file in the local NuGet cache

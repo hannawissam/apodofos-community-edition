@@ -10,9 +10,9 @@ HOW TO RUN
      report (HTML or text).
   3. Command line: open a terminal in the "cli" folder and run
          __CLIEXE__ "report.html" --text
-     Run "__CLIEXE__ --help" for all options. The older command name "apodofos"
-     still works from that folder (cli\apodofos.cmd forwards to __CLIEXE__),
-     so existing scripts keep running.
+     Run "__CLIEXE__ --help" for all options. The earlier command names "apodofos"
+     (1.0.x) and "apodofos-report" (1.1.0) still work from that folder (cli\apodofos.cmd
+     and cli\apodofos-report.cmd forward to __CLIEXE__), so existing scripts keep running.
 
 REQUIREMENTS
   * Windows 10 or 11, 64-bit. No .NET installation is needed (the runtime is included).
@@ -34,8 +34,8 @@ HOW TO REMOVE
   Delete the folder you extracted. To also remove your settings, delete
   %LOCALAPPDATA%\Apodofos\__SLUG__ only (other Apodofos products keep their own
   folders next to it). Settings written by version 1.0.x directly in
-  %LOCALAPPDATA%\Apodofos (window.json, recent.json, EBWebView) are copied into the new
-  folder on first start and can be deleted afterwards.
+  %LOCALAPPDATA%\Apodofos (window.json, recent.json, EBWebView) and by version 1.1.0 in
+  %LOCALAPPDATA%\Apodofos\ReportAnalyzer are moved into the new folder on first start.
 
 LICENCE
   __PRODUCT__ is licensed under the GNU Affero General Public License v3.0 (see LICENSE).

@@ -20,7 +20,7 @@ static class Program
     {
         try
         {
-            MessageBox.Show("An unexpected error occurred.\n\n" + ex?.Message, "Apodofos Report Analyzer",
+            MessageBox.Show("An unexpected error occurred.\n\n" + ex?.Message, "Apodofos Performance Report Analyzer",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         catch { /* nothing more we can do */ }

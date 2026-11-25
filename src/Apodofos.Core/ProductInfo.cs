@@ -24,10 +24,10 @@ public sealed record ProductInfo(string Name, string Edition, string Slug, strin
             .FirstOrDefault(a => string.Equals(a.Key, key, StringComparison.Ordinal))?.Value;
         static string Or(string? v, string fallback) => string.IsNullOrWhiteSpace(v) ? fallback : v;
         return new ProductInfo(
-            Or(Meta("ApodofosProductName"), "Apodofos Report Analyzer"),
+            Or(Meta("ApodofosProductName"), "Apodofos Performance Report Analyzer"),
             Or(Meta("ApodofosEdition"), "Community"),
-            Or(Meta("ApodofosProductSlug"), "ReportAnalyzer"),
-            Or(Meta("ApodofosCliName"), "apodofos-report"),
+            Or(Meta("ApodofosProductSlug"), "PerformanceReportAnalyzer"),
+            Or(Meta("ApodofosCliName"), "ApodofosReportAnalyzer"),
             !string.Equals(Meta("ApodofosMigrateLegacyData"), "false", StringComparison.OrdinalIgnoreCase));
     }
 
@@ -36,7 +36,7 @@ public sealed record ProductInfo(string Name, string Edition, string Slug, strin
 
     public string DefaultDataDirectory => DataDirectory(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
 
-    /// <summary>"Apodofos Report Analyzer 1.1.0 (Community Edition)"; the Professional product name already says so.</summary>
+    /// <summary>"Apodofos Performance Report Analyzer 1.1.0 (Community Edition)"; the Professional product name already says so.</summary>
     public string VersionLine(string version) =>
         string.Equals(Edition, "Community", StringComparison.Ordinal) ? $"{Name} {version} (Community Edition)" : $"{Name} {version}";
 }

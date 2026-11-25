@@ -1,4 +1,4 @@
-# Contributing to Apodofos Report Analyzer (Community Edition)
+# Contributing to Apodofos Performance Report Analyzer (Community Edition)
 
 Thank you for your interest. Apodofos Community Edition is licensed **AGPL-3.0-only**. Because the maintainer may also license the
 code under other terms (see `CLA.md`), any accepted contribution requires the CLA.

@@ -1,6 +1,7 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <!-- Identity comes from Edition.props through the wixproj (DefineConstants): ProductName, ProductSlug, DesktopExe, CliExe, UpgradeCode,
-       and CliAlias (only when the edition keeps the legacy 'apodofos' command line name working).
+       and, only when the edition claims the earlier data (ApodofosMigrateLegacyData): LegacyData, CliAlias1 / CliAlias2 (the 1.0.x and 1.1.0
+       command names, kept as cli\*.cmd shims) and LegacyDataSlug (the 1.1.0 data folder).
        Per-user only (no administrator rights, no UAC): everything is installed under %LOCALAPPDATA%\Programs\Apodofos\<slug> and
        HKCU\Software\Apodofos\<slug>; settings live in %LOCALAPPDATA%\Apodofos\<slug>. Every product owns its slug folders only, so removing
        one product never touches another product or edition. -->
@@ -81,6 +82,9 @@
                   Execute="deferred" Impersonate="yes" Return="ignore" />
     <CustomAction Id="CleanLegacyProfile" Directory="SystemFolder" ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c rmdir /s /q &quot;[LocalAppDataFolder]Apodofos\EBWebView&quot;"
                   Execute="deferred" Impersonate="yes" Return="ignore" />
+    <!-- 1.1.0 kept its data in %LOCALAPPDATA%\Apodofos\$(var.LegacyDataSlug): that one folder only, recursively. -->
+    <CustomAction Id="CleanLegacyData110" Directory="SystemFolder" ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c rmdir /s /q &quot;[LocalAppDataFolder]Apodofos\$(var.LegacyDataSlug)&quot;"
+                  Execute="deferred" Impersonate="yes" Return="ignore" />
     <?endif?>
     <InstallExecuteSequence>
       <Custom Action="CleanInstallFolder" After="RemoveFiles" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
@@ -90,7 +94,8 @@
       <Custom Action="CleanLegacyWindow" After="CleanUserData" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
       <Custom Action="CleanLegacyRecent" After="CleanLegacyWindow" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
       <Custom Action="CleanLegacyProfile" After="CleanLegacyRecent" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
-      <Custom Action="CleanUserDataParent" After="CleanLegacyProfile" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="CleanLegacyData110" After="CleanLegacyProfile" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="CleanUserDataParent" After="CleanLegacyData110" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
       <?else?>
       <Custom Action="CleanUserDataParent" After="CleanUserData" Condition="REMOVE=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
       <?endif?>
@@ -104,9 +109,10 @@
     <ComponentGroup Id="AppFiles" Directory="APPLICATIONFOLDER">
       <Component Id="ApodofosExe" Guid="*"><File Id="ApodofosExe" Source="$(StageDir)$(var.DesktopExe).exe" KeyPath="yes" /></Component>
       <Component Id="ApodofosCli" Guid="*" Directory="CLIFOLDER"><File Id="ApodofosCli" Source="$(StageDir)cli\$(var.CliExe).exe" KeyPath="yes" /></Component>
-      <?ifdef CliAlias?>
-      <!-- keeps scripts that call the old command name working: forwards every argument to the CLI -->
-      <Component Id="ApodofosCliAlias" Guid="*" Directory="CLIFOLDER"><File Id="ApodofosCliAlias" Source="$(StageDir)cli\$(var.CliAlias).cmd" KeyPath="yes" /></Component>
+      <?ifdef LegacyData?>
+      <!-- keep scripts that call the former command names working (1.0.x and 1.1.0): each forwards every argument to the CLI -->
+      <Component Id="ApodofosCliAlias1" Guid="*" Directory="CLIFOLDER"><File Id="ApodofosCliAlias1" Source="$(StageDir)cli\$(var.CliAlias1).cmd" KeyPath="yes" /></Component>
+      <Component Id="ApodofosCliAlias2" Guid="*" Directory="CLIFOLDER"><File Id="ApodofosCliAlias2" Source="$(StageDir)cli\$(var.CliAlias2).cmd" KeyPath="yes" /></Component>
       <?endif?>
       <Component Id="LegalLicense" Guid="*"><File Source="$(StageDir)LICENSE" KeyPath="yes" /></Component>
       <Component Id="LegalNotice" Guid="*"><File Source="$(StageDir)NOTICE" KeyPath="yes" /></Component>

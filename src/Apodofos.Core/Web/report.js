@@ -35,7 +35,7 @@
   function typ(A) { var t = A.meta && A.meta.reportType; return t === 'ASH' || t === 'Statspack' ? t : 'AWR'; }
   function timeLabel(A) { var t = typ(A); return t === 'ASH' ? 'active session time' : t === 'Statspack' ? 'DB time (Statspack)' : 'DB time'; }
   var TM = 'Apodofos\u2122 is a trademark of Wissam HANNA (French trade mark application no. 5322937, not yet registered).';
-  function product(A) { return (A.meta && A.meta.product) || 'Apodofos Report Analyzer'; }
+  function product(A) { return (A.meta && A.meta.product) || 'Apodofos Performance Report Analyzer'; }
   function sec(title, cls) { return h('section', { class: 'rpt-sec ' + (cls || '') }, h('h2', { text: title })); }
 
   function ring(A) {

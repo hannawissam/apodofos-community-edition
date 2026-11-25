@@ -78,7 +78,7 @@ public class HostTests : IDisposable
         Assert.Contains(_p.Scripts, x => x.StartsWith("window.AwrApp.setRecent(", StringComparison.Ordinal));
         Assert.Single(loads);
         Assert.Contains(_p.Scripts, x => x.StartsWith("window.AwrApp.load(", StringComparison.Ordinal));
-        Assert.EndsWith("— Apodofos Report Analyzer 9.9.9", _p.Titles.Last(), StringComparison.Ordinal);
+        Assert.EndsWith("— Apodofos Performance Report Analyzer 9.9.9", _p.Titles.Last(), StringComparison.Ordinal);
         Assert.StartsWith("awr-19c-synthetic.html", _p.Titles.Last(), StringComparison.Ordinal);
     }
 

@@ -18,7 +18,7 @@
 #printreport[hidden] { display: none; }
 
 @page { size: A4; margin: 14mm 12mm 17mm;
-  @bottom-left { content: "Apodofos Report Analyzer"; font: 8pt "Segoe UI", Arial, sans-serif; color: #475569; border-top: .2mm solid #cbd5e1; padding-top: 2mm; vertical-align: top; }
+  @bottom-left { content: "Apodofos Performance Report Analyzer"; font: 8pt "Segoe UI", Arial, sans-serif; color: #475569; border-top: .2mm solid #cbd5e1; padding-top: 2mm; vertical-align: top; }
   @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8pt "Segoe UI", Arial, sans-serif; color: #475569; border-top: .2mm solid #cbd5e1; padding-top: 2mm; vertical-align: top; } }
 @page :first { margin-top: 12mm; }
 

@@ -1,6 +1,6 @@
 # Code of Conduct
 
-We want a respectful, harassment-free community around Apodofos Report Analyzer.
+We want a respectful, harassment-free community around Apodofos Performance Report Analyzer.
 
 * Be respectful and constructive; criticise ideas, not people.
 * No harassment, discrimination, threats, or personal attacks.

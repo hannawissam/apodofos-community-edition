@@ -1,4 +1,4 @@
-# Apodofos Report Analyzer: release notes
+# Apodofos Performance Report Analyzer: release notes
 
 This file is the single place for what the application does and what changed in each release. It is updated with **every** release (see "How this file is maintained" at the end), and each GitHub release body is taken from the matching section.
 
@@ -28,7 +28,7 @@ Apodofos™ is a trademark of Wissam HANNA (French trade mark application no. 53
 
 ### The application
 - **Desktop app** for Windows 10/11 (WinForms and WebView2): the original report with jump-to-section links beside the analysis, light and dark themes, a recent-files list, drag and drop, remembered window position, Save HTML, Print, an About box and the version in the title bar and the About box.
-- **Command line** `apodofos-report <report> [--text] [--html out.html] [--json out.json] [--script out.sql]`, `--version`, `--license`, `--help`, with documented exit codes, for automation. The former command name `apodofos` still works (the installer and the portable zip include a small forwarding file).
+- **Command line** `ApodofosReportAnalyzer <report> [--text] [--html out.html] [--json out.json] [--script out.sql]`, `--version`, `--license`, `--help`, with documented exit codes, for automation. The former command names `apodofos` and `apodofos-report` still work (the installer and the portable zip include small forwarding files).
 - **Print and PDF report**: Print (and Ctrl+P) always produce one complete, formatted report, whichever tab is open: cover, overall health, key numbers (every tile), the Fix first plan, root causes, every finding with evidence, steps, SQL and documentation citations, all charts, top SQL and the report facts. **Save PDF** writes it as a PDF file (A4, page numbers) without going through a print dialog.
 - **Exports**: a self-contained interactive HTML dashboard, JSON, a SQL script and the PDF report.
 - **Installer and portable zip**: an MSI (per user only, no administrator rights needed, in-place upgrades, and an uninstall that removes everything it put on the machine, settings included) and a portable zip with the CLI in the `cli` folder, both self-contained (no .NET install). SHA-256 checksums are published with every release. The files are not code-signed yet, so Windows SmartScreen may warn.
@@ -44,6 +44,15 @@ Free software under **AGPL-3.0-only**, no warranty. The name and logo are not co
 ## Release history
 
 **Version 1.0.7 is the first official public release of Apodofos Report Analyzer.** Versions 1.0.0 to 1.0.6 were test builds, published on 2026-11-19 and 2026-11-20 while the product was being finalised. They are kept for the record, are marked as pre-releases on GitHub, and should not be used: install 1.0.7 or later.
+
+### 1.2.0 (release candidate), a new name: Apodofos Performance Report Analyzer
+- **The product is now called Apodofos Performance Report Analyzer.** It describes what it does: it analyses the performance reports you give it (Oracle AWR, ASH and Statspack). "Apodofos" remains the brand. The name changes in the window, the installer, the shortcuts, the About box, the print and PDF report, the command line help and the documentation. Nothing about how the application works changes.
+- **The files and folders are renamed to match.** The program is `ApodofosPerformanceReportAnalyzer.exe` and the command line tool is `ApodofosReportAnalyzer` (in the `cli` folder). The program folder is `%LOCALAPPDATA%\Programs\Apodofos\PerformanceReportAnalyzer` and your settings are in `%LOCALAPPDATA%\Apodofos\PerformanceReportAnalyzer`. The installer registry key is `HKCU\Software\Apodofos\PerformanceReportAnalyzer`. Release files are named `Apodofos-PerformanceReportAnalyzer-Setup-<version>-win-x64.msi` and `Apodofos-PerformanceReportAnalyzer-Portable-<version>-win-x64.zip`.
+- **Your settings move by themselves.** The first time 1.2.0 starts it moves your window position, recent reports and the WebView2 profile from the folder used by 1.1.0 (or by 1.0.x) into the new one. Installing 1.2.0 over 1.0.x or 1.1.0 is an in-place upgrade; the old shortcuts are replaced.
+- **Your old commands keep working.** `apodofos` (1.0.x) and `apodofos-report` (1.1.0) still run the command line tool through small forwarding files, so existing scripts are not broken. If you start the program itself by its old file path, point your shortcut or script at the new file name.
+- **A clean uninstall still removes only this product.** It deletes this product's program folder, its settings folder and the leftovers of the two older layouts, and never anything stored under the Apodofos name by another product.
+- **Going back** to 1.0.x or 1.1.0 starts with an empty recent-reports list.
+- **Known limits:** the files are still not code-signed, so Windows SmartScreen may warn; the first start after the upgrade takes a moment longer while settings are moved.
 
 ### 1.1.0 (2026-11-25), the product name everywhere
 - **One consistent name: Apodofos Report Analyzer.** "Apodofos" is the brand; the application is "Apodofos Report Analyzer" in the window, the installer, the shortcuts, the command line and the documentation. The program file is now `ApodofosReportAnalyzer.exe` and the command line tool is `apodofos-report` (the old command `apodofos` keeps working through a small forwarding file, so existing scripts are not broken).

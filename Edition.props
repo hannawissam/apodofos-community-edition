@@ -6,13 +6,13 @@
     Never respell, abbreviate or fuse the word "Apodofos" in any user-visible text (trademark).
   -->
   <PropertyGroup>
-    <ApodofosProductName>Apodofos Report Analyzer</ApodofosProductName>
+    <ApodofosProductName>Apodofos Performance Report Analyzer</ApodofosProductName>
     <ApodofosEdition>Community</ApodofosEdition>
-    <!-- folder / registry name under Apodofos: %LOCALAPPDATA%\Apodofos\ReportAnalyzer, %LOCALAPPDATA%\Programs\Apodofos\ReportAnalyzer, HKCU\Software\Apodofos\ReportAnalyzer -->
-    <ApodofosProductSlug>ReportAnalyzer</ApodofosProductSlug>
-    <ApodofosDesktopExe>ApodofosReportAnalyzer</ApodofosDesktopExe>
-    <ApodofosCliExe>apodofos-report</ApodofosCliExe>
-    <ApodofosReleasePrefix>Apodofos-ReportAnalyzer</ApodofosReleasePrefix>
+    <!-- folder / registry name under Apodofos: %LOCALAPPDATA%\Apodofos\PerformanceReportAnalyzer, %LOCALAPPDATA%\Programs\Apodofos\PerformanceReportAnalyzer, HKCU\Software\Apodofos\PerformanceReportAnalyzer -->
+    <ApodofosProductSlug>PerformanceReportAnalyzer</ApodofosProductSlug>
+    <ApodofosDesktopExe>ApodofosPerformanceReportAnalyzer</ApodofosDesktopExe>
+    <ApodofosCliExe>ApodofosReportAnalyzer</ApodofosCliExe>
+    <ApodofosReleasePrefix>Apodofos-PerformanceReportAnalyzer</ApodofosReleasePrefix>
     <!-- Windows Installer upgrade family: unchanged since 1.0.x so existing installs upgrade in place -->
     <ApodofosUpgradeCode>F4D8DA80-FBED-4F75-A47F-A25C42A06683</ApodofosUpgradeCode>
     <!-- import settings and recent files left by 1.0.x in %LOCALAPPDATA%\Apodofos (only the original product claims them) -->

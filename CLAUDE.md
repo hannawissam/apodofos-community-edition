@@ -18,7 +18,7 @@ dotnet run --project tools/IconGen -- assets   # regenerate the icon
 ## Layout
 - `src/Apodofos.Core` — parsing (`Parsing/`: AWR, ASH, Statspack), providers (`Providers/`: one `IReportProvider` per report type, auto-discovered), model (`Model/`), rules (`Analysis/Rules/`), knowledge base and offline doc catalog (`Knowledge/`, `doc-catalog.json`), chart specs (`Analysis/ChartBuilder.cs`), dashboard assembly (`Export/`), embedded offline UI (`Web/`).
 - `src/Apodofos.Desktop` — WinForms + WebView2 shell hosting the embedded UI.
-- `src/Apodofos.Cli` — `apodofos-report` command line (identity of each edition comes from `Edition.props`; `apodofos` stays as an alias shim in the installer).
+- `src/Apodofos.Cli` — `ApodofosReportAnalyzer` command line (identity of each edition comes from `Edition.props`; the former names `apodofos` and `apodofos-report` stay as alias shims in the installer).
 - `tests/Apodofos.Tests` — xunit; synthetic fixtures in `TestData/`; `LocalCorpusTests` use the git-ignored `EXAMPLES-local/` and skip when absent.
 - `tools/` — IconGen, `spdx-headers.ps1`, `verify-doc-links.ps1` (network tool for the doc catalog).
 - `docs/` — `ui-contract.md` (binding JSON/host contract), `architecture.md`.

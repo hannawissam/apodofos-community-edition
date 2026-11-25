@@ -127,7 +127,7 @@ public class CliTests : IDisposable
         var (c, _, _) = Cli(Samples.Syn19, "--script", f);
         Assert.Equal(0, c);
         var s = File.ReadAllText(f);
-        Assert.StartsWith("-- Apodofos Report Analyzer", s);
+        Assert.StartsWith("-- Apodofos Performance Report Analyzer", s);
         Assert.DoesNotContain('\0', s);
         Assert.Matches(@"(?im)^\s*(select|with|alter|show)\b", s);
     }

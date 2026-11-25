@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Project context
-Apodofos Report Analyzer, Community Edition: an offline tool (Windows desktop app and CLI; Linux and macOS planned) that analyzes Oracle **AWR**,
+Apodofos Performance Report Analyzer, Community Edition: an offline tool (Windows desktop app and CLI; Linux and macOS planned) that analyzes Oracle **AWR**,
 **ASH** and **Statspack** reports (HTML or text). It reads report files only: it never connects to a database and never
 uses the internet. Licence: AGPL-3.0-only, Copyright (c) 2026 Wissam HANNA. This repository (`hannawissam/apodofos-community-edition`)
 is the public source of truth; everything needed to work on it is here.

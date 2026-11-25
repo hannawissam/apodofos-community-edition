@@ -4,7 +4,7 @@
 # machines that lack it (e.g. a clean Windows 10).
 # License files (LICENSE, NOTICE, THIRD-PARTY-NOTICES.md) and the .NET runtime's own third-party
 # notices are copied next to each published executable.
-# Executable names (ApodofosReportAnalyzer.exe, apodofos-report.exe) come from Edition.props through the project files.
+# Executable names (ApodofosPerformanceReportAnalyzer.exe, ApodofosReportAnalyzer.exe) come from Edition.props through the project files.
 # -ArtifactsDir redirects the output (default: artifacts next to this script).
 param([string]$Runtime = 'win-x64', [string]$ArtifactsDir)
 $ErrorActionPreference = 'Stop'

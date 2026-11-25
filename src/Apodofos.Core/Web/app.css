@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: AGPL-3.0-only
    Copyright (c) 2026 Wissam HANNA */
 
-/* Apodofos Report Analyzer - design system. Palette from the app icon: #0B2E4F #0E7690 #22C55E #F59E0B #EF4444 */
+/* Apodofos Performance Report Analyzer - design system. Palette from the app icon: #0B2E4F #0E7690 #22C55E #F59E0B #EF4444 */
 :root {
   --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: "Cascadia Mono", "Cascadia Code", Consolas, "SF Mono", Menlo, "Liberation Mono", monospace;
