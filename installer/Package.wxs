@@ -55,16 +55,23 @@
     </Feature>
     <!-- Features default to unselected (Level 1000 > INSTALLLEVEL 1); select them in the wizard or via ADDLOCAL. -->
 
-    <!-- Silent installs: the public property INSTALLFOLDER may choose another folder; the default is %LOCALAPPDATA%\Programs\Apodofos\<slug>. -->
+    <!-- Silent installs: the public property INSTALLFOLDER may choose another folder; the default is %LOCALAPPDATA%\Programs\Apodofos\<slug>.
+         Uninstall never removes other content of a chosen folder (see below). -->
     <Property Id="INSTALLFOLDER" Secure="yes" />
     <SetProperty Id="APPLICATIONFOLDER" Value="[INSTALLFOLDER]" After="CostInitialize" Condition="INSTALLFOLDER" />
 
     <!-- Clean uninstall. Removing the product (not upgrading it) also deletes what the application created: its settings and
          WebView2 profile folder %LOCALAPPDATA%\Apodofos\<slug> (window position, recent files, cache) and anything left in this
-         product's install folder. ONLY the product's own slug folders are removed recursively; the shared parents
+         product's DEFAULT install folder. ONLY the product's own slug folders are removed recursively; the shared parents
          (Programs\Apodofos and %LOCALAPPDATA%\Apodofos) are removed with a NON-recursive rmdir, which fails harmlessly while another
-         product still lives there. Upgrades keep all of it (UPGRADINGPRODUCTCODE is set while an old version is removed by a newer one). -->
-    <CustomAction Id="CleanInstallFolder" Directory="SystemFolder" ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c rmdir /s /q &quot;[APPLICATIONFOLDER]&quot;"
+         product still lives there. Upgrades keep all of it (UPGRADINGPRODUCTCODE is set while an old version is removed by a newer one).
+
+         NEVER delete [APPLICATIONFOLDER] (or any other path the user can choose) recursively: INSTALLFOLDER may point at a folder that
+         holds the user's own files, and Windows Installer restores that choice at uninstall time. In a chosen folder only the files
+         this package installed are removed (RemoveFiles), then the folders if they are empty (RemoveFolder below). The recursive
+         target is therefore spelled out from LocalAppDataFolder, which cannot be set on the command line. tools/verify-msi.ps1
+         enforces this. -->
+    <CustomAction Id="CleanInstallFolder" Directory="SystemFolder" ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c rmdir /s /q &quot;[LocalAppDataFolder]Programs\Apodofos\$(var.ProductSlug)&quot;"
                   Execute="deferred" Impersonate="yes" Return="ignore" />
     <CustomAction Id="CleanInstallParent" Directory="SystemFolder" ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c rmdir &quot;[ProgramsFolderUser]Apodofos&quot;"
                   Execute="deferred" Impersonate="yes" Return="ignore" />
@@ -96,7 +103,8 @@
       <?endif?>
     </InstallExecuteSequence>
 
-    <!-- Welcome, licence, feature selection (optional desktop shortcut and PATH entry, install folder), install. No "install for all users" page. -->
+    <!-- Welcome, licence, feature selection (optional desktop shortcut and PATH entry), install. No "install for all users" page. No feature sets
+         ConfigurableDirectory, so the wizard offers no other folder: only the command line does (INSTALLFOLDER). -->
     <ui:WixUI Id="WixUI_FeatureTree" />
   </Package>
 
