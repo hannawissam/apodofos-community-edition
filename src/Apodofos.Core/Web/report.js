@@ -3,7 +3,7 @@
 
    Print / PDF report. Builds a complete, formatted document from the analysis payload, independent of the tab that is open:
    cover, health, data quality, key numbers, fix-first plan, root causes, every finding (evidence, steps, SQL, documentation),
-   charts, top SQL and report facts. Pure DOM construction with textContent only (report text is never parsed as HTML).
+   charts, top SQL, the referenced Oracle documentation and report facts. Pure DOM construction with textContent only (report text is never parsed as HTML).
    No network, no dependencies besides the optional window.AwrCharts for the charts. */
 (function () {
   'use strict';
@@ -31,11 +31,45 @@
     try { return Number(v).toLocaleString(undefined, { maximumFractionDigits: d === undefined ? 2 : d }); } catch (e) { return String(v); }
   }
   function clip(s, n) { s = String(s || ''); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
-  function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : null; }
+  function safeUrl(u) { return /^https:\/\//i.test(u || '') ? u : null; }
+  function extLink(url, text, cls) { return h('a', { class: cls, href: url, target: '_blank', rel: 'noopener noreferrer', text: text }); }
+
+  /* ---- Oracle documentation referenced by the findings (shared with the dashboard, see app.js) ---- */
+  var REF_TITLE = 'Oracle documentation referenced by this analysis';
+  var REF_NOTE = 'These are the official Oracle documentation pages related to the findings, numbered in the order they are first cited. ' +
+    'They are for checking and further reading: not every threshold or recommendation in this analysis comes from Oracle documentation. ' +
+    'Opening a link needs internet access in your web browser; the application itself fetches nothing.';
+  /* One entry per URL, in order of first citation (the findings arrive most severe first). Title, book and section come from the
+     catalogue entry (analysis.docs[]) with the same URL when there is one. Only https addresses get an href. */
+  function references(A) {
+    var cat = Object.create(null), byUrl = Object.create(null), list = [];
+    (A.docs || []).forEach(function (d) { if (d.url && !cat[d.url]) cat[d.url] = d; });
+    (A.findings || []).forEach(function (f) {
+      (f.docs || []).forEach(function (d) {
+        var u = d.url; if (!u) return;
+        var r = byUrl[u];
+        if (!r) {
+          var c = cat[u] || {};
+          r = byUrl[u] = { n: list.length + 1, url: u, href: safeUrl(u), title: c.title || d.title || u, book: c.book || '', section: c.section || '', local: c.local || '', findings: [] };
+          list.push(r);
+        }
+        if (r.findings.indexOf(f) < 0) r.findings.push(f);
+      });
+    });
+    return { list: list, byUrl: byUrl };
+  }
   function typ(A) { var t = A.meta && A.meta.reportType; return t === 'ASH' || t === 'Statspack' ? t : 'AWR'; }
   function timeLabel(A) { var t = typ(A); return t === 'ASH' ? 'active session time' : t === 'Statspack' ? 'DB time (Statspack)' : 'DB time'; }
   var TM = 'Apodofos\u2122 is a trademark of Wissam HANNA (French trade mark application no. 5322937, not yet registered).';
   function product(A) { return (A.meta && A.meta.product) || 'Apodofos Report Analyzer'; }
+  /* ---- the application version shown on screen and on every printed report: never a made-up number ---- */
+  function cleanVersion(v) { v = String(v || '').split('+')[0]; return /^\d+(\.\d+){1,3}(-[0-9A-Za-z.\-]+)?$/.test(v) ? v : ''; }
+  /* app: what the running application reported (desktop host only); engine: meta.analyzerVersion, which saved pages carry too */
+  function versionText(app, engine) {
+    app = cleanVersion(app); engine = cleanVersion(engine);
+    if (app && engine && app !== engine) return app + ' (analysis engine ' + engine + ')';
+    return app || engine;
+  }
   function sec(title, cls) { return h('section', { class: 'rpt-sec ' + (cls || '') }, h('h2', { text: title })); }
 
   function ring(A) {
@@ -131,9 +165,12 @@
 
   function sub(title, node) { return h('div', { class: 'rpt-sub' }, h('h4', { text: title }), node); }
 
-  function finding(A, f, n) {
+  /* the "[3]" in front of a citation: a link to that entry of the reference list (it stays a link in the PDF) */
+  function refMark(r) { return h('a', { class: 'rpt-refn', href: '#rpt-ref-' + r.n, text: '[' + r.n + ']' }); }
+
+  function finding(A, f, n, refs) {
     var imp = Math.max(0, Math.min(100, +f.impact || 0));
-    var card = h('article', { class: 'rpt-f sev-' + f.severity },
+    var card = h('article', { class: 'rpt-f sev-' + f.severity, id: 'rpt-f-' + n },
       h('header', { class: 'rpt-f-head' },
         h('span', { class: 'rpt-num', text: String(n) }),
         h('div', { class: 'rpt-f-title' }, h('h3', { text: f.title }),
@@ -158,14 +195,17 @@
     }
     if (f.docs && f.docs.length) {
       var ul = h('ul', { class: 'rpt-docs' });
-      f.docs.forEach(function (d) { var u = safeUrl(d.url); ul.appendChild(h('li', null, h('span', { text: d.title || d.url }), u ? h('span', { class: 'rpt-url', text: '  ' + u }) : null)); });
+      f.docs.forEach(function (d) {
+        var u = safeUrl(d.url), r = refs.byUrl[d.url], title = d.title || d.url;
+        ul.appendChild(h('li', null, r ? [refMark(r), ' '] : null, u ? extLink(u, title) : h('span', { text: title }), u ? ['  ', extLink(u, u, 'rpt-url')] : null));
+      });
       card.appendChild(sub('Oracle documentation', ul));
     }
     if (f.sourceViews && f.sourceViews.length) card.appendChild(h('p', { class: 'rpt-muted rpt-src', text: 'Data comes from: ' + f.sourceViews.join(', ') }));
     return card;
   }
 
-  function findings(A) {
+  function findings(A, refs) {
     var real = A.findings.filter(function (f) { return f.severity !== 'Ok'; }), ok = A.findings.filter(function (f) { return f.severity === 'Ok'; });
     var s = sec('Findings', 'rpt-findings');
     if (!A.findings.length) { s.appendChild(h('p', { text: 'No findings were produced for this report.' })); return [s]; }
@@ -180,11 +220,14 @@
       });
       s.appendChild(h('table', { class: 'rpt-idx' }, h('thead', null, h('tr', null, h('th', { class: 'n', text: '#' }), h('th', { text: 'Severity' }), h('th', { text: 'Finding' }), h('th', { text: 'Area' }), h('th', { class: 'n', text: 'Share of ' + timeLabel(A) }))), ib));
     }
-    real.forEach(function (f, i) { s.appendChild(finding(A, f, i + 1)); });
+    real.forEach(function (f, i) { s.appendChild(finding(A, f, i + 1, refs)); });
     var out = [s];
     if (ok.length) {
       var s2 = sec('Checked and healthy', 'rpt-okset'), ul = h('ul', { class: 'rpt-oklist' });
-      ok.forEach(function (f) { ul.appendChild(h('li', null, h('b', { text: f.title }), f.plain ? h('span', { class: 'rpt-muted', text: '  ' + clip(f.plain, 220) }) : null)); });
+      ok.forEach(function (f, i) {
+        var marks = (f.docs || []).map(function (d) { var r = refs.byUrl[d.url]; return r ? [' ', refMark(r)] : null; });
+        ul.appendChild(h('li', { id: 'rpt-ok-' + (i + 1) }, h('b', { text: f.title }), f.plain ? h('span', { class: 'rpt-muted', text: '  ' + clip(f.plain, 220) }) : null, marks));
+      });
       s2.appendChild(ul); out.push(s2);
     }
     return out;
@@ -234,6 +277,28 @@
     return s;
   }
 
+  /* the consolidated reference list; each entry links to the findings that cite it */
+  function referenceList(A, refs) {
+    if (!refs.list.length) return null;
+    var s = sec(REF_TITLE, 'rpt-refs'), ol = h('ol', { class: 'rpt-reflist' });
+    var ok = A.findings.filter(function (f) { return f.severity === 'Ok'; }), real = A.findings.filter(function (f) { return f.severity !== 'Ok'; });
+    function cite(f) {
+      var healthy = f.severity === 'Ok', n = (healthy ? ok : real).indexOf(f) + 1;
+      return h('li', null, h('a', { href: (healthy ? '#rpt-ok-' : '#rpt-f-') + n, text: (healthy ? 'Healthy check: ' : 'Finding ' + n + ': ') + f.title }));
+    }
+    s.appendChild(h('p', { class: 'rpt-muted', text: REF_NOTE }));
+    refs.list.forEach(function (r) {
+      var meta = [r.book, r.section ? 'Section: ' + r.section : ''].filter(Boolean).join('  ·  ');
+      ol.appendChild(h('li', { id: 'rpt-ref-' + r.n }, h('span', { class: 'rk', text: '[' + r.n + ']' }), h('div', null,
+        h('div', { class: 'pt' }, r.href ? extLink(r.href, r.title) : r.title),
+        meta ? h('div', { class: 'rpt-muted', text: meta }) : null,
+        r.href ? h('div', null, extLink(r.href, r.href, 'rpt-url')) : null,
+        r.local ? h('div', { class: 'rpt-muted', text: 'Local reference (on the database host): ' + r.local }) : null,
+        h('ul', { class: 'rpt-cited', 'aria-label': 'Cited by' }, r.findings.map(cite)))));
+    });
+    s.appendChild(ol); return s;
+  }
+
   function facts(A) {
     var m = A.meta, s = sec('About this report', 'rpt-about');
     var rows = [['Database', [m.dbName, m.dbId ? '(' + m.dbId + ')' : ''].filter(Boolean).join(' ')], ['Instance', m.instance ? m.instance + (m.rac ? ' (RAC)' : '') : ''],
@@ -260,17 +325,19 @@
     o = o || {}; o.now = o.now || new Date();
     var A = analysis;
     A.meta = A.meta || {}; A.health = A.health || { score: 0, grade: '', headline: '', paragraphs: [], counts: {} };
-    ['kpis', 'findings', 'charts', 'topSql', 'warnings', 'rootCauses', 'actionPlan'].forEach(function (k) { A[k] = A[k] || []; });
+    ['kpis', 'findings', 'charts', 'topSql', 'warnings', 'rootCauses', 'actionPlan', 'docs'].forEach(function (k) { A[k] = A[k] || []; });
     A.dataQuality = A.dataQuality || { level: 'Good', notes: [] }; A.dataQuality.notes = A.dataQuality.notes || []; A.dataQuality.alerts = A.dataQuality.alerts || [];
     var root = h('div', { class: 'rpt', lang: 'en' });
-    /* running footer of every printed page: the product name (a build constant, never report text) beside the page counter */
-    root.appendChild(h('style', { text: '@page { @bottom-left { content: "' + product(A).replace(/["\\]/g, '') + '"; } }' }));
+    /* running footer of every printed page: product name and version (build constants, never report text) beside the page counter */
+    o.version = versionText(o.version, A.meta.analyzerVersion);
+    root.appendChild(h('style', { text: '@page { @bottom-left { content: "' + (product(A) + (o.version ? ' ' + o.version : '')).replace(/["\\]/g, '') + '"; } }' }));
     add(root, cover(A, o)); add(root, health(A)); add(root, quality(A)); add(root, kpis(A)); add(root, plan(A)); add(root, causes(A));
-    add(root, findings(A));
-    var ch = charts(A, o); add(root, ch); add(root, topSql(A)); add(root, facts(A)); add(root, foot(A, o));
+    var refs = references(A);
+    add(root, findings(A, refs));
+    var ch = charts(A, o); add(root, ch); add(root, topSql(A)); add(root, referenceList(A, refs)); add(root, facts(A)); add(root, foot(A, o));
     root._afterAttach = function () { if (ch && ch._draw) ch._draw(); };
     return root;
   }
 
-  window.AwrReport = { build: build, version: '1.0' };
+  window.AwrReport = { build: build, versionText: versionText, references: references, referencesTitle: REF_TITLE, referencesNote: REF_NOTE, version: '1.0' };
 })();

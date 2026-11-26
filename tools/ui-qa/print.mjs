@@ -53,6 +53,14 @@ try {
   check(/^Apodofos Report Analyzer/.test(tm.product), 'cover shows the product name', tm.product);
   check(tm.page.includes(tm.product), 'page footer carries the product name', tm.page);
   check(m.overflowX <= 1, 'no horizontal overflow', 'overflow ' + m.overflowX + 'px, width ' + m.width + 'px');
+  const refs = await b.ev(`(function(){var A=window.__AWR__.analysis, urls={}; A.findings.forEach(function(f){(f.docs||[]).forEach(function(d){urls[d.url]=1;});});
+    var rep=document.getElementById('printreport'), a=Array.prototype.slice.call(rep.querySelectorAll('a'));
+    return { expected: Object.keys(urls).length, listed: rep.querySelectorAll('.rpt-reflist > li').length,
+      broken: a.filter(function(x){var h=x.getAttribute('href')||'';return h.charAt(0)==='#'?!document.getElementById(h.slice(1)):!/^https:\\/\\//.test(h);}).length,
+      version: A.meta.analyzerVersion, cover: rep.querySelector('.rpt-gen').textContent, foot: rep.querySelector('.rpt-foot p').textContent }; })()`);
+  check(refs.listed === refs.expected && refs.listed > 0, 'every referenced documentation page is listed once', refs.listed + ' of ' + refs.expected);
+  check(refs.broken === 0, 'report links are https or point inside the report', refs.broken + ' broken');
+  check(!!refs.version && refs.cover.includes(refs.version) && refs.foot.includes(refs.version) && tm.page.includes(refs.version), 'cover, closing note and page footer state the version', refs.version);
 
   // the same report whichever tab is open
   await b.media('');
