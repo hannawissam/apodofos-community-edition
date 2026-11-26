@@ -111,7 +111,7 @@ public sealed class WaitEventRules : IRule
                 f.WhyItMatters = kb.Why;
                 f.Technical = kb.Technical;
                 f.Recommendations = [.. kb.Actions];
-                f.Sql = kb.Sql.Select(s => s with { Code = s.Code.Replace("&event", name.Replace("'", "''")) }).ToList();
+                f.Sql = kb.Sql.Select(s => s with { Code = s.Code.Replace("&event", SqlSafe.Literal(name)) }).ToList();
                 f.Sql.Add(new("Trend of this wait across snapshots (DBA_HIST_SYSTEM_EVENT)",
                     $"""
                     SELECT s.snap_id,
@@ -121,7 +121,7 @@ public sealed class WaitEventRules : IRule
                     FROM   dba_hist_system_event e
                            JOIN dba_hist_snapshot s
                              ON s.snap_id = e.snap_id AND s.dbid = e.dbid AND s.instance_number = e.instance_number
-                    WHERE  e.event_name = '{name.Replace("'", "''")}'
+                    WHERE  e.event_name = '{SqlSafe.Literal(name)}'
                     AND    e.instance_number = &inst_num
                     AND    s.snap_id BETWEEN &begin_snap - 1 AND &end_snap
                     ORDER  BY s.snap_id;
@@ -140,7 +140,7 @@ public sealed class WaitEventRules : IRule
                     $"""
                     SELECT sql_id, session_id, program, COUNT(*) * 10 AS approx_seconds
                     FROM   dba_hist_active_sess_history
-                    WHERE  event = '{name.Replace("'", "''")}'
+                    WHERE  event = '{SqlSafe.Literal(name)}'
                     AND    snap_id BETWEEN &begin_snap AND &end_snap
                     GROUP  BY sql_id, session_id, program
                     ORDER  BY approx_seconds DESC;
@@ -213,7 +213,9 @@ public sealed class WaitEventRules : IRule
         if (owner.Length == 0 || obj.Length == 0) return;
         var isIndex = type.Contains("INDEX");
         var isPart = type.Contains("PARTITION") && sub.Length > 0;
-        var q = $"{owner}.{obj}";
+        var q = $"{owner}.{obj}"; // for text; statements use the checked names below
+        var sqlQ = $"{SqlSafe.Identifier(owner, "object_owner.")}.{SqlSafe.Identifier(obj, "object_name")}";
+        var sqlSub = SqlSafe.Identifier(sub, "partition_name");
         var online = AtLeast(ctx, 12, 2);
         var oc = online ? " ONLINE" : "";
         var onlineNote = online ? "" : "  (this release cannot move a table online: the table is locked while it moves)";
@@ -236,7 +238,7 @@ public sealed class WaitEventRules : IRule
                 ? $"{q} is {why}: do not reverse, hash-partition or change INITRANS on it yourself. Raise a service request with Oracle Support (or the application vendor) with this report, and look at the module or concurrent program that drives the contention (for example reduce the number of parallel workers)."
                 : $"{q} is {why}: it cannot be rebuilt as a reverse-key index and a reverse-key or INITRANS change would apply to the whole table. Hash partitioning is possible only by re-creating the IOT with PARTITION BY HASH (Partitioning option, Enterprise Edition) or redefining it online with DBMS_REDEFINITION; otherwise reduce the concurrency of the inserting sessions and enlarge the cache of the sequence that feeds the key.");
             f.Sql.Insert(0, new($"What is {q}? (read-only)",
-                $"SELECT i.owner, i.index_name, i.index_type, i.table_name, t.iot_type, t.partitioned\nFROM   dba_indexes i JOIN dba_tables t ON t.owner = i.table_owner AND t.table_name = i.table_name\nWHERE  i.owner = '{owner}' AND i.index_name = '{obj}';",
+                $"SELECT i.owner, i.index_name, i.index_type, i.table_name, t.iot_type, t.partitioned\nFROM   dba_indexes i JOIN dba_tables t ON t.owner = i.table_owner AND t.table_name = i.table_name\nWHERE  i.owner = '{SqlSafe.Literal(owner)}' AND i.index_name = '{SqlSafe.Literal(obj)}';",
                 isEbs ? "Seeded Oracle E-Business Suite objects must be changed through Oracle-supplied patches or an Oracle Support service request, not with your own DDL."
                       : "Do not run ALTER INDEX ... REBUILD REVERSE on an IOT primary-key index: it is not supported for index-organized tables."));
             return;
@@ -248,22 +250,22 @@ public sealed class WaitEventRules : IRule
             string code, caution;
             if (isIndex && isPart)
             {
-                code = $"ALTER INDEX {q} MODIFY PARTITION {sub} INITRANS 16;   -- only new blocks get the new value\nALTER INDEX {q} REBUILD PARTITION {sub} ONLINE;          -- rebuild so existing blocks get it too";
+                code = $"ALTER INDEX {sqlQ} MODIFY PARTITION {sqlSub} INITRANS 16;   -- only new blocks get the new value\nALTER INDEX {sqlQ} REBUILD PARTITION {sqlSub} ONLINE;          -- rebuild so existing blocks get it too";
                 caution = "Choose INITRANS from the number of transactions that touch one block at the same time (typically 8-20); every extra slot costs 24 bytes per block.";
             }
             else if (isIndex)
             {
-                code = $"ALTER INDEX {q} REBUILD ONLINE INITRANS 16;";
+                code = $"ALTER INDEX {sqlQ} REBUILD ONLINE INITRANS 16;";
                 caution = "Choose INITRANS from the number of transactions that touch one block at the same time (typically 8-20); every extra slot costs 24 bytes per block.";
             }
             else if (isPart)
             {
-                code = $"ALTER TABLE {q} MODIFY PARTITION {sub} INITRANS 16;   -- only new blocks get the new value\nALTER TABLE {q} MOVE PARTITION {sub}{oc} UPDATE INDEXES;   -- rebuilds existing blocks{onlineNote}";
+                code = $"ALTER TABLE {sqlQ} MODIFY PARTITION {sqlSub} INITRANS 16;   -- only new blocks get the new value\nALTER TABLE {sqlQ} MOVE PARTITION {sqlSub}{oc} UPDATE INDEXES;   -- rebuilds existing blocks{onlineNote}";
                 caution = "On releases before 12.2 use ALTER TABLE ... MOVE PARTITION without ONLINE (it locks the partition and needs UPDATE INDEXES) or DBMS_REDEFINITION; the ONLINE keyword is only used in the statements above when the report is from 12.2 or later. Typical INITRANS: 8-20; every slot costs 24 bytes per block.";
             }
             else
             {
-                code = $"ALTER TABLE {q} INITRANS 16 PCTFREE 20;   -- only new blocks get the new values\nALTER TABLE {q} MOVE{oc};                -- rebuilds existing blocks{onlineNote}; its indexes become UNUSABLE after a non-online move and must be rebuilt";
+                code = $"ALTER TABLE {sqlQ} INITRANS 16 PCTFREE 20;   -- only new blocks get the new values\nALTER TABLE {sqlQ} MOVE{oc};                -- rebuilds existing blocks{onlineNote}; its indexes become UNUSABLE after a non-online move and must be rebuilt";
                 caution = "Plan this for a quiet period: moves generate redo and need free space. Before 12.2 a table cannot be moved online: use DBMS_REDEFINITION for an online change.";
             }
             f.Sql.Insert(0, new($"Raise INITRANS on the hottest segment ({q}{(sub.Length > 0 ? " " + sub : "")})", code, caution));
@@ -274,7 +276,7 @@ public sealed class WaitEventRules : IRule
             if (isIndex)
             {
                 f.Sql.Insert(0, new($"Which table and columns does the hot index {q} cover?",
-                    $"SELECT index_owner, index_name, table_owner, table_name, column_position, column_name\nFROM   dba_ind_columns\nWHERE  index_owner = '{owner}' AND index_name = '{obj}'\nORDER  BY column_position;"));
+                    $"SELECT index_owner, index_name, table_owner, table_name, column_position, column_name\nFROM   dba_ind_columns\nWHERE  index_owner = '{SqlSafe.Literal(owner)}' AND index_name = '{SqlSafe.Literal(obj)}'\nORDER  BY column_position;"));
                 f.Sql.Insert(1, new($"Options to spread inserts on {q} (choose one after reading the columns)",
                     $"-- Replace the &placeholders with the values returned by the query above.\n-- Option A: hash-partitioned global index (Enterprise Edition with the Partitioning option)\nCREATE INDEX &index_owner..&index_name._hp ON &table_owner..&table_name (&key_columns)\n  GLOBAL PARTITION BY HASH (&key_columns) PARTITIONS 16 ONLINE;\n-- Option B: reverse key index (range scans on the key can no longer use it)\nALTER INDEX &index_owner..&index_name REBUILD REVERSE ONLINE;\n-- If the leading column is fed by a sequence: raise its cache\n-- ALTER SEQUENCE &sequence_owner..&sequence_name CACHE 1000;",
                     "Test first: reverse-key indexes disable index range scans, and a new hash-partitioned index replaces the old one only after you drop it (or use ALTER INDEX ... RENAME). Not for index-organized-table primary keys or Oracle E-Business Suite seeded objects."));
@@ -282,7 +284,7 @@ public sealed class WaitEventRules : IRule
             else
             {
                 f.Sql.Insert(0, new($"Space management of the hot table {q} (ASSM or manual free lists?)",
-                    $"SELECT s.owner, s.segment_name, s.segment_type, s.tablespace_name, ts.segment_space_management\nFROM   dba_segments s\n       JOIN dba_tablespaces ts ON ts.tablespace_name = s.tablespace_name\nWHERE  s.owner = '{owner}' AND s.segment_name = '{obj}';"));
+                    $"SELECT s.owner, s.segment_name, s.segment_type, s.tablespace_name, ts.segment_space_management\nFROM   dba_segments s\n       JOIN dba_tablespaces ts ON ts.tablespace_name = s.tablespace_name\nWHERE  s.owner = '{SqlSafe.Literal(owner)}' AND s.segment_name = '{SqlSafe.Literal(obj)}';"));
             }
         }
     }

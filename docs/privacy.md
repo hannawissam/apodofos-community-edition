@@ -2,18 +2,21 @@
 
 Apodofos Report Analyzer, Community Edition (the "application")
 Publisher: Wissam HANNA
-Effective date: 2026-11-25
+Effective date: 2026-11-26
+Applies to version 1.1.1 and later. What earlier versions did is described in section 4.
 
 ## In short
 Apodofos Community Edition does not collect, transmit, sell or share any data. Your reports are analysed entirely on your own
-computer. The application makes no network connections.
+computer. From version 1.1.1 the application's own processes make no network connection; section 4 explains what this covers,
+its limits, and what earlier versions did.
 
 ## 1. What the application does not do
-* No telemetry, analytics, usage statistics or crash reports.
+* No telemetry, analytics or usage statistics, and Apodofos sends no crash reports (for the WebView2 Runtime, see section 4).
 * No accounts, sign-in, licence checks or activation.
 * No update checks. You update by installing a new release yourself.
 * No cookies, advertising or tracking of any kind.
-* No connection to an Oracle database or to any other server. The application only reads report files that you choose.
+* No connection to an Oracle database, and no connection to any other server from the application's own processes. The
+  application only reads report files that you choose.
 * The embedded interface is part of the program. It loads no fonts, scripts, images or styles from the internet, and it
   blocks navigation to any address other than its own built-in page. The command line tool (`apodofos-report`) and the HTML file
   it can export are equally self-contained.
@@ -32,7 +35,8 @@ The application writes the following, only on your computer, under `%LOCALAPPDAT
   display preferences in it (light or dark theme, position of the divider between the report and the analysis).
 
 Report contents are not copied into these files. The application keeps no other copy of your reports, and the analysis is held
-in memory only while the application is open.
+in memory only while the application is open. However, if the WebView2 Runtime crashed, a crash dump stored locally in its profile
+folder might contain parts of that memory, including report content (not tested).
 
 To remove this data: click **Clear list** on the start screen to empty the recent-reports list (the "x" next to an entry
 removes one entry), or close the application and delete the folder `%LOCALAPPDATA%\Apodofos\ReportAnalyzer`. Uninstalling the
@@ -45,11 +49,34 @@ the SQL scripts you generate contain information taken from your report. Check t
 you send them to anyone.
 
 ## 4. Microsoft Edge WebView2 Runtime
-The Windows desktop application uses the Microsoft Edge WebView2 Runtime, a separate Microsoft component that is not part of
-Apodofos. It is governed by Microsoft's own terms and privacy statement and by the diagnostic data settings of your Windows
-installation. Apodofos does not enable, configure or send any data through it, and the application loads only its own built-in
-page in it (no website is opened, and requests for new windows and for permissions such as camera, microphone or location
-are refused).
+The Windows desktop application displays its window with the Microsoft Edge WebView2 Runtime, a separate Microsoft component
+that is not part of Apodofos. Windows installs and updates it. It is governed by Microsoft's own terms and privacy statement
+and by the diagnostic data settings of your Windows installation. The application loads only its own built-in page in it (no
+website is opened, and requests for new windows and for permissions such as camera, microphone or location are refused).
+
+With its default settings the runtime contacts Microsoft on its own. **From version 1.1.1** the application starts it with the
+following switched off: its configuration service, component updates, Windows account sign-in, the use of a proxy and the
+look-up of internet host names. It also asks the runtime not to send crash reports to Microsoft and not to check addresses
+with Microsoft Defender SmartScreen. In our tests (one Windows 11 computer, WebView2 Runtime 158, new and previously used
+profiles, runs of up to 25 minutes) no network connection from the application or its runtime processes was observed. The
+crash report setting was not tested.
+
+The limits of this:
+* The setting that switches off the sign-in component is internal to the runtime and is not documented by Microsoft. A later
+  runtime version could behave differently.
+* An administrator policy or an environment variable on your computer can add settings to the runtime and override these.
+* It covers the application's own processes only. Windows and other Microsoft programs, such as the updater of the runtime,
+  certificate checks, SmartScreen checks of downloaded files and Windows diagnostic data, work according to your Windows
+  settings.
+
+**Version 1.1.0 and earlier** did not switch these features off, although this notice then said that the application made no
+network connection. Measuring 1.1.0, built from its source code, we observed requests by the runtime to Microsoft's
+configuration service and component update service, carrying technical data about the computer (such as the Windows version,
+processor features, memory size and an identifier), a name look-up used to discover a proxy and, once the application had been
+used before, encrypted connections to addresses in Microsoft 365's network, opened by the runtime's Windows account sign-in
+component. We found no report content or file name in the requests we could read; we could not read the encrypted sign-in
+connections. The 1.0.x versions start the runtime in the same way according to their source code; they were not measured. See
+`RELEASE-NOTES.md`, 1.1.1.
 
 ## 5. The developer and GitHub
 The developer receives no personal data from the application. The source code, releases and issue tracker are hosted on

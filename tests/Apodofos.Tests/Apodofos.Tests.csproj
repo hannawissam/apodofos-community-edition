@@ -20,4 +20,8 @@
     <None Include="..\..\EXAMPLES\*.html" Link="Examples\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="TestData\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- the Windows shell's runtime switches (plain strings): compiled in, because the shell itself builds on Windows only -->
+    <Compile Include="..\..\src\Apodofos.Desktop\WebView2Network.cs" Link="Shared\WebView2Network.cs" />
+  </ItemGroup>
 </Project>

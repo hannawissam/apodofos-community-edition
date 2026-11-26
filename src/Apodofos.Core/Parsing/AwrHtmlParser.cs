@@ -21,8 +21,20 @@ public static partial class AwrHtmlParser
     private static readonly HashSet<string> DangerousElements =
         new(StringComparer.OrdinalIgnoreCase) { "script", "noscript", "iframe", "frame", "frameset", "object", "embed", "applet", "link", "base", "form", "input", "button", "svg", "math", "audio", "video", "source", "track" };
 
+    /// <summary>Deeper than any real report (about 20 levels). Reading the document is recursive, so a limit protects the program.</summary>
+    private const int MaxNesting = 500;
+
+    private const string TooNested =
+        "This file cannot be read: its HTML tags are nested far too deeply, so it is damaged or not an Oracle report. Generate the report again and retry.";
+
     [GeneratedRegex(@"\s+")]
     private static partial Regex Whitespace();
+
+    private const string ContentSecurityPolicy =
+        "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:;\">";
+
+    [GeneratedRegex(@"\A\s*<!DOCTYPE[^>]*>", RegexOptions.IgnoreCase)]
+    private static partial Regex LeadingDoctype();
 
     public static AwrReport Parse(string html, string sourcePath = "")
     {
@@ -34,8 +46,7 @@ public static partial class AwrHtmlParser
 
     private static AwrReport ParseCore(string html, string sourcePath = "")
     {
-        var doc = new HtmlDocument { OptionFixNestedTags = true, OptionAutoCloseOnEnd = true };
-        doc.LoadHtml(html);
+        var doc = Load(html);
 
         var report = new AwrReport { SourcePath = sourcePath, Format = AwrReportFormat.Html };
         string lastTitle = "";
@@ -79,6 +90,26 @@ public static partial class AwrHtmlParser
         AwrInfoExtractor.Populate(report);
         report.SanitizedHtml = Sanitize(doc);
         return report;
+    }
+
+    /// <summary>Parses the markup, refusing documents nested beyond <see cref="MaxNesting"/> before anything walks them recursively.</summary>
+    private static HtmlDocument Load(string html)
+    {
+        var doc = new HtmlDocument { OptionFixNestedTags = true, OptionAutoCloseOnEnd = true, OptionMaxNestedChildNodes = MaxNesting };
+        try { doc.LoadHtml(html); }
+        // the parser reports its nesting limit with a plain Exception
+        catch (Exception ex) when (ex.Message.Contains("nested tags", StringComparison.OrdinalIgnoreCase)) { throw new AwrFormatException(TooNested); }
+
+        // second, iterative check of the tree that was actually built
+        var open = new Stack<(HtmlNode Node, int Depth)>();
+        open.Push((doc.DocumentNode, 0));
+        while (open.Count > 0)
+        {
+            var (node, depth) = open.Pop();
+            if (depth > MaxNesting + 10) throw new AwrFormatException(TooNested);
+            foreach (var child in node.ChildNodes) open.Push((child, depth + 1));
+        }
+        return doc;
     }
 
     private static AwrTable? ReadTable(HtmlNode tableNode, int index, string title, string? section)
@@ -221,11 +252,19 @@ public static partial class AwrHtmlParser
             head = doc.CreateElement("head");
             htmlNode.PrependChild(head);
         }
-        head.PrependChild(HtmlNode.CreateNode(
-            "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:;\">"));
         head.AppendChild(HtmlNode.CreateNode(
             "<style>html{scroll-behavior:smooth}table.awr-highlight{outline:3px solid #f59e0b;outline-offset:3px;box-shadow:0 0 0 9999px rgba(15,23,42,.08);transition:outline-color .4s}" +
             "body{margin:12px}</style>"));
-        return doc.DocumentNode.OuterHtml;
+        return WithPolicyFirst(doc.DocumentNode.OuterHtml);
+    }
+
+    /// <summary>
+    /// The policy is written as text ahead of everything else (only a leading doctype may precede it), so that no markup in the
+    /// report can move it into the body, where a browser ignores it. A browser puts a leading meta element into the head.
+    /// </summary>
+    private static string WithPolicyFirst(string html)
+    {
+        var doctype = LeadingDoctype().Match(html);
+        return html.Insert(doctype.Success ? doctype.Length : 0, ContentSecurityPolicy);
     }
 }

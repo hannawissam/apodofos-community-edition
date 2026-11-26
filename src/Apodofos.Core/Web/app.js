@@ -128,11 +128,17 @@
   }
   function setSource(s) { SRC = s || null; if (SRC && SRC.name) document.title = SRC.name + ' \u2014 Apodofos Report Analyzer'; updateBadge(); }
 
-  /* the desktop host tells the UI which version is running; shown in the About box (the window title is set by the host) */
+  /* The desktop host tells the UI which version is running (the window title is set by the host). A saved page has no host:
+     the About box and the printed report then use the version the analysis carries (meta.analyzerVersion). */
+  var APP_VERSION = '';
   function setAppVersion(v) {
-    var p = $('aboutVersion'), n = $('aboutVersionNo');
-    if (!p || !n || !v) return;
-    n.textContent = String(v); p.hidden = false;
+    if (!v) return;
+    APP_VERSION = String(v); reportDirty = true; showVersion();
+  }
+  function showVersion() {
+    var p = $('aboutVersion'), n = $('aboutVersionNo'); if (!p || !n) return;
+    var v = window.AwrReport ? window.AwrReport.versionText(APP_VERSION, A && A.meta && A.meta.analyzerVersion) : APP_VERSION;
+    n.textContent = v; p.hidden = !v;
   }
 
   function notify(n) {
@@ -276,8 +282,8 @@
     if (!reportDirty && box.firstChild) return true;
     clear(box);
     try {
-      var logo = document.querySelector('.logo svg'), ver = $('aboutVersionNo') ? $('aboutVersionNo').textContent : '';
-      var el = window.AwrReport.build(A, { logo: logo ? uniqueIds(logo.cloneNode(true)) : null, version: ver, now: new Date() });
+      var logo = document.querySelector('.logo svg');
+      var el = window.AwrReport.build(A, { logo: logo ? uniqueIds(logo.cloneNode(true)) : null, version: APP_VERSION, now: new Date() });
       box.appendChild(el);
       if (el._afterAttach) el._afterAttach(); /* charts draw once the report is in the page (they measure their width) */
       reportDirty = false;
@@ -295,6 +301,7 @@
     chartInstances = [];
     A = payload.analysis || null; REPORT = payload.reportHtml || '';
     st = freshState(); frameReady = false; pendingJump = null; lastHi = null;
+    showVersion();
     var empty = $('empty');
     notify(null); SRC = null; renderRecent();
     if (!A) {
@@ -321,6 +328,7 @@
     A.findings = A.findings.map(function (f, i) { f._i = i; return f; }).sort(function (a, b) {
       var d = SEV.indexOf(a.severity) - SEV.indexOf(b.severity); return d || (b.impact || 0) - (a.impact || 0) || a._i - b._i;
     });
+    A._refs = window.AwrReport ? window.AwrReport.references(A) : { list: [], byUrl: {} }; /* after the sort: the numbers follow it */
     var m = A.meta;
     var name = [m.dbName, m.instance && m.instance !== m.dbName ? m.instance : ''].filter(Boolean).join(' / ') || m.sourceFile || ((m.reportType || 'AWR') + ' report');
     $('appTitle').textContent = name; $('appTitle').title = name;
@@ -463,6 +471,35 @@
       p.appendChild(h('details', { class: 'warnbox' }, h('summary', { text: A.warnings.length + ' note(s) from the analyzer' }),
         h('ul', null, A.warnings.map(function (w) { return h('li', { text: w }); }))));
     }
+    buildReferences(p);
+  }
+
+  /* ---- referenced documentation, at the end of the Summary tab (data and wording: report.js, so print matches) ---- */
+  function buildReferences(p) {
+    var list = A._refs.list; if (!list.length) return;
+    p.appendChild(h('h3', { class: 'panel-title', id: 'refsTitle', tabindex: '-1', text: window.AwrReport.referencesTitle }));
+    p.appendChild(h('p', { class: 'refnote', text: window.AwrReport.referencesNote }));
+    p.appendChild(h('ol', { class: 'reflist', 'aria-labelledby': 'refsTitle' }, list.map(refItem)));
+  }
+  function refItem(r) {
+    var link = r.local ? null : docLink(r.title, r.url, '');
+    var meta = [r.book, r.section ? 'Section: ' + r.section : ''].filter(Boolean).join('  \u00b7  ');
+    return h('li', { class: 'ref', id: 'ref-' + r.n, tabindex: '-1' }, h('span', { class: 'refn', text: '[' + r.n + ']' }),
+      h('div', { class: 'refbody' }, link || h('span', { class: 'reftitle', text: r.title }),
+        meta ? h('div', { class: 'refmeta', text: meta }) : null,
+        r.local ? h('div', { class: 'refurl', text: 'Local reference (on the database host): ' + r.local }) : link ? h('div', { class: 'refurl', text: r.url }) : null,
+        h('div', { class: 'refcited' }, h('span', { text: 'Cited by:' }), r.findings.map(function (f) {
+          return h('button', { type: 'button', class: 'chipbtn', title: 'Open this finding', onclick: function () { gotoFinding(f.id); } }, f.title);
+        }))));
+  }
+  /* n = 0: the top of the list */
+  function gotoReference(n) {
+    activateTab('summary', false);
+    setTimeout(function () {
+      var el = $(n ? 'ref-' + n : 'refsTitle'); if (!el) return;
+      el.focus({ preventScroll: true }); el.scrollIntoView({ block: n ? 'center' : 'start', behavior: 'smooth' });
+      if (n) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+    }, 60);
   }
 
   /* ================= findings ================= */
@@ -478,7 +515,7 @@
     (f.sourceViews || []).forEach(function (v) { parts.push(v); });
     f._hay = parts.filter(Boolean).join('\n').toLowerCase(); return f._hay;
   }
-  function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : null; }
+  function safeUrl(u) { return /^https:\/\//i.test(u || '') ? u : null; }
 
   function buildFindings() {
     var p = clear($('panel-findings')); st.cards = {}; st.techBtns = [];
@@ -599,7 +636,9 @@
   /* ================= documentation tab ================= */
   function buildDocs() {
     var p = clear($('panel-docs'));
-    var docs = A.docs;
+    var docs = A.docs, cited = A._refs.list.length;
+    if (cited) p.appendChild(h('p', { class: 'refjump' }, h('button', { type: 'button', class: 'chipbtn', id: 'toRefs', onclick: function () { gotoReference(0); } },
+      window.AwrReport.referencesTitle + ' (' + cited + ')')));
     if (!docs.length) { p.appendChild(h('div', { class: 'empty-note', text: 'No documentation catalog is embedded in this analysis.' })); return; }
     var books = {}, tags = {};
     docs.forEach(function (d) { if (d.book) books[d.book] = (books[d.book] || 0) + 1; (d.tags || []).forEach(function (t) { tags[t] = (tags[t] || 0) + 1; }); });
@@ -692,9 +731,11 @@
     if (f.docs && f.docs.length) {
       var lk = h('div', { class: 'links' });
       f.docs.forEach(function (d) {
-        var cat = catalogByUrl(d.url);
-        var n = docLink(d.title, d.url, cat && cat.summary);
-        if (n) lk.appendChild(n); else lk.appendChild(h('span', { class: 'tag', title: cat && cat.local ? cat.local : '', text: d.title || d.url }));
+        var cat = catalogByUrl(d.url), r = A._refs.byUrl[d.url];
+        var n = docLink(d.title, d.url, cat && cat.summary) || h('span', { class: 'tag', title: cat && cat.local ? cat.local : '', text: d.title || d.url });
+        var mark = r ? h('button', { type: 'button', class: 'refbtn', title: 'Show reference ' + r.n + ' in the list of referenced documentation', 'aria-label': 'Reference ' + r.n + ' in the list of referenced documentation',
+          onclick: function () { gotoReference(r.n); } }, '[' + r.n + ']') : null;
+        lk.appendChild(h('span', { class: 'docref' }, mark, n));
       });
       inner.appendChild(section('Oracle documentation', lk));
     }

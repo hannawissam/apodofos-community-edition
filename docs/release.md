@@ -29,6 +29,25 @@ After building, validate the MSI statically (no install): `pwsh tools/verify-msi
 
 The script is idempotent (it deletes and rebuilds `artifacts/release`, `artifacts/stage` and the installer build folders) and stops on the first error. Requirements: .NET 11 SDK and access to nuget.org on the first run (to restore the WiX SDK package and WebView2). Nothing is installed system-wide.
 
+## Check that the application stays offline (every release)
+
+The public statements ("the application's own processes make no network connection") depend on how the shell starts the WebView2 Runtime (`src/Apodofos.Desktop/WebView2Network.cs`). Some of those settings are internal to the runtime, and Windows updates the runtime on its own, so a passing build can fail later. Measure the built application before every release, and again when the runtime's major version changes. The unit tests only pin the settings; they cannot show that the runtime obeys them.
+
+1. Use a Windows test account or a test computer with network access (an offline computer would pass whatever the application does). No administrator rights are needed.
+2. Control first: run the check on the 1.1.0 release. It **must** report activity (`RESULT: FAIL`), otherwise the check proves nothing on that computer.
+3. Run it on the executable that is about to be published, from the staged or unzipped release files, with a synthetic report:
+
+   ```
+   pwsh tools/check-network.ps1 -Exe <folder>\ApodofosReportAnalyzer.exe -Report tests\Apodofos.Tests\TestData\awr-19c-synthetic.html
+   ```
+
+   It starts the application twice for 10 minutes each (`-Seconds` changes the length), first with a new WebView2 profile and then with that profile used once, and watches both the Windows TCP and UDP tables and the runtime's network log. Both are needed: the connections of the runtime's sign-in component do not appear in the network log, and appear only with a used profile. Leave the window alone while it runs. The application writes its recent list and window position to the normal settings folder of the account.
+4. `RESULT: PASS` (exit code 0) is required. `FAIL` (1) blocks the release: find the new traffic, change the settings, measure again. Exit code 2 means the measurement did not work and proves nothing.
+5. Record the runtime version, the Windows version and the result in the test records below. If the check was not run on the published files, the release notes must not claim that it was.
+6. By hand: open a report, Save PDF, Save HTML, Print, and click a documentation link (it must open in the default browser).
+
+Not covered by the script: Windows components outside the application (the runtime updater, certificate checks, SmartScreen, diagnostic data), connections shorter than the polling interval that the network log does not see, and runs longer than the chosen length.
+
 ## Installer tool: WiX Toolset 5.0.2 (MSI)
 
 Chosen because it is restored as a NuGet SDK package (`installer/Apodofos.Installer.wixproj`, `WixToolset.Sdk/5.0.2` plus `WixToolset.UI.wixext`), needs no admin install and no global tool, and produces a standard MSI that installs per user only (no administrator rights and no UAC prompt), with in-place upgrades. Version 5 is MS-RL licensed; WiX 6/7 are under the Open Source Maintenance Fee EULA, so they are deliberately not used. The project is not in `Apodofos.slnx`, so `dotnet build Apodofos.slnx` is unaffected.
@@ -36,9 +55,9 @@ Chosen because it is restored as a NuGet SDK package (`installer/Apodofos.Instal
 Installer behaviour (`installer/Package.wxs`):
 
 * Wizard artwork: the Apodofos logo banner and the branded final-page panel are `installer/images/banner.bmp` (493x58) and `installer/images/dialog.bmp` (493x312), generated from `assets/apodofos-512.png` by `installer/make-wizard-images.ps1` (Windows PowerShell 7, System.Drawing; the .bmp files are committed). Re-run the script after changing the logo or brand colours. The `.msi` file icon in Explorer is always the default Windows Installer icon (a limit of the format); the wizard, Apps & features entry and shortcuts use the Apodofos icon.
-* Wizard (WixUI_FeatureTree): welcome page, **licence page showing the AGPL-3.0 text**, custom setup (optional features and the install folder), ready to install, install, final page. There is no "install for all users" page: the installer is per-user only. The default folder is `%LOCALAPPDATA%\Programs\Apodofos`, in the wizard and in silent installs alike.
+* Wizard (WixUI_FeatureTree): welcome page, **licence page showing the AGPL-3.0 text**, custom setup (optional features), ready to install, install, final page. There is no "install for all users" page: the installer is per-user only. The default folder is `%LOCALAPPDATA%\Programs\Apodofos\ReportAnalyzer`, in the wizard and in silent installs alike.
 * Optional features, off by default: **Desktop shortcut**, **Add apodofos-report (CLI) to PATH** (added to the current user's PATH). A Start menu shortcut is always created.
-* Entry in Apps & features / Programs and Features; uninstall removes everything the product put on the machine: the program folder (including any file left in it), shortcuts, the PATH entry, the installer registry key and the settings and WebView2 profile folder `%LOCALAPPDATA%\Apodofos`. An upgrade keeps that settings folder; only an uninstall deletes it. Settings of other Windows users on a shared PC are not touched. The uninstall also works while the application is running (tested): Windows Installer closes it and nothing is left behind.
+* Entry in Apps & features / Programs and Features; uninstall removes everything the product put on the machine: the default program folder (including any file left in it; in a folder chosen with `INSTALLFOLDER` only the installed files and then-empty folders are removed, so the user's own files stay), shortcuts, the PATH entry, the installer registry key and the settings and WebView2 profile folder `%LOCALAPPDATA%\Apodofos\ReportAnalyzer`. An upgrade keeps that settings folder; only an uninstall deletes it. Settings of other Windows users on a shared PC are not touched. The uninstall also works while the application is running (tested): Windows Installer closes it and nothing is left behind.
 * `MajorUpgrade`: installing a newer (or the same) version replaces the old one in place; installing an older one is refused.
 * Microsoft Edge WebView2 Evergreen runtime check (registry `...\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}`, machine and user). If missing, the installer stops with a message explaining how to download it manually. The installer never downloads or bundles it. `SKIPWEBVIEW2CHECK=1` bypasses the check.
 
@@ -72,6 +91,12 @@ Get-FileHash -Algorithm SHA256 .\Apodofos-ReportAnalyzer-Setup-<version>-win-x64
 ```
 
 > The test records below are history: they describe the 1.0.x file names and folders (`Apodofos.exe`, `apodofos.exe`, `Programs\Apodofos`). 1.1.0 renamed them (see above and `RELEASE-NOTES.md`).
+
+## Network check on a 1.1.1 test build (26 Nov 2026, Windows 11 x64, WebView2 Runtime 158.0.4370.45, non-elevated user)
+
+* `tools/check-network.ps1` with a synthetic report, 600 s per run, on a build of the 1.1.1 sources in which only the settings folder was redirected: **PASS** (new and used profile: no connection leaving the machine, no UDP socket, no request and no host look-up in the network log).
+* Control, the same script on 1.1.0 built from its sources the same way, 100 s per run: **FAIL**, as it must (configuration and component update services; with the used profile also the sign-in connection).
+* Not verified: the files to be published (run the check on them before publishing and record the result here), the MSI-installed copy, Windows 10, ARM64, a computer behind a proxy, Entra-joined or domain-joined computers.
 
 ## Tests performed on 1.0.0 (Windows 11, non-elevated user)
 

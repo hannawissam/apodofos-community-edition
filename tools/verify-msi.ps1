@@ -8,7 +8,8 @@
     * ProductName and UpgradeCode match; a MajorUpgrade (Upgrade row + RemoveExistingProducts) is present
     * every installed directory sits under %LOCALAPPDATA%\Programs\Apodofos\<slug> (plus the Start menu / desktop shortcut folders)
     * registry rows are under HKCU Software\Apodofos\<slug> only
-    * custom actions delete only the product's own folders: the install folder, %LOCALAPPDATA%\Apodofos\<slug>, a NON-recursive rmdir of the
+    * custom actions delete only the product's own folders: the DEFAULT install folder %LOCALAPPDATA%\Programs\Apodofos\<slug> (spelled out;
+      never [APPLICATIONFOLDER] or any other folder the user can choose), %LOCALAPPDATA%\Apodofos\<slug>, a NON-recursive rmdir of the
       shared parents, and (only when ApodofosMigrateLegacyData is true) exactly the three 1.0.x flat items window.json, recent.json, EBWebView
     * shortcuts target <ApodofosDesktopExe>.exe
     * files include <ApodofosDesktopExe>.exe, cli\<ApodofosCliExe>.exe and (legacy-data edition) cli\apodofos.cmd; none is named Apodofos.exe/apodofos.exe
@@ -114,12 +115,13 @@ $sawUserData = $false; $sawInstall = $false
 foreach ($ca in $cas) {
     $t = $ca[3]
     if ($t -notmatch '(?i)rmdir|\bdel\b') { continue }   # only deleting actions matter here
-    $m = [regex]::Match($t, '(?i)cmd\.exe\]?"?\s+/c\s+(rmdir|del)\s+((?:/\w\s+)*)"([^"]+)"')
+    $m = [regex]::Match($t, '(?i)cmd\.exe\]?"?\s+/c\s+(rmdir|del)\s+((?:/\w\s+)*)"([^"]+)"\s*$')
     if (-not $m.Success) { $caProblems += "$($ca[0]): unrecognised delete command: $t"; continue }
     $verb = $m.Groups[1].Value.ToLowerInvariant(); $recursive = $m.Groups[2].Value -match '/s'; $path = $m.Groups[3].Value.TrimEnd('\')
     $ok = $false
     switch -Regex ($path) {
-        '^\[APPLICATIONFOLDER\]$' { $ok = ($verb -eq 'rmdir' -and $recursive); $sawInstall = $ok }
+        # the default install folder only; a user-chosen folder ([APPLICATIONFOLDER], [INSTALLFOLDER]) falls through to "not allowed"
+        "^\[LocalAppDataFolder\]Programs\\Apodofos\\$([regex]::Escape($slug))$" { $ok = ($verb -eq 'rmdir' -and $recursive); $sawInstall = $ok }
         '^\[ProgramsFolderUser\]Apodofos$' { $ok = ($verb -eq 'rmdir' -and -not $recursive) }               # shared parent: NON-recursive only
         '^\[LocalAppDataFolder\]Apodofos$' { $ok = ($verb -eq 'rmdir' -and -not $recursive) }               # shared parent: NON-recursive only
         "^\[LocalAppDataFolder\]Apodofos\\$([regex]::Escape($slug))$" { $ok = ($verb -eq 'rmdir' -and $recursive); $sawUserData = $ok }
@@ -130,7 +132,8 @@ foreach ($ca in $cas) {
     if (-not $ok) { $caProblems += "$($ca[0]): not allowed -> $t" }
 }
 Check 'custom actions delete only the product folders / allowed legacy items (never the Apodofos root recursively)' ($caProblems.Count -eq 0) "`n    $($caProblems -join "`n    ")"
-Check 'CleanInstallFolder removes [APPLICATIONFOLDER] and CleanUserData removes only Apodofos\<slug>' ($sawInstall -and $sawUserData)
+Check 'CleanInstallFolder removes only the default Programs\Apodofos\<slug> and CleanUserData removes only Apodofos\<slug>' ($sawInstall -and $sawUserData)
+Check 'no deleting custom action uses a folder the user can choose (APPLICATIONFOLDER, INSTALLFOLDER, CLIFOLDER)' (@($cas | Where-Object { $_[3] -match '(?i)rmdir|\bdel\b' -and $_[3] -match '\[(APPLICATIONFOLDER|INSTALLFOLDER|CLIFOLDER)\]' }).Count -eq 0)
 $legacyCas = @($cas | Where-Object { $_[3] -match 'Apodofos\\(window\.json|recent\.json|EBWebView)' })
 Check "legacy flat cleanup present exactly when ApodofosMigrateLegacyData is true (found $($legacyCas.Count), expected $(if ($legacy) { 3 } else { 0 }))" ($legacyCas.Count -eq $(if ($legacy) { 3 } else { 0 }))
 Check 'no custom action touches HKCU Software\Apodofos' (@($cas | Where-Object { $_[3] -match '(?i)reg(\.exe)?\s+delete' }).Count -eq 0)

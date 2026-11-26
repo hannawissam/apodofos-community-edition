@@ -39,7 +39,7 @@ public class UiScriptSyntaxTests
         finally { try { Directory.Delete(dir, true); } catch { /* temp */ } }
     }
 
-    private static string? FindNode()
+    internal static string? FindNode()
     {
         var names = OperatingSystem.IsWindows() ? new[] { "node.exe" } : new[] { "node" };
         foreach (var dir in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))

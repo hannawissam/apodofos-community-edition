@@ -66,7 +66,7 @@ public static partial class NumberParser
         if (canon is null) return null;
         if (!double.TryParse(canon + m.Groups["exp"].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var v)) return null;
         unit = m.Groups["unit"].Value.Trim().ToLowerInvariant();
-        return m.Groups["suf"].Value switch
+        var scaled = m.Groups["suf"].Value switch
         {
             "K" => v * 1e3,
             "M" => v * 1e6,
@@ -78,6 +78,8 @@ public static partial class NumberParser
             "s" or "sec" or "secs" => v * 1e3,
             _ => v
         };
+        // "1e999" or 400 digits overflow to infinity, which cannot be analysed or written to JSON: not a number.
+        return double.IsFinite(scaled) ? scaled : null;
     }
 
     /// <summary>

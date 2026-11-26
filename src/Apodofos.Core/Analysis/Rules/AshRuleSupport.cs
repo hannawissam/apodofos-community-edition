@@ -58,7 +58,7 @@ internal static class AshHelpers
     /// <summary>Expression that turns a sample count into approximate seconds of database time.</summary>
     public static string Weight(AnalysisContext ctx) => ctx.Info.AshFromHistory ? "COUNT(*) * 10" : "COUNT(*)";
 
-    public static string Quote(string s) => (s ?? "").Replace("'", "''");
+    public static string Quote(string s) => SqlSafe.Literal(s);
 
     /// <summary>"sample_time BETWEEN ..." for the analysed window; SQL*Plus substitution variables when the report's times cannot be converted.</summary>
     public static string Window(AnalysisContext ctx)
@@ -85,7 +85,7 @@ internal static class AshHelpers
 
     /// <summary>Plan lookup snippet for a SQL_ID (AWR history first, cursor cache second).</summary>
     public static SqlSnippet Plan(string sqlId, int? planHash = null) => new($"Execution plan of {sqlId}",
-        $"-- From the AWR repository (needs the statement to have been captured in a snapshot):\nSELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_AWR('{Quote(sqlId)}'{(planHash is { } p ? $", {p}" : "")}, NULL, NULL, 'TYPICAL'));\n\n-- Or, while it is still in the shared pool:\nSELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR('{Quote(sqlId)}', NULL, 'TYPICAL'));");
+        $"-- From the AWR repository (needs the statement to have been captured in a snapshot):\nSELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_AWR('{SqlSafe.SqlId(sqlId)}'{(planHash is { } p ? $", {p}" : "")}, NULL, NULL, 'TYPICAL'));\n\n-- Or, while it is still in the shared pool:\nSELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR('{SqlSafe.SqlId(sqlId)}', NULL, 'TYPICAL'));");
 
     public static string SessionKey(string sid)
     {

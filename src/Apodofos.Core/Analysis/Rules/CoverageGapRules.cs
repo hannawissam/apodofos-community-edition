@@ -64,7 +64,7 @@ public sealed class CoverageGapRules : IRule
             Sql = [new("Current latency distribution of the event", $"""
                 SELECT event, wait_time_milli, wait_count
                 FROM   v$event_histogram
-                WHERE  event = '{worst.Ev}'
+                WHERE  event = '{SqlSafe.Literal(worst.Ev)}'
                 ORDER  BY wait_time_milli;
                 """)],
             Docs = [D.WaitEvents, D.Measuring],

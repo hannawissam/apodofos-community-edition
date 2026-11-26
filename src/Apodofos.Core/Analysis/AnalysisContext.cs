@@ -44,8 +44,8 @@ public sealed class AnalysisContext
 
     /// <summary>Fills the common substitution variables used by the SQL snippets.</summary>
     public string Sub(string sql) => sql
-        .Replace("&begin_snap", BeginSnap)
-        .Replace("&end_snap", EndSnap)
+        .Replace("&begin_snap", SqlSafe.Digits(BeginSnap, "begin_snap"))
+        .Replace("&end_snap", SqlSafe.Digits(EndSnap, "end_snap"))
         .Replace("&inst_num", InstNum);
 
     public Finding Add(Finding f)

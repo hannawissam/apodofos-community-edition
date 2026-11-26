@@ -19,7 +19,7 @@ Key decisions
 - **Rules auto-discovered** (`IRule`); knowledge base (`Knowledge/`) holds plain-English text, doc citations and SQL templates.
 - **Thin shells**: everything that must behave identically on every platform lives in `Apodofos.Host` behind `IHostPlatform` (see `docs/ui-contract.md`); a shell is only window, dialogs, web view and placement.
 - **One UI** (`Core/Web`): no frameworks, no network; reused by desktop and export.
-- **Security**: reports are untrusted input — scripts removed, CSP `default-src 'none'`, sandboxed iframe, escaped output, blocked navigation.
+- **Security**: reports are untrusted input — scripts removed, CSP `default-src 'none'`, sandboxed iframe, escaped output, blocked navigation. HTML nested more than 500 levels deep is refused (the document is walked recursively). Every report value placed in a generated SQL statement goes through `Analysis/SqlSafe` (literals escaped; identifiers, SQL_IDs and numbers checked, else a `&variable`).
 
 ## UI technology options (considered)
 | Option | Pros | Cons | Verdict |

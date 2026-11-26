@@ -237,7 +237,8 @@ public static partial class StatspackAdapter
     /// <summary>History of one statement from the SQL summary table (hash value in 9i/10g, SQL_ID in 11g and later).</summary>
     private static SqlSnippet SqlHistory(string id)
     {
-        var numeric = id.All(char.IsDigit);
+        if (SqlSafe.SqlId(id) != id) id = "&hash_value";
+        var numeric = id.All(char.IsAsciiDigit);
         var filter = numeric || id.StartsWith("&", StringComparison.Ordinal) ? $"ss.old_hash_value = {id}" : $"ss.sql_id = '{id}'";
         return new SqlSnippet("History of this statement per snapshot (STATS$SQL_SUMMARY)",
             $"""

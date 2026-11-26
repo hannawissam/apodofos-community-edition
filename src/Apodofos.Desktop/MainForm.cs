@@ -18,6 +18,7 @@ namespace Apodofos.Desktop;
 public sealed class MainForm : Form, IHostPlatform
 {
     private static readonly ProductInfo Product = ProductInfo.Current;
+    private const int ProfileInUse = unchecked((int)0x8007139F); // HRESULT of ERROR_INVALID_STATE from the WebView2 start-up
     private static string AppTitle => Product.Name;
     private static readonly string AppVersion = ReadAppVersion();
 
@@ -154,9 +155,22 @@ public sealed class MainForm : Form, IHostPlatform
         try
         {
             Directory.CreateDirectory(_dataDir);
+            var options = new CoreWebView2EnvironmentOptions
+            {
+                AdditionalBrowserArguments = WebView2Network.BrowserArguments, // the runtime has nothing to fetch
+                IsCustomCrashReportingEnabled = true, // crash dumps stay on this computer
+            };
             // Never downloads anything: throws when no Evergreen runtime is installed.
-            var env = await CoreWebView2Environment.CreateAsync(null, _dataDir);
+            var env = await CoreWebView2Environment.CreateAsync(null, _dataDir, options);
             await _web.EnsureCoreWebView2Async(env);
+        }
+        catch (Exception ex) when (ex.HResult == ProfileInUse)
+        {
+            // another version holds the WebView2 profile with different start settings: the runtime is there, it just cannot be shared
+            MessageBox.Show(this, $"Close the other running version of {Product.Name} and try again.",
+                AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            Close();
+            return;
         }
         catch (Exception ex) when (ex is WebView2RuntimeNotFoundException or System.Runtime.InteropServices.COMException
                                        or FileNotFoundException or DllNotFoundException or BadImageFormatException
@@ -181,6 +195,9 @@ public sealed class MainForm : Form, IHostPlatform
         settings.IsZoomControlEnabled = false;
         settings.IsSwipeNavigationEnabled = false;
         settings.AreBrowserAcceleratorKeysEnabled = false; // we own F5 / Ctrl+O; no reload/navigation via browser keys
+        // the only page is our own: nothing to send to a reputation service (an old runtime may not know the setting)
+        try { settings.IsReputationCheckingRequired = false; }
+        catch (Exception ex) when (ex is NotImplementedException or InvalidCastException) { }
 #if DEBUG
         settings.AreDevToolsEnabled = true;
         settings.AreDefaultContextMenusEnabled = true;

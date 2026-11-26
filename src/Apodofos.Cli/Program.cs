@@ -30,7 +30,7 @@ internal static class Program
           --help, -h        Show this help.
 
         With no output option, --text is assumed.
-        Exit codes: 0 ok, 1 usage error, 2 file unreadable, 3 not a valid AWR report, 4 other error.
+        Exit codes: 0 ok, 1 usage error, 2 file unreadable, 3 not a recognised AWR, ASH or Statspack report, 4 other error.
         """;
 
     private static string Usage => UsageTemplate

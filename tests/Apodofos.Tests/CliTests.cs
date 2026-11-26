@@ -121,6 +121,19 @@ public class CliTests : IDisposable
     }
 
     [Fact]
+    public void HtmlOutput_CarriesTheBuildVersion()
+    {
+        var version = PrintedReportContentTests.BuildVersion();
+        var f = Path.Combine(_tmp, "v.html");
+        Assert.Equal(0, Cli(Samples.Syn19, "--html", f).Code);
+        var m = Regex.Match(File.ReadAllText(f), @"<script>window\.__AWR__ = (\{.*?\});</script>", RegexOptions.Singleline);
+        Assert.True(m.Success, "payload not found");
+        using var payload = JsonDocument.Parse(m.Groups[1].Value);
+        Assert.Equal(version, payload.RootElement.GetProperty("analysis").GetProperty("meta").GetProperty("analyzerVersion").GetString());
+        Assert.Contains(" " + version, Cli("--version").Out);
+    }
+
+    [Fact]
     public void ScriptOutput_IsTextWithSql()
     {
         var f = Path.Combine(_tmp, "o.sql");
