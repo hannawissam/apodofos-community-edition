@@ -46,53 +46,61 @@ Free software under **AGPL-3.0-only**, no warranty. The name and logo are not co
 **Version 1.0.7 is the first official public release of Apodofos Report Analyzer.** Versions 1.0.0 to 1.0.6 were test builds, published on 2026-11-19 and 2026-11-20 while the product was being finalised. They are kept for the record, are marked as pre-releases on GitHub, and should not be used: install 1.0.7 or later.
 
 ### 1.1.1 (2026-11-26), privacy and safety fixes
-**A privacy fix, and a correction of what we said before. Please update.**
+**Please update.** This version stops the desktop application's window component from contacting Microsoft services, fixes an installer fault that could delete your own files, and makes reading report files safer.
 
-We stated that 1.1.0 had no network access. For the desktop application that was not true. The application's window is drawn by the Microsoft Edge WebView2 Runtime, a Microsoft component, and the application started it with its default settings. With those settings the runtime contacted Microsoft services on its own. We saw this when we measured 1.1.0, built from its source code, on a test computer. The 1.0.x versions start the runtime in the same way; this is based on their source code only, they were not measured. The command line tool does not use this component.
+**Before you upgrade**
+- If you installed 1.1.0 or an earlier version into **a folder of your own** (the `INSTALLFOLDER` option on the command line), **do not uninstall it**: uninstalling that version deletes the whole folder, including your own files. Install 1.1.1 over it instead, which keeps your files. Installations made with the setup wizard of 1.1.0 use the default folder and are not affected.
+- Close any older version before you start 1.1.1.
 
-**What was contacted by 1.1.0:**
-- Microsoft's configuration service (`config.edge.skype.com`), when the application started with a new WebView2 profile.
-- Microsoft's component update service (`edge.microsoft.com`), from about one minute after the start. Downloads from `msedge.b.tlu.dl.delivery.mp.microsoft.com`, over unencrypted HTTP, were also seen.
-- A name look-up used to discover a proxy automatically (`wpad`).
-- Once the application had been used before: encrypted connections to addresses in Microsoft 365's network, a few seconds after the start, opened by the runtime's Windows account sign-in component.
+**New**
+- **The Oracle documentation behind an analysis, in one list.** The desktop view (end of the Summary tab, also reachable from the Documentation tab), the saved HTML page and the printed and PDF report have a section "Oracle documentation referenced by this analysis": each related official page once, numbered, with its link and the findings that cite it. These pages are for checking and further reading: not every threshold or recommendation comes from Oracle documentation. Opening a link needs internet access in your web browser; the application fetches nothing.
+- **The version is on every printed and PDF report.** Printing a saved HTML page used to leave it out of the cover and the closing note. It now appears there, in the page footers and in the About box of a saved page.
 
-**What was sent, as far as it could be read:**
-- To the configuration service: an identifier (it was the same in every new profile on the test computer), the Windows version and processor type, an installation date, the runtime's version and release channel, and a few flags.
-- To the component update service: the Windows version, processor features, memory size, a flag saying whether the computer belongs to a domain, the versions of the runtime and of Microsoft's updater, random request identifiers and a list of runtime components.
-- In these readable requests we found no report content, report file name, database name, host name, Windows user name, file path or cookie.
-- **The sign-in connection could not be read** because it is encrypted outside the part of the runtime that can be logged, so we cannot say what it carried. We found no account details saved in the application's WebView2 profile.
-
-**What 1.1.1 changes:**
-- The application now starts the runtime with its configuration service, component updates, Windows account sign-in, use of a proxy and look-up of internet host names switched off. It also asks the runtime not to send crash reports to Microsoft and not to check addresses with Microsoft Defender SmartScreen (the application only shows its own built-in page).
+**Fixed: privacy**
+- We said that 1.1.0 had no network access. **For the desktop application that was not true:** the Microsoft Edge WebView2 Runtime, the Microsoft component that draws its window, contacted Microsoft services on its own. 1.1.1 switches those features off. In our tests the application and its runtime processes then made no network connection. See "Privacy details" below. The command line tool does not use this component.
 - Documentation links still open in your default web browser when you click them, and your browser then connects to the Oracle documentation site.
-- Reports, analysis, exports, printing and your settings work as before.
-- The source repository has a new script, `tools/check-network.ps1`, that repeats the network measurement on a built application.
 
-**New in 1.1.1:**
-- **The Oracle documentation behind an analysis is listed in one place.** The saved HTML page, the desktop view (end of the Summary tab, also reachable from the Documentation tab) and the print and PDF report have a section "Oracle documentation referenced by this analysis": each related official Oracle documentation page once, numbered, with its link and the findings that cite it. Findings show the same numbers, and the links can be clicked in the PDF. These pages are for checking and further reading: not every threshold or recommendation comes from Oracle documentation. Opening a link needs internet access in your web browser; the application fetches nothing.
-- **Printed and PDF reports always state the version.** Printing a saved HTML page left the version out of the cover and the closing note. The version of the analysis is now used there and in the About box of a saved page, and it also appears in the footer of every printed page.
+**Fixed: installer and start-up**
+- Uninstalling now removes only the files the application installed, plus its own default folder.
+- If another version of the application is still running, it now asks you to close it instead of saying that the WebView2 Runtime is missing.
 
-**Also fixed in 1.1.1 (robustness and safety when reading report files):**
+**Fixed: reading report files**
 - A damaged HTML file with extremely deeply nested markup is now refused with a message instead of closing the program.
 - Names read from a report are now checked and escaped before they are placed in the suggested SQL. A value that does not look like a valid name, SQL ID or number is replaced by a `&variable` for you to fill in.
 - The security policy of the displayed and exported report is now always placed at the very start of the document, whatever the report's own markup looks like.
 - A report with an absurdly large number in one cell now opens: that cell is treated as not a number.
 - Damaged ASH reports with blank cells in the session, object or file sections no longer cause those checks to be skipped.
 - Small corrections to the documentation and to the command line help.
-- If another version of the program is still running, the application now asks you to close it instead of saying that the WebView2 Runtime is missing.
 
-**Important installer fix: uninstalling no longer deletes a folder you chose.**
-- If 1.1.0 or an earlier version was installed into a folder of your own (the `INSTALLFOLDER` option on the command line), **uninstalling that version deletes the whole folder, including your own files.** Do not uninstall it: upgrade to 1.1.1 first, which keeps your files.
-- 1.1.1 removes only the files it installed, plus its own default folder. A normal installation made with the setup wizard uses the default folder.
+**Privacy details**
 
-**How it was checked:** on one Windows 11 computer with WebView2 Runtime 158, we watched the network connections of the application and of its runtime processes and read the runtime's network log. We used new profiles and previously used ones, including profiles written by the earlier configuration, with and without a synthetic report open, in runs of 8 to 25 minutes plus shorter functional checks. With the change, no network connection and no network request from these processes was observed. Version 1.1.0, started at the same time on a copy of the same used profile, did connect. A 1.1.1 test build also passed `tools/check-network.ps1` (a new profile, then the same profile again, 10 minutes each), and 1.1.0 failed the same script. Opening a report, Save PDF, Save HTML, the print preview and a documentation link were checked. These measurements were made on test builds of this change.
+What 1.1.0 contacted (measured on a build of its source code; the 1.0.x versions start the runtime in the same way according to their source code, but were not measured):
+- Microsoft's configuration service (`config.edge.skype.com`), when the application started with a new WebView2 profile.
+- Microsoft's component update service (`edge.microsoft.com`), from about one minute after the start. Downloads from `msedge.b.tlu.dl.delivery.mp.microsoft.com`, over unencrypted HTTP, were also seen.
+- A name look-up used to discover a proxy automatically (`wpad`).
+- Once the application had been used before: encrypted connections to addresses in Microsoft 365's network, a few seconds after the start, opened by the runtime's Windows account sign-in component.
 
-**Limits and known issues:**
-- Tested on one Windows 11 (x64) computer only, for up to 25 minutes per run. Not tested: Windows 10, ARM64, a computer behind a proxy, Entra-joined or domain-joined computers, and a copy installed with the MSI.
+What was sent, as far as it could be read:
+- To the configuration service: an identifier (it was the same in every new profile on the test computer), the Windows version and processor type, an installation date, the runtime's version and release channel, and a few flags.
+- To the component update service: the Windows version, processor features, memory size, a flag saying whether the computer belongs to a domain, the versions of the runtime and of Microsoft's updater, random request identifiers and a list of runtime components.
+- In these readable requests we found no report content, report file name, database name, host name, Windows user name, file path or cookie.
+- **The sign-in connection could not be read** because it is encrypted outside the part of the runtime that can be logged, so we cannot say what it carried. We found no account details saved in the application's WebView2 profile.
+
+What 1.1.1 switches off in the runtime: its configuration service, component updates, Windows account sign-in, use of a proxy and look-up of internet host names. It also asks the runtime not to send crash reports to Microsoft and not to check addresses with Microsoft Defender SmartScreen (the application only shows its own built-in page).
+
+**How it was checked** (one Windows 11 computer, WebView2 Runtime 158)
+- We watched the network connections of the application and of its runtime processes and read the runtime's network log.
+- **Final files:** the portable program (10 minutes with a new profile and 10 with a used one) and the installed program (3 minutes with each) made no network connection. The released 1.1.0 failed the same check.
+- **Test builds of this change:** new and previously used profiles, including profiles written by the earlier configuration, with and without a synthetic report open, in runs of 8 to 25 minutes: no network connection and no network request. Opening a report, Save PDF, Save HTML, the print preview and a documentation link were also checked on test builds.
+- **Final installer:** installing, upgrading from 1.1.0 and uninstalling passed, including installs into a folder of the user's choice.
+- The source repository has a script, `tools/check-network.ps1`, that repeats the network measurement.
+
+**Limits and known issues**
+- Tested on one Windows 11 (x64) computer only, for up to 25 minutes per run. Not tested: Windows 10, ARM64, a computer behind a proxy, and Entra-joined or domain-joined computers.
 - The setting that stops the sign-in connection is internal to Microsoft's runtime and is not documented by Microsoft. Windows updates the runtime automatically, and a later version could behave differently.
 - An administrator policy or an environment variable on your computer can add settings to the runtime and undo this change.
 - This concerns the application's own processes. Windows and other Microsoft programs (for example the updater of the runtime, certificate checks, SmartScreen checks of downloaded files and Windows diagnostic data) are separate and follow your Windows settings.
-- Close any older version before you start 1.1.1. Two different versions cannot run at the same time with the same settings folder. If an older version is already running, 1.1.1 asks you to close it. If you start an older version while 1.1.1 is running, the older one reports, wrongly, that the WebView2 Runtime is missing.
+- Two different versions cannot run at the same time with the same settings folder. If an older version is already running, 1.1.1 asks you to close it. If you start an older version while 1.1.1 is running, the older one reports, wrongly, that the WebView2 Runtime is missing.
 - The files are still not code-signed, so Windows SmartScreen may warn.
 
 ### 1.1.0 (2026-11-25), the product name everywhere
