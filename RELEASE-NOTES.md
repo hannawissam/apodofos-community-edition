@@ -92,7 +92,7 @@ We stated that 1.1.0 had no network access. For the desktop application that was
 - The setting that stops the sign-in connection is internal to Microsoft's runtime and is not documented by Microsoft. Windows updates the runtime automatically, and a later version could behave differently.
 - An administrator policy or an environment variable on your computer can add settings to the runtime and undo this change.
 - This concerns the application's own processes. Windows and other Microsoft programs (for example the updater of the runtime, certificate checks, SmartScreen checks of downloaded files and Windows diagnostic data) are separate and follow your Windows settings.
-- Close any older version before you start 1.1.1. Two different versions cannot run at the same time with the same settings folder: the second one then reports, wrongly, that the WebView2 Runtime is missing.
+- Close any older version before you start 1.1.1. Two different versions cannot run at the same time with the same settings folder. If an older version is already running, 1.1.1 asks you to close it. If you start an older version while 1.1.1 is running, the older one reports, wrongly, that the WebView2 Runtime is missing.
 - The files are still not code-signed, so Windows SmartScreen may warn.
 
 ### 1.1.0 (2026-11-25), the product name everywhere
