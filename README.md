@@ -3,7 +3,8 @@
 <img src="assets/apodofos-256.png" width="96" align="right" alt="Apodofos Report Analyzer icon"/>
 
 An **offline** Windows tool that analyzes Oracle **AWR**, **ASH** and **Statspack** reports (HTML or text). It never
-connects to a database and never uses the internet: you give it a report file, it gives you a diagnosis.
+connects to a database, and the application itself makes no internet connection: you give it a report file, it gives you a
+diagnosis. Documentation links open in your web browser when you click them.
 
 ## About the name
 *Apodofos* (pronounced a-PO-do-fos) combines two Greek words: *apodosi* (Απόδοση, "performance") and *fos* (Φως,
@@ -21,8 +22,8 @@ Open a report and get, side by side:
 - **recommendations and ready-to-run Oracle 19c SQL** (tuning tasks, plan baselines, index/redo/memory checks), each with
   cautions;
 - an **offline documentation catalog**: findings link to the relevant Oracle Database 19c documentation pages. The
-  catalog (titles, URLs, anchors, short own-words summaries) ships inside the app; opening a link is your choice, and the
-  app itself makes no request.
+  catalog (titles, URLs, anchors, short own-words summaries) ships inside the app; opening a link is your choice: your web
+  browser opens it, and the app itself makes no request.
 
 ## Features
 - Three report types: AWR (HTML and text), ASH (HTML and text), Statspack (text). The type is detected from the content.
@@ -40,7 +41,7 @@ Open a report and get, side by side:
 ## Build, run, test, publish
 ```
 git clone https://github.com/hannawissam/apodofos-community-edition.git
-cd apodofos
+cd apodofos-community-edition
 dotnet build Apodofos.slnx
 dotnet test
 dotnet run --project src/Apodofos.Desktop
@@ -81,7 +82,10 @@ non-affiliation notices.
   entitlement before running the suggested SQL; test every change outside production.
 
 ## Security and privacy model
-- No network access: no database connection, no telemetry, no update check, no CDN, fonts or external scripts.
+- No network connection from the application's own processes (from 1.1.1): no database connection, no telemetry, no update
+  check, no CDN, fonts or external scripts. The Microsoft WebView2 Runtime that draws the desktop window is started with its
+  background network features switched off; documentation links open in your web browser when you click them. What this
+  covers, its limits and what earlier versions did: [docs/privacy.md](docs/privacy.md).
 - Reports are treated as untrusted input: scripts are removed, the report is shown in a sandboxed frame under a strict
   Content Security Policy, navigation is blocked, and all report-derived text is escaped before display.
 - Your reports and outputs stay on your machine. Exported files may contain sensitive names (hosts, schemas, SQL text):

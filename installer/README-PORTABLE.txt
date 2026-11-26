@@ -2,12 +2,15 @@ __PRODUCT__ __VERSION__ - portable edition (Windows x64)
 ======================================================================
 
 __PRODUCT__ is an offline analyzer for Oracle AWR, ASH and Statspack reports.
-It never connects to a database or to the internet.
+It never connects to a database, and the application itself makes no internet
+connection. Documentation links open in your web browser when you click them.
+Details and limits: docs/privacy.md in the source repository.
 
 HOW TO RUN
   1. Extract this zip anywhere you can write to (for example C:\Tools\__SLUG__).
   2. Double-click __DESKTOPEXE__, then use "Open report" to load an AWR/ASH/Statspack
-     report (HTML or text).
+     report (HTML or text). Close any other version of the program first: two
+     different versions cannot run at the same time with the same settings.
   3. Command line: open a terminal in the "cli" folder and run
          __CLIEXE__ "report.html" --text
      Run "__CLIEXE__ --help" for all options. The older command name "apodofos"
@@ -34,8 +37,9 @@ HOW TO REMOVE
   Delete the folder you extracted. To also remove your settings, delete
   %LOCALAPPDATA%\Apodofos\__SLUG__ only (other Apodofos products keep their own
   folders next to it). Settings written by version 1.0.x directly in
-  %LOCALAPPDATA%\Apodofos (window.json, recent.json, EBWebView) are copied into the new
-  folder on first start and can be deleted afterwards.
+  %LOCALAPPDATA%\Apodofos (window.json, recent.json, EBWebView) are moved into the new
+  folder on first start, so a 1.0.x program no longer finds them. If the new folder
+  already holds settings, the old items stay where they are and can be deleted.
 
 LICENCE
   __PRODUCT__ is licensed under the GNU Affero General Public License v3.0 (see LICENSE).

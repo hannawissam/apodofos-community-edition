@@ -24,17 +24,17 @@ Apodofos™ is a trademark of Wissam HANNA (French trade mark application no. 53
 - A **recommendations and SQL** tab: the top SQL statements with a filter, sorting, the full SQL text on click and copy buttons, paged 25 rows at a time.
 - A combined **Script** tab: every suggested statement grouped by finding, with Copy script and Download .sql (the full script, whatever page is shown).
 - **Charts** for wait events, load profile, time model, top SQL, I/O, memory, segments, contention and ASH activity, plus an "All metrics" explorer that charts any table of the report, with log scale and data tables.
-- An **offline documentation catalog** (over 500 entries): findings link to the relevant Oracle Database 19c documentation. Opening a link is your choice; the application makes no request.
+- An **offline documentation catalog** (over 500 entries): findings link to related Oracle documentation (mainly Oracle Database 19c). A numbered section, "Oracle documentation referenced by this analysis", lists each cited page once with the findings that cite it, in the dashboard, the saved HTML and the print and PDF report. These pages are for checking and further reading: not every threshold or recommendation comes from Oracle documentation. Opening a link is your choice: your default web browser opens it (internet access needed), and the application itself makes no request.
 
 ### The application
 - **Desktop app** for Windows 10/11 (WinForms and WebView2): the original report with jump-to-section links beside the analysis, light and dark themes, a recent-files list, drag and drop, remembered window position, Save HTML, Print, an About box and the version in the title bar and the About box.
 - **Command line** `apodofos-report <report> [--text] [--html out.html] [--json out.json] [--script out.sql]`, `--version`, `--license`, `--help`, with documented exit codes, for automation. The former command name `apodofos` still works (the installer and the portable zip include a small forwarding file).
-- **Print and PDF report**: Print (and Ctrl+P) always produce one complete, formatted report, whichever tab is open: cover, overall health, key numbers (every tile), the Fix first plan, root causes, every finding with evidence, steps, SQL and documentation citations, all charts, top SQL and the report facts. **Save PDF** writes it as a PDF file (A4, page numbers) without going through a print dialog.
+- **Print and PDF report**: Print (and Ctrl+P) always produce one complete, formatted report, whichever tab is open: cover, overall health, key numbers (every tile), the Fix first plan, root causes, every finding with evidence, steps, SQL and numbered documentation citations, all charts, top SQL, the list of referenced Oracle documentation and the report facts, with the application version on the cover and in the page footer. **Save PDF** writes it as a PDF file (A4, page numbers) without going through a print dialog.
 - **Exports**: a self-contained interactive HTML dashboard, JSON, a SQL script and the PDF report.
 - **Installer and portable zip**: an MSI (per user only, no administrator rights needed, in-place upgrades, and an uninstall that removes everything it put on the machine, settings included) and a portable zip with the CLI in the `cli` folder, both self-contained (no .NET install). SHA-256 checksums are published with every release. The files are not code-signed yet, so Windows SmartScreen may warn.
 
 ### Privacy and security
-- **No network access of any kind**: no database connection, no telemetry, no update check, no CDN, fonts or external scripts. Your reports and outputs stay on your computer.
+- **No network connection from the application's own processes** (from 1.1.1): no database connection, no telemetry, no update check, no CDN, fonts or external scripts. The Microsoft WebView2 Runtime that draws the window is started with its background network features switched off. Documentation links open in your default web browser when you click them. Your reports and outputs stay on your computer. The 1.1.1 notes say how this was checked and what the limits are.
 - Reports are treated as untrusted input: scripts are removed, the report is shown in a sandboxed frame under a strict Content Security Policy, navigation is blocked and all report-derived text is escaped.
 - Exported files can contain sensitive names (hosts, schemas, SQL text): review them before sharing.
 
@@ -44,6 +44,56 @@ Free software under **AGPL-3.0-only**, no warranty. The name and logo are not co
 ## Release history
 
 **Version 1.0.7 is the first official public release of Apodofos Report Analyzer.** Versions 1.0.0 to 1.0.6 were test builds, published on 2026-11-19 and 2026-11-20 while the product was being finalised. They are kept for the record, are marked as pre-releases on GitHub, and should not be used: install 1.0.7 or later.
+
+### 1.1.1 (2026-11-26), privacy and safety fixes
+**A privacy fix, and a correction of what we said before. Please update.**
+
+We stated that 1.1.0 had no network access. For the desktop application that was not true. The application's window is drawn by the Microsoft Edge WebView2 Runtime, a Microsoft component, and the application started it with its default settings. With those settings the runtime contacted Microsoft services on its own. We saw this when we measured 1.1.0, built from its source code, on a test computer. The 1.0.x versions start the runtime in the same way; this is based on their source code only, they were not measured. The command line tool does not use this component.
+
+**What was contacted by 1.1.0:**
+- Microsoft's configuration service (`config.edge.skype.com`), when the application started with a new WebView2 profile.
+- Microsoft's component update service (`edge.microsoft.com`), from about one minute after the start. Downloads from `msedge.b.tlu.dl.delivery.mp.microsoft.com`, over unencrypted HTTP, were also seen.
+- A name look-up used to discover a proxy automatically (`wpad`).
+- Once the application had been used before: encrypted connections to addresses in Microsoft 365's network, a few seconds after the start, opened by the runtime's Windows account sign-in component.
+
+**What was sent, as far as it could be read:**
+- To the configuration service: an identifier (it was the same in every new profile on the test computer), the Windows version and processor type, an installation date, the runtime's version and release channel, and a few flags.
+- To the component update service: the Windows version, processor features, memory size, a flag saying whether the computer belongs to a domain, the versions of the runtime and of Microsoft's updater, random request identifiers and a list of runtime components.
+- In these readable requests we found no report content, report file name, database name, host name, Windows user name, file path or cookie.
+- **The sign-in connection could not be read** because it is encrypted outside the part of the runtime that can be logged, so we cannot say what it carried. We found no account details saved in the application's WebView2 profile.
+
+**What 1.1.1 changes:**
+- The application now starts the runtime with its configuration service, component updates, Windows account sign-in, use of a proxy and look-up of internet host names switched off. It also asks the runtime not to send crash reports to Microsoft and not to check addresses with Microsoft Defender SmartScreen (the application only shows its own built-in page).
+- Documentation links still open in your default web browser when you click them, and your browser then connects to the Oracle documentation site.
+- Reports, analysis, exports, printing and your settings work as before.
+- The source repository has a new script, `tools/check-network.ps1`, that repeats the network measurement on a built application.
+
+**New in 1.1.1:**
+- **The Oracle documentation behind an analysis is listed in one place.** The saved HTML page, the desktop view (end of the Summary tab, also reachable from the Documentation tab) and the print and PDF report have a section "Oracle documentation referenced by this analysis": each related official Oracle documentation page once, numbered, with its link and the findings that cite it. Findings show the same numbers, and the links can be clicked in the PDF. These pages are for checking and further reading: not every threshold or recommendation comes from Oracle documentation. Opening a link needs internet access in your web browser; the application fetches nothing.
+- **Printed and PDF reports always state the version.** Printing a saved HTML page left the version out of the cover and the closing note. The version of the analysis is now used there and in the About box of a saved page, and it also appears in the footer of every printed page.
+
+**Also fixed in 1.1.1 (robustness and safety when reading report files):**
+- A damaged HTML file with extremely deeply nested markup is now refused with a message instead of closing the program.
+- Names read from a report are now checked and escaped before they are placed in the suggested SQL. A value that does not look like a valid name, SQL ID or number is replaced by a `&variable` for you to fill in.
+- The security policy of the displayed and exported report is now always placed at the very start of the document, whatever the report's own markup looks like.
+- A report with an absurdly large number in one cell now opens: that cell is treated as not a number.
+- Damaged ASH reports with blank cells in the session, object or file sections no longer cause those checks to be skipped.
+- Small corrections to the documentation and to the command line help.
+- If another version of the program is still running, the application now asks you to close it instead of saying that the WebView2 Runtime is missing.
+
+**Important installer fix: uninstalling no longer deletes a folder you chose.**
+- If 1.1.0 or an earlier version was installed into a folder of your own (the `INSTALLFOLDER` option on the command line), **uninstalling that version deletes the whole folder, including your own files.** Do not uninstall it: upgrade to 1.1.1 first, which keeps your files.
+- 1.1.1 removes only the files it installed, plus its own default folder. A normal installation made with the setup wizard uses the default folder.
+
+**How it was checked:** on one Windows 11 computer with WebView2 Runtime 158, we watched the network connections of the application and of its runtime processes and read the runtime's network log. We used new profiles and previously used ones, including profiles written by the earlier configuration, with and without a synthetic report open, in runs of 8 to 25 minutes plus shorter functional checks. With the change, no network connection and no network request from these processes was observed. Version 1.1.0, started at the same time on a copy of the same used profile, did connect. A 1.1.1 test build also passed `tools/check-network.ps1` (a new profile, then the same profile again, 10 minutes each), and 1.1.0 failed the same script. Opening a report, Save PDF, Save HTML, the print preview and a documentation link were checked. These measurements were made on test builds of this change.
+
+**Limits and known issues:**
+- Tested on one Windows 11 (x64) computer only, for up to 25 minutes per run. Not tested: Windows 10, ARM64, a computer behind a proxy, Entra-joined or domain-joined computers, and a copy installed with the MSI.
+- The setting that stops the sign-in connection is internal to Microsoft's runtime and is not documented by Microsoft. Windows updates the runtime automatically, and a later version could behave differently.
+- An administrator policy or an environment variable on your computer can add settings to the runtime and undo this change.
+- This concerns the application's own processes. Windows and other Microsoft programs (for example the updater of the runtime, certificate checks, SmartScreen checks of downloaded files and Windows diagnostic data) are separate and follow your Windows settings.
+- Close any older version before you start 1.1.1. Two different versions cannot run at the same time with the same settings folder: the second one then reports, wrongly, that the WebView2 Runtime is missing.
+- The files are still not code-signed, so Windows SmartScreen may warn.
 
 ### 1.1.0 (2026-11-25), the product name everywhere
 - **One consistent name: Apodofos Report Analyzer.** "Apodofos" is the brand; the application is "Apodofos Report Analyzer" in the window, the installer, the shortcuts, the command line and the documentation. The program file is now `ApodofosReportAnalyzer.exe` and the command line tool is `apodofos-report` (the old command `apodofos` keeps working through a small forwarding file, so existing scripts are not broken).
