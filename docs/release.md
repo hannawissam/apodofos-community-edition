@@ -92,6 +92,13 @@ Get-FileHash -Algorithm SHA256 .\Apodofos-ReportAnalyzer-Setup-<version>-win-x64
 
 > The test records below are history: they describe the 1.0.x file names and folders (`Apodofos.exe`, `apodofos.exe`, `Programs\Apodofos`). 1.1.0 renamed them (see above and `RELEASE-NOTES.md`).
 
+## Network check on the final 1.1.1 files (26 Nov 2026, Windows 11 Enterprise 10.0.26300 x64, WebView2 Runtime 158.0.4370.45, non-elevated user)
+
+* `tools/check-network.ps1`, synthetic report, 600 s per run, on `ApodofosReportAnalyzer.exe` from `Apodofos-ReportAnalyzer-Portable-1.1.1-win-x64.zip` (SHA-256 `8cfe00e4e5c683dc56b1694d627149f32a02f8f21b3d4eb5451bdac622a9b2cf`, commit 5e667f6): **PASS** (new and used profile: no connection leaving the machine, no UDP socket, no request and no host look-up in the network log).
+* Control, the released 1.1.0 portable, 150 s per run: **FAIL**, as it must (new profile: 8 connections, 2 UDP sockets, 10 requests including the configuration and component update services, 4 host look-ups; used profile: 2 connections, 1 request to the component update service, 2 look-ups).
+* The same 1.1.1 portable, driven by script: file drag and drop, Save HTML, Save PDF (footer 1.1.1, documentation list), and window position and recent list kept from the 1.1.0 portable: pass.
+* Not verified: the MSI-installed copy (its files are byte-identical to the portable ones), installing, upgrading and uninstalling the final MSI, Print, documentation links, Windows 10, ARM64, a computer behind a proxy, Entra-joined or domain-joined computers.
+
 ## Network check on a 1.1.1 test build (26 Nov 2026, Windows 11 x64, WebView2 Runtime 158.0.4370.45, non-elevated user)
 
 * `tools/check-network.ps1` with a synthetic report, 600 s per run, on a build of the 1.1.1 sources in which only the settings folder was redirected: **PASS** (new and used profile: no connection leaving the machine, no UDP socket, no request and no host look-up in the network log).
