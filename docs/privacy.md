@@ -35,8 +35,9 @@ The application writes the following, only on your computer, under `%LOCALAPPDAT
   display preferences in it (light or dark theme, position of the divider between the report and the analysis).
 
 Report contents are not copied into these files. The application keeps no other copy of your reports, and the analysis is held
-in memory only while the application is open. However, if the WebView2 Runtime crashed, a crash dump stored locally in its profile
-folder might contain parts of that memory, including report content (not tested).
+in memory only while the application is open. If the WebView2 Runtime crashes, it may save a crash file in the application's
+settings folder on your computer, and that file may contain parts of a report. To remove it, close the application and delete
+the folder `%LOCALAPPDATA%\Apodofos\ReportAnalyzer\EBWebView`.
 
 To remove this data: click **Clear list** on the start screen to empty the recent-reports list (the "x" next to an entry
 removes one entry), or close the application and delete the folder `%LOCALAPPDATA%\Apodofos\ReportAnalyzer`. Uninstalling the
@@ -58,8 +59,8 @@ With its default settings the runtime contacts Microsoft on its own. **From vers
 following switched off: its configuration service, component updates, Windows account sign-in, the use of a proxy and the
 look-up of internet host names. It also asks the runtime not to send crash reports to Microsoft and not to check addresses
 with Microsoft Defender SmartScreen. In our tests (one Windows 11 computer, WebView2 Runtime 158, new and previously used
-profiles, runs of up to 25 minutes) no network connection from the application or its runtime processes was observed. The
-crash report setting was not tested.
+profiles, runs of up to 25 minutes) no network connection from the application or its runtime processes was observed. For
+crash reports, we rely on Microsoft's documented behaviour of this setting.
 
 The limits of this:
 * The setting that switches off the sign-in component is internal to the runtime and is not documented by Microsoft. A later
