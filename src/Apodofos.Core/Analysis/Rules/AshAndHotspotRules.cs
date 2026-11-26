@@ -155,7 +155,7 @@ public sealed class AshCorrelationRules : IRule
                 Technical = $"Top SQL with Top Events (ASH): plan hash {r.Str("Plan Hash")}, {r.Str("Executions")} executions, top row source '{r.Str("Top Row Source")}'.",
                 Evidence = [new("SQL Id", g.Key), new("Main event", r.Str("Event"), $"{r.Str("% Event")}%"), new("SQL text", text.Length > 400 ? text[..400] + " ..." : text)],
                 Recommendations = ["Review the execution plan (DBMS_XPLAN.DISPLAY_AWR) and run the SQL Tuning Advisor on this statement."],
-                Sql = [new("Execution plan from AWR", $"SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_AWR(sql_id => '{g.Key}', format => 'TYPICAL +PEEKED_BINDS'));")],
+                Sql = [new("Execution plan from AWR", $"SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_AWR(sql_id => '{SqlSafe.SqlId(g.Key)}', format => 'TYPICAL +PEEKED_BINDS'));")],
                 Docs = [D.SqlTuningAdvisor, D.DbmsXplan],
                 SourceViews = ["DBA_HIST_ACTIVE_SESS_HISTORY", "DBA_HIST_SQL_PLAN"],
                 TableRefs = [t.Id]
@@ -224,7 +224,7 @@ public sealed class HotspotRules : IRule
             ],
             Sql =
             [
-                new($"Statements that reference {first.Str("Object Name")} and their buffer gets (AWR)", $"SELECT p.sql_id, p.operation, p.options, SUM(s.buffer_gets_delta) AS buffer_gets, SUM(s.executions_delta) AS executions\nFROM   dba_hist_sql_plan p\n       JOIN dba_hist_sqlstat s ON s.sql_id = p.sql_id AND s.plan_hash_value = p.plan_hash_value AND s.dbid = p.dbid\nWHERE  p.object_owner = '{first.Str("Owner")}' AND p.object_name = '{first.Str("Object Name")}'\nAND    s.snap_id BETWEEN &begin_snap AND &end_snap\nGROUP  BY p.sql_id, p.operation, p.options\nORDER  BY buffer_gets DESC;", "In a CDB run this inside the PDB that owns the object. Add FETCH FIRST 10 ROWS ONLY (12c and later) to limit the output.")
+                new($"Statements that reference {first.Str("Object Name")} and their buffer gets (AWR)", $"SELECT p.sql_id, p.operation, p.options, SUM(s.buffer_gets_delta) AS buffer_gets, SUM(s.executions_delta) AS executions\nFROM   dba_hist_sql_plan p\n       JOIN dba_hist_sqlstat s ON s.sql_id = p.sql_id AND s.plan_hash_value = p.plan_hash_value AND s.dbid = p.dbid\nWHERE  p.object_owner = '{SqlSafe.Literal(first.Str("Owner"))}' AND p.object_name = '{SqlSafe.Literal(first.Str("Object Name"))}'\nAND    s.snap_id BETWEEN &begin_snap AND &end_snap\nGROUP  BY p.sql_id, p.operation, p.options\nORDER  BY buffer_gets DESC;", "In a CDB run this inside the PDB that owns the object. Add FETCH FIRST 10 ROWS ONLY (12c and later) to limit the output.")
             ],
             Docs = [D.AccessPaths, D.ReadingPlans, D.InstanceTuning],
             SourceViews = ["DBA_HIST_SEG_STAT", "DBA_HIST_SQLSTAT", "DBA_HIST_SQL_PLAN"],

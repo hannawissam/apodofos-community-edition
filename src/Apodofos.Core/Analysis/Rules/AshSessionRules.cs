@@ -38,6 +38,7 @@ public sealed class AshSessionRules : IRule
         var t = T(ctx, "Top Service/Module");
         if (t == null || t.Rows.Count == 0) return;
         var rows = Distinct(t, "Service", "Module").OrderByDescending(r => r.Val("% Activity") ?? 0).ToList();
+        if (rows.Count == 0) return; // damaged table: the key cells are blank
         var top = rows[0];
         var pct = top.Val("% Activity") ?? 0;
         if (pct < 40) return;
@@ -100,7 +101,7 @@ public sealed class AshSessionRules : IRule
             Technical = $"Top Sessions: {sid}, user {first.Str("User")}, program {program}; events {string.Join(", ", events)}; {first.Str("# Samples Active")} samples active.",
             Evidence = [new("Session (SID,SERIAL#)", sid), new("User", first.Str("User")), new("Program", program), new("Events", string.Join(", ", events))],
             Recommendations = ["Identify the job or user behind the session and review its SQL (see the SQL findings).", "If it is a batch job, check whether it can run at a quieter time or be split."],
-            Sql = [new("What this session did in the window (ASH)", Limit(ctx, $"SELECT sql_id, event, session_state, {Weight(ctx)} AS approx_db_seconds\nFROM   {View(ctx)}\nWHERE  {Window(ctx)} AND session_id = {SessionKey(sid)}\nGROUP  BY sql_id, event, session_state\nORDER  BY approx_db_seconds DESC", 10), HistoryCaution)],
+            Sql = [new("What this session did in the window (ASH)", Limit(ctx, $"SELECT sql_id, event, session_state, {Weight(ctx)} AS approx_db_seconds\nFROM   {View(ctx)}\nWHERE  {Window(ctx)} AND session_id = {SqlSafe.Digits(SessionKey(sid), "session_id")}\nGROUP  BY sql_id, event, session_state\nORDER  BY approx_db_seconds DESC", 10), HistoryCaution)],
             Docs = [D.Transient], SourceViews = ["V$ACTIVE_SESSION_HISTORY"], TableRefs = [t.Id]
         });
     }
@@ -216,6 +217,7 @@ public sealed class AshSessionRules : IRule
         var t = T(ctx, "Top DB Objects");
         if (t == null || t.Rows.Count == 0) return;
         var rows = Distinct(t, "Object ID").OrderByDescending(r => r.Val("% Activity") ?? 0).ToList();
+        if (rows.Count == 0) return; // damaged table: the key cells are blank
         var top = rows[0];
         var pct = top.Val("% Activity") ?? 0;
         if (pct < 10) return;
@@ -230,7 +232,7 @@ public sealed class AshSessionRules : IRule
             Technical = $"Top DB Objects (Application, Cluster, User I/O and buffer busy waits only): object id {top.Str("Object ID")} {name} in tablespace {top.Str("Tablespace")}; events {string.Join(", ", events)}.",
             Evidence = rows.Take(5).Select(r => new Evidence(r.Str("Object Name (Type)", "Object Name"), r.Str("% Activity") + "%", r.Str("Tablespace"))).ToList(),
             Recommendations = ["Find the SQL that touches the object (Top SQL) and check for full scans or a missing index.", "For hot-block contention consider partitioning, reverse-key indexes, a larger sequence cache or a smaller block fill."],
-            Sql = [new("SQL that waited on this object (ASH)", Limit(ctx, $"SELECT sql_id, event, {Weight(ctx)} AS approx_db_seconds\nFROM   {View(ctx)}\nWHERE  {Window(ctx)} AND current_obj# = {Regex.Replace(top.Str("Object ID"), "[^0-9]", "")}\nGROUP  BY sql_id, event\nORDER  BY approx_db_seconds DESC", 10), HistoryCaution)],
+            Sql = [new("SQL that waited on this object (ASH)", Limit(ctx, $"SELECT sql_id, event, {Weight(ctx)} AS approx_db_seconds\nFROM   {View(ctx)}\nWHERE  {Window(ctx)} AND current_obj# = {SqlSafe.Digits(Regex.Replace(top.Str("Object ID"), "[^0-9]", ""), "object_id")}\nGROUP  BY sql_id, event\nORDER  BY approx_db_seconds DESC", 10), HistoryCaution)],
             Docs = [D.Transient, D.SchemaSpace, D.Indexes], SourceViews = ["V$ACTIVE_SESSION_HISTORY", "DBA_OBJECTS"], ChartRefs = ["ash-top-objects"], TableRefs = [t.Id]
         });
     }
@@ -240,6 +242,7 @@ public sealed class AshSessionRules : IRule
         var t = T(ctx, "Top DB Files");
         if (t == null || t.Rows.Count == 0) return;
         var rows = Distinct(t, "File ID").OrderByDescending(r => r.Val("% Activity") ?? 0).ToList();
+        if (rows.Count == 0) return; // damaged table: the key cells are blank
         var top = rows[0];
         var pct = top.Val("% Activity") ?? 0;
         if (pct < 20) return;

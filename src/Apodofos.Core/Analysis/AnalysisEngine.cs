@@ -15,7 +15,21 @@ namespace Apodofos.Core.Analysis;
 /// </summary>
 public static class AnalysisEngine
 {
-    public static string Version => typeof(AnalysisEngine).Assembly.GetName().Version?.ToString(3) ?? "2.0.0";
+    /// <summary>
+    /// The version this assembly was built with (Directory.Build.props), without build metadata. Printed on reports, so there is
+    /// no made-up fallback: empty when it cannot be read.
+    /// </summary>
+    public static string Version { get; } = ReadVersion();
+
+    private static string ReadVersion()
+    {
+        var asm = typeof(AnalysisEngine).Assembly;
+        var v = asm.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+            .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().FirstOrDefault()?.InformationalVersion
+            ?? asm.GetName().Version?.ToString(3) ?? "";
+        var plus = v.IndexOf('+', StringComparison.Ordinal);
+        return plus > 0 ? v[..plus] : v;
+    }
 
     private static readonly Type[] RuleOrder =
     [
@@ -64,6 +78,7 @@ public static class AnalysisEngine
             .ThenByDescending(f => f.Impact)
             .ToList();
         for (var i = 0; i < findings.Count; i++) findings[i].Id = $"F{i + 1:000}";
+        foreach (var f in findings) KeepOnOneLine(f);
 
         var charts = ChartBuilder.Build(ctx);
         var chartIds = charts.Select(c => c.Id).ToHashSet();
@@ -99,6 +114,13 @@ public static class AnalysisEngine
         };
     }
 
+    /// <summary>Titles and cautions become "--" comments in the SQL script: report text in them must not start a new line.</summary>
+    private static void KeepOnOneLine(Finding f)
+    {
+        f.Title = SqlSafe.OneLine(f.Title);
+        f.Sql = f.Sql.Select(s => s with { Title = SqlSafe.OneLine(s.Title), Caution = s.Caution is null ? null : SqlSafe.OneLine(s.Caution) }).ToList();
+    }
+
     /// <summary>A score from a 3-minute window, a truncated file or misread numbers is shown as "not reliable", never as a grade.</summary>
     private static void ApplyReliability(HealthSummary health, DataQualityReport quality)
     {
@@ -115,9 +137,9 @@ public static class AnalysisEngine
         SourceFile = Path.GetFileName(r.SourcePath),
         ReportType = r.Kind switch { ReportKind.Ash => "ASH", ReportKind.Statspack => "Statspack", _ => "AWR" },
         Format = r.Format.ToString(),
-        DbName = r.Info.DbName,
+        DbName = SqlSafe.OneLine(r.Info.DbName),
         DbId = r.Info.DbId,
-        Instance = r.Info.InstanceName,
+        Instance = SqlSafe.OneLine(r.Info.InstanceName),
         Release = r.Info.Release,
         Host = r.Info.HostName,
         Platform = r.Info.Platform,
@@ -126,10 +148,10 @@ public static class AnalysisEngine
         MemoryGb = r.Info.MemoryGb,
         Rac = r.Info.IsRac,
         Cdb = r.Info.IsCdb,
-        BeginSnap = r.Info.BeginSnapId,
-        EndSnap = r.Info.EndSnapId,
-        BeginTime = r.Info.BeginSnapTime,
-        EndTime = r.Info.EndSnapTime,
+        BeginSnap = SqlSafe.OneLine(r.Info.BeginSnapId),
+        EndSnap = SqlSafe.OneLine(r.Info.EndSnapId),
+        BeginTime = SqlSafe.OneLine(r.Info.BeginSnapTime),
+        EndTime = SqlSafe.OneLine(r.Info.EndSnapTime),
         ElapsedMinutes = r.Info.ElapsedMinutes,
         DbTimeMinutes = r.Info.DbTimeMinutes,
         AverageActiveSessions = r.Info.AverageActiveSessions,

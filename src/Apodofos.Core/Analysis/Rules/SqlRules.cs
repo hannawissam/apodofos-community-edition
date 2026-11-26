@@ -103,7 +103,7 @@ public sealed class SqlRules : IRule
             recs.Add("Verify that optimizer statistics on the tables involved are current.");
             if (!isPlsql) recs.Add("If query 2 shows an earlier, faster plan_hash_value, fix it with a SQL plan baseline (SQL Plan Management).");
 
-            var taskName = $"TUNE_{sqlId}";
+            var taskName = $"TUNE_{SqlSafe.SqlId(sqlId)}";
             var neverFinished = execs is null or 0;
             var parallelNote = elapsed is > 0 && ctx.ElapsedSec is > 0 && elapsed > ctx.ElapsedSec * 1.05
                 ? $" Its elapsed time ({Dur(elapsed)}) is longer than the {Dur(ctx.ElapsedSec)} of the report because the time of every parallel-query process or session running it is added up."
@@ -150,8 +150,9 @@ public sealed class SqlRules : IRule
         }
     }
 
-    private static List<SqlSnippet> BuildSql(AnalysisContext ctx, string sqlId, string module, bool isPlsql, string taskName)
+    private static List<SqlSnippet> BuildSql(AnalysisContext ctx, string reportSqlId, string module, bool isPlsql, string taskName)
     {
+        var sqlId = SqlSafe.SqlId(reportSqlId);
         var history = new SqlSnippet("2. Plan and performance history across snapshots", $"""
                         SELECT s.snap_id,
                                TO_CHAR(s.end_interval_time, 'YYYY-MM-DD HH24:MI') AS snap_end,
@@ -178,7 +179,7 @@ public sealed class SqlRules : IRule
                                       SUM(q.buffer_gets_delta)               AS buffer_gets
                                FROM   dba_hist_sqlstat q
                                WHERE  q.snap_id BETWEEN &begin_snap AND &end_snap
-                               AND    q.module = '{module.Replace("'", "''")}'
+                               AND    q.module = '{SqlSafe.Literal(module)}'
                                GROUP  BY q.sql_id
                                ORDER  BY elapsed_s DESC)
                         WHERE ROWNUM <= 10;
@@ -268,7 +269,7 @@ public sealed class SqlRules : IRule
             Technical = "High version counts are caused by bind mismatches, optimizer environment differences, adaptive cursor sharing, or bugs. V$SQL_SHARED_CURSOR shows the reason per child.",
             Evidence = high.Select(r => new Evidence(r.Str("SQL Id"), r.Str("Version Count") + " versions", r.Str("SQL Text"))).ToList(),
             Recommendations = ["Query V$SQL_SHARED_CURSOR for these SQL_IDs to see why child cursors are not shared.", "Check application bind types/lengths and session-level optimizer settings."],
-            Sql = [new("Why cursors are not shared", $"SELECT * FROM v$sql_shared_cursor WHERE sql_id = '{high[0].Str("SQL Id")}';")],
+            Sql = [new("Why cursors are not shared", $"SELECT * FROM v$sql_shared_cursor WHERE sql_id = '{SqlSafe.SqlId(high[0].Str("SQL Id"))}';")],
             Docs = [D.CursorSharing, D.SharedPool],
             SourceViews = ["DBA_HIST_SQLSTAT (version_count)"],
             TableRefs = [t.Id]

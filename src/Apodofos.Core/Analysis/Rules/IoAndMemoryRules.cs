@@ -204,6 +204,17 @@ public sealed class IoAndMemoryRules : IRule
         }
     }
 
+    /// <summary>The advised size for ALTER SYSTEM ("2048M"): only digits from the report, else a substitution variable.</summary>
+    private static string PgaSize(AwrRow? best)
+    {
+        if (best is not { } row) return "&new_size";
+        var mb = row.Str("PGA Target Est (MB)").Replace(",", "", StringComparison.Ordinal);
+        if (mb.Length == 0 || !mb.All(char.IsAsciiDigit)) // other number layouts ("2.048")
+            mb = row.Num("PGA Target Est (MB)") is { } v && v is >= 1 and < 1e12 && v == Math.Floor(v)
+                ? v.ToString("0", System.Globalization.CultureInfo.InvariantCulture) : "";
+        return mb.Length > 0 ? mb + "M" : "&new_size";
+    }
+
     private static void PgaAdvisory(AnalysisContext ctx)
     {
         var summary = ctx.Report.Table("PGA Aggr Summary");
@@ -241,7 +252,7 @@ public sealed class IoAndMemoryRules : IRule
                     new("Estimated hit % at 2x target", P(twiceHit))
                 ],
                 Recommendations = ["Increase PGA_AGGREGATE_TARGET to at least the smallest size the PGA Memory Advisory shows without over-allocation, provided host memory allows.", "Keep PGA_AGGREGATE_LIMIT comfortably above the target (default: max(2 GB, 2x target, 3 MB x PROCESSES))."],
-                Sql = [new("Resize PGA (example)", $"ALTER SYSTEM SET pga_aggregate_target = {(best is { } bb ? bb.Str("PGA Target Est (MB)").Replace(",", "") + "M" : "&new_size")} SCOPE = BOTH;")],
+                Sql = [new("Resize PGA (example)", $"ALTER SYSTEM SET pga_aggregate_target = {PgaSize(best)} SCOPE = BOTH;")],
                 Docs = [D.Pga, D.Parameter("PGA_AGGREGATE_TARGET"), D.Parameter("PGA_AGGREGATE_LIMIT")],
                 SourceViews = ["DBA_HIST_PGASTAT", "DBA_HIST_PGA_TARGET_ADVICE"],
                 TableRefs = new[] { summary?.Id, adv?.Id, hist?.Id }.OfType<string>().ToList(),

@@ -216,11 +216,11 @@ public sealed class AshEventRules : IRule
             else if (ev.Contains("cursor: pin", StringComparison.OrdinalIgnoreCase) && vals.Count > 0)
             {
                 note = $"cursor hash value {vals[0]}";
-                sql.Add(new("Which statement has this cursor hash value", $"SELECT sql_id, hash_value, SUBSTR(sql_text, 1, 100) AS sql_text FROM v$sqlarea WHERE hash_value = {Regex.Replace(vals[0], "[^0-9]", "")};"));
+                sql.Add(new("Which statement has this cursor hash value", $"SELECT sql_id, hash_value, SUBSTR(sql_text, 1, 100) AS sql_text FROM v$sqlarea WHERE hash_value = {SqlSafe.Digits(Regex.Replace(vals[0], "[^0-9]", ""), "hash_value")};"));
             }
             else if ((ev.Contains("buffer busy") || ev.Contains("read by other session")) && vals.Count > 2 && long.TryParse(vals[2], out var cls))
                 note = $"block class: {BlockClass(cls)}";
-            if (names[0].StartsWith("file", StringComparison.OrdinalIgnoreCase) && pct >= bestPct && int.TryParse(vals[0], out _)) { hotFile = vals[0]; bestPct = pct; }
+            if (names[0].StartsWith("file", StringComparison.OrdinalIgnoreCase) && pct >= bestPct && int.TryParse(vals[0], out var file) && file >= 0) { hotFile = file.ToString(System.Globalization.CultureInfo.InvariantCulture); bestPct = pct; }
             evidence.Add(new Evidence($"{ev} ({N(r.Val("% Event"), 1)}% of activity)", decoded, note.Length > 0 ? note : null));
         }
         if (evidence.Count == 0) return;
