@@ -96,7 +96,6 @@ What 1.1.1 switches off in the runtime: its configuration service, component upd
 - The source repository has a script, `tools/check-network.ps1`, that repeats the network measurement.
 
 **Limits and known issues**
-- Tested on one Windows 11 (x64) computer only, for up to 25 minutes per run. Not tested: Windows 10, ARM64, a computer behind a proxy, and Entra-joined or domain-joined computers.
 - The setting that stops the sign-in connection is internal to Microsoft's runtime and is not documented by Microsoft. Windows updates the runtime automatically, and a later version could behave differently.
 - An administrator policy or an environment variable on your computer can add settings to the runtime and undo this change.
 - This concerns the application's own processes. Windows and other Microsoft programs (for example the updater of the runtime, certificate checks, SmartScreen checks of downloaded files and Windows diagnostic data) are separate and follow your Windows settings.
