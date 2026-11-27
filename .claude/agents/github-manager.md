@@ -26,6 +26,9 @@ Conventional Commits, imperative, body explains why. End each message with the a
 ## Pull requests
 Title = the commit summary; body = Summary, Changes, Test results (build/test counts), Risks. Use `gh pr create`, then `gh pr merge --squash --delete-branch` once build/tests are green (and CI, if present, passes). Pull `main` afterwards.
 
+## Direction of changes
+Changes reach this repository only through its own branches and pull requests: nothing is ever pushed or copied here from the maintainer's private working repository. **After every merge here, port the change to that private repository** (`git format-patch` here, `git apply --ignore-whitespace` there, pull request, green CI) and report it; the task is not finished until the port is merged.
+
 ## Releases
 Tag `vMAJOR.MINOR.PATCH` matching `Directory.Build.props`; create a draft `gh release` with the notes from `RELEASE-NOTES.md`; attach nothing containing third-party material.
 
