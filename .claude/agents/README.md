@@ -18,8 +18,6 @@ The main agent acts as Chief Architect: it plans, splits work, owns contracts (`
 
 Platforms: Windows and Linux first, macOS at a later stage (one shared platform layer). When the Mac stage starts, add a `macos-developer` agent and a macOS CI job; keep shared projects free of anything that would block it.
 
-GitHub Copilot: each agent here is mirrored to `.github/agents/<name>.agent.md` (custom agents for Copilot in VS Code, the CLI and the cloud agent) by `pwsh tools/sync-copilot-agents.ps1`. These `.claude/agents` files stay the source of truth; never edit the generated copies, re-run the script after any change (`-Check` verifies). Repository-wide Copilot instructions are in `.github/copilot-instructions.md` (Copilot also reads `AGENTS.md`).
-
 ## Parallel playbook
 
 1. Chief Architect writes the plan and any contract change first (`docs/ui-contract.md`, `IHostPlatform` shape).
