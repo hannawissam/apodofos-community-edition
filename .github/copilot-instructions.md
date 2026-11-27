@@ -25,5 +25,8 @@ Offline Oracle report analyzer for **AWR, ASH and Statspack** reports (HTML or t
 ## Git and GitHub
 Use the `github-manager` agent for all versioning: topic branch, Conventional Commits with the Co-authored-by trailer, PR with squash merge once build and tests are green. Check `.github/PULL_REQUEST_TEMPLATE.md` before writing a PR body.
 
+- Changes reach this repository only through its own branches and pull requests. Nothing is ever pushed or copied here from the maintainer's private working repository.
+- **Every fix or change merged here must then be ported to the maintainer's private working repository** (`git format-patch` here, `git apply --ignore-whitespace` there, pull request, green CI). The task is not finished until that port is merged.
+
 ## Claude Code compatibility
 `.claude/agents/*.md`, `CLAUDE.md` and `AGENTS.md` remain in place. `.github/agents/*.agent.md` is generated from `.claude/agents` by `pwsh tools/sync-copilot-agents.ps1`: edit the Claude source, never the generated copy.
